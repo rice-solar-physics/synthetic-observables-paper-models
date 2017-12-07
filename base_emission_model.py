@@ -7,13 +7,14 @@ from synthesizAR.atomic import EmissionModel, Element, list_elements
 temperature = 10.**(np.arange(4.5,8,0.05))*u.K
 density = np.logspace(7,11,15)/(u.cm**3)
 # Include all ions in CHIANTI
-ions = [Element(el, temperature, ion_kwargs={'abundance_filename':'sun_coronal_1992_feldman'}) 
-        for el in list_elements()]
+selected_elements = ['calcium','iron','magnesium','nickel','oxygen','silicon','sulfur']
+ions = [Element(el, temperature, ion_kwargs={'abundance_filename': 'sun_coronal_1992_feldman'}) 
+        for el in selected_elements]
 em_model = EmissionModel(density, *ions)
 
 # Calculate emissivity and store in a table
-em_model.calculate_emissivity('/storage-home/w/wtb2/data/timelag_synthesis/emissivity_table.h5',notebook=False)
+em_model.calculate_emissivity('/storage-home/w/wtb2/data/timelag_synthesis/emissivity_table_dominant.h5',notebook=False)
 
 # Save the whole model
-em_model.save('/storage-home/w/wtb2/data/timelag_synthesis/base_emission_model.json')
+em_model.save('/storage-home/w/wtb2/data/timelag_synthesis/base_emission_model_dominant.json')
 
