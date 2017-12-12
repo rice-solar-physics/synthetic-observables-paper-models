@@ -2,6 +2,7 @@
 Class for computing timelags from AIA maps. Uses Dask to compute timelags in each pixel in parallel
 """
 import os
+import warnings
 
 import h5py
 import numpy as np
@@ -122,3 +123,17 @@ class AIATimeLags(object):
         timelag_map = GenericMap(max_timelag,meta_timelag,plot_settings=plot_settings)
         
         return correlation_map,timelag_map
+    
+    @staticmethod
+    def timelag_map(filename):
+        m = Map(filename)
+        if 'timelag' in m.meta['comment']:
+            m.plot_settings.update({'cmap':'RdBu','vmin':self.timelags.value.min(),'vmax':self.timelags.value.max()})
+        elif 'correlation' in m.meta['comment']:
+            m.plot_Settings.update({'cmap':'plasma'})
+        else:
+            warnings.warn('Map does not seem to be either a correlation or timelag map')
+                
+        return m
+        
+        
