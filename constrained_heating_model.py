@@ -3,7 +3,8 @@ Heating model that constrains total flux according to Withbroe and Noyes
 estimates of coronal flux.
 """
 import numpy as np
-
+import astropy.units as u
+import astropy.constants as const
 
 class CustomHeatingModel(object):
     """
@@ -50,9 +51,17 @@ class CustomHeatingModel(object):
         return ((a1**(alpha + 1.) - a0**(alpha + 1.))*x + a0**(alpha + 1.))**(1./(alpha + 1.))
     
     def max_strand_energy(self,loop):
+        """
+        Maximum allowed energy released per event
+        """
         return ((self.heating_options['stress_level']*loop.field_strength.value.max())**2)/8./np.pi
     
-    def constrain_distribution(self, field, iterator_options):
+    def constrain_distribution(self, field, tolerance=1e-2, max_iterations=100, total_ar_flux=1e7, sigma_increase=1e-1,
+                               sigma_decrease=1e-6):
+        """
+        Iteratively adjust the lower-bound on the power-law distribution such that the total flux over all strands and 
+        events is equal to that of some given value, `total_ar_flux`
+        """
         # Initialize quantities
         power_law_distributions = {}
         num_iterations = 0
@@ -62,7 +71,7 @@ class CustomHeatingModel(object):
         lower_bounds = upper_bounds/100.
         
         # Iteratively adjust lower power-law bound
-        while error > iterator_options['tolerance'] and num_iterations < iterator_options['max_iterations']:
+        while error > tolerance and num_iterations < max_iterations:
             weights = np.empty(len(field.loops))
             # Calculate power-law distributions for all loops
             for i,loop in enumerate(field.loops):
@@ -72,22 +81,22 @@ class CustomHeatingModel(object):
                 weights[i] = pl.sum()*loop.full_length.value*cross_sections[i]
             
             # Update error terms
-            phi = weights.sum()/cross_sections.sum()/iterator_options['total_ar_flux']/self.base_config['total_time']
+            phi = weights.sum()/cross_sections.sum()/total_ar_flux/self.base_config['total_time']
             error = np.fabs(1. - 1./phi)
             # Update lower-bounds
-            lower_bounds = np.minimum(np.maximum(lower_bounds + lower_bounds*(1. - phi),
-                                                 iterator_options['delta0']*upper_bounds),
-                                      iterator_options['delta1']*upper_bounds)
+            lower_bounds = np.minimum(np.maximum(lower_bounds + lower_bounds*(1. - phi), sigma_decrease*upper_bounds),
+                                      sigma_increase*upper_bounds)
             num_iterations += 1
             
-        if num_iterations == iterator_options['max_iterations']:
+        if num_iterations == max_iterations:
             warnings.warn('Max number of iterations reached with error {}'.format(error))
         
         self.power_law_distributions = power_law_distributions
     
     def cooling_time(self, loop):
         """
-        Estimate loop cooling time.
+        Estimate loop cooling time. These estimates of the cooling time are derived primarily by those expressions
+        given in the Appendix of Cargill (2014)
         """
         half_length = loop.full_length.value/2.
         average_heating_rate_max = self.max_strand_energy(loop)/(self.heating_options['duration']/2.)#*u.erg/(u.cm**3)/u.s
@@ -117,10 +126,10 @@ class CustomHeatingModel(object):
         footpoint_dist,bin_edges = np.histogramdd(
             footpoints,
             bins = (field.clipped_hmi_map.dimensions.x.value,field.clipped_hmi_map.dimensions.y.value),
-            range = (field._convert_angle_to_length(field.clipped_hmi_map.xrange).value,
-                     field._convert_angle_to_length(field.clipped_hmi_map.yrange).value))
-        area_per_pixel = (field._convert_angle_to_length(field.clipped_hmi_map.scale.x*1*u.pixel)
-                          *field._convert_angle_to_length(field.clipped_hmi_map.scale.y*1*u.pixel)).value
+            range = (field._convert_angle_to_length(field.clipped_hmi_map.xrange.to(u.arcsec)).value,
+                     field._convert_angle_to_length(field.clipped_hmi_map.yrange.to(u.arcsec)).value))
+        area_per_pixel = (field._convert_angle_to_length(field.clipped_hmi_map.scale.axis1*1*u.pixel)
+                          *field._convert_angle_to_length(field.clipped_hmi_map.scale.axis2*1*u.pixel)).value
         ix = np.digitize(footpoints[:,0],bin_edges[0]) - 1
         iy = np.digitize(footpoints[:,1],bin_edges[1]) - 1
         
