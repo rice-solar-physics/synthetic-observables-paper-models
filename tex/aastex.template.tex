@@ -1,0 +1,73 @@
+%% Use AASTeX class, version 6.1
+%% Allow for additional class options such as,
+%%  twocolumn   : two text columns, 10 point font, single spaced article.
+%%                This is the most compact and represent the final published
+%%                derived PDF copy of the accepted manuscript from the publisher
+%%  manuscript  : one text column, 12 point font, double spaced article.
+%%  preprint    : one text column, 12 point font, single spaced article.  
+%%  preprint2   : two text columns, 12 point font, single spaced article.
+%%  modern      : a stylish, single text column, 12 point font, article with
+%% 		            wider left and right margins. This uses the Daniel
+%% 		            Foreman-Mackey and David Hogg design.
+%%  astrosymb    : Loads Astrosymb font and define \astrocommands. 
+%%  tighten      : Makes baselineskip slightly smaller, only works with 
+%%                 the twocolumn substyle.
+%%  times        : uses times font instead of the default
+%%  linenumbers  : turn on lineno package.
+%%  trackchanges : required to see the revision mark up and print its output
+%%  longauthor   : Do not use the more compressed footnote style (default) for 
+%%                 the author/collaboration/affiliations. Instead print all
+%%                 affiliation information after each name. Creates a much
+%%                 long author list but may be desirable for short author papers
+
+\documentclass[$if(fontsize)$$fontsize$,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{aastex61}
+
+%% Custom header includes
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+%% Begin main document body
+\begin{document}
+%% Title block
+\title{$title$}
+
+%% Authors block
+$for(author)$
+\author{$author.name$}
+\affil{$author.affiliation$}
+$endfor$
+
+%% Abstract block
+\begin{abstract}
+$abstract$
+\end{abstract}
+
+%% Keywords
+$if(keywords)$
+\keywords{$for(keywords)$$keywords$$sep$,$endfor$}
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+
+%% Main text
+$body$
+
+$if(bibliography)$
+$if(biblio-title)$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$if(bibliography-style)$
+\bibliographystyle{$bibliography-style$}
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}

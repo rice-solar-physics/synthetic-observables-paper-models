@@ -1,0 +1,8 @@
+import os
+
+env = Environment(ENV=os.environ)
+
+env.Command('paper.tex', 'paper.md',
+'''pandoc $SOURCE -o $TARGET --template=aastex.template.tex'''
+)
+env.PDF('paper.pdf', 'paper.tex')
