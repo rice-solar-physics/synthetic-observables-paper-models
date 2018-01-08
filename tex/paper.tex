@@ -20,54 +20,38 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[$if(fontsize)$$fontsize$,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{aastex61}
+\documentclass[twocolumn]{aastex61}
 
 %% Custom header includes
-$for(header-includes)$
-$header-includes$
-$endfor$
 
 %% Begin main document body
 \begin{document}
 %% Title block
-\title{$title$}
+\title{Timelag Analysis of Simulated Active Region Cores Heated by Nanoflares}
 
 %% Authors block
-$for(author)$
-\author{$author.name$}
-\affil{$author.affiliation$}
-$endfor$
+\author{W. T. Barnes}
+\affil{Rice University}
+\author{S. J. Bradshaw}
+\affil{Rice University}
 
 %% Abstract block
 \begin{abstract}
-$abstract$
+Here is my paper abstract. It is a summary of this paper.
 \end{abstract}
 
 %% Keywords
-$if(keywords)$
-\keywords{$for(keywords)$$keywords$$sep$,$endfor$}
-$endif$
+\keywords{Sun,corona,nanoflares,active regions}
 
-$for(include-before)$
-$include-before$
-
-$endfor$
 
 %% Main text
-$body$
+\section{Introduction}\label{introduction}
 
-$if(bibliography)$
-$if(biblio-title)$
-\renewcommand\refname{$biblio-title$}
-$endif$
-$if(bibliography-style)$
-\bibliographystyle{$bibliography-style$}
-$endif$
-\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
-$endif$
+This is my whole paper. There is not much here. Here's how to cite a
+paper \citet{viall_evidence_2012}. Here's another example of how to cite
+a paper \citep{warren_constraints_2011}.
 
-$for(include-after)$
-$include-after$
+\bibliographystyle{aasjournal.bst}
+\bibliography{references.bib}
 
-$endfor$
 \end{document}
