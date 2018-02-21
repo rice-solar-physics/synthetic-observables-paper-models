@@ -23,17 +23,18 @@ class AIATimeLags(object):
     fits_root_path : str
     """
     
-    def __init__(self, instr, fits_root_path):
+    def __init__(self, instr, fits_root_path, **kwargs):
         self.instr = instr
         self.ff_format = os.path.join(fits_root_path, f'{instr.name}','{channel}','map_t{i_time:06d}.fits')
         delta_t = np.diff(instr.observing_time.value).cumsum()
         self.timelags = np.hstack([-delta_t[::-1],np.array([0]),delta_t])*self.instr.observing_time.unit
-        self.cubes,self.meta_templates = self.load_data()
+        self.cubes,self.meta_templates = self.load_data(**kwargs)
         
     def load_data(self, **kwargs):
         """
         Create data cubes over desired time range for all channels
         """
+        crop = kwargs.get('crop',None)
         cubes = {}
         meta_templates = {}
         with h5py.File(self.instr.counts_file,'r') as hf:
@@ -45,6 +46,8 @@ class AIATimeLags(object):
                 for i,t in enumerate(self.instr.observing_time):
                     i_time = np.where(t == instr_time)[0][0]
                     tmp = Map(self.ff_format.format(channel=channel['name'], i_time=i_time))
+                    if crop is not None:
+                        tmp = tmp.submap(*crop)
                     if cubes[channel['name']] is None:
                         cubes[channel['name']] = np.empty(tmp.data.shape + self.instr.observing_time.shape)
                     cubes[channel['name']][:, :, i] = tmp.data
@@ -96,12 +99,12 @@ class AIATimeLags(object):
         cc = dask.array.fft.irfft(fft_a*fft_b, axis=2, n=self.timelags.shape[0])
         return cc
     
-    def make_timelag_map(self, channel_a, channel_b, correlation_threshold=1.):
+    def make_timelag_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
         """
         Compute map of timelag associated with maximum cross-correlation between
         two channels in each pixel of an AIA map.
         """
-        cc = self.correlation_2d(channel_a,channel_b).compute()
+        cc = self.correlation_2d(channel_a,channel_b, **kwargs).compute()
         max_cc = np.max(cc,axis=2)
         max_timelag = self.timelags[np.argmax(cc,axis=2)]
         max_timelag = np.where(max_cc<correlation_threshold,0,max_timelag)
