@@ -5,6 +5,10 @@ estimates of coronal flux.
 import numpy as np
 import astropy.units as u
 import astropy.constants as const
+from astropy.coordinates import SkyCoord
+from sunpy.coordinates import Helioprojective
+
+from synthesizAR.util import heeq_to_hcc_coord
 
 class CustomHeatingModel(object):
     """
@@ -122,15 +126,22 @@ class CustomHeatingModel(object):
         """
         Estimate loop cross-sectional area
         """
-        footpoints = np.array([loop.coordinates[0,:2].value for loop in field.loops])
-        footpoint_dist,bin_edges = np.histogramdd(
-            footpoints,
-            bins = (field.clipped_hmi_map.dimensions.x.value,field.clipped_hmi_map.dimensions.y.value),
-            range = (field._convert_angle_to_length(field.clipped_hmi_map.xrange.to(u.arcsec)).value,
-                     field._convert_angle_to_length(field.clipped_hmi_map.yrange.to(u.arcsec)).value))
-        area_per_pixel = (field._convert_angle_to_length(field.clipped_hmi_map.scale.axis1*1*u.pixel)
-                          *field._convert_angle_to_length(field.clipped_hmi_map.scale.axis2*1*u.pixel)).value
-        ix = np.digitize(footpoints[:,0],bin_edges[0]) - 1
-        iy = np.digitize(footpoints[:,1],bin_edges[1]) - 1
+        fps = heeq_to_hcc_coord(*u.Quantity([l.coordinates[-1] for l in field.loops]).T,
+                                field.magnetogram.observer_coordinate).transform_to(
+                                    Helioprojective(observer=field.magnetogram.observer_coordinate))
+        range_x = (min(fps.Tx.min().value, field.magnetogram.bottom_left_coord.Tx.value),
+                   max(fps.Tx.max().value, field.magnetogram.top_right_coord.Tx.value))
+        range_y = (min(fps.Ty.min().value, field.magnetogram.bottom_left_coord.Ty.value),
+                   max(fps.Ty.max().value, field.magnetogram.top_right_coord.Ty.value))
+        fp_dist, x_edges, y_edges = np.histogram2d(fps.Tx.value, fps.Ty.value, range=(range_x,range_y),
+                                                   bins=(field.magnetogram.dimensions.x.value,
+                                                         field.magnetogram.dimensions.y.value))
         
-        return (area_per_pixel/footpoint_dist)[ix,iy]
+        d_surface = field.magnetogram.dsun - const.R_sun
+        dx = (1. * u.pixel * field.magnetogram.scale.axis1).to(u.radian).value * d_surface
+        dy = (1. * u.pixel * field.magnetogram.scale.axis2).to(u.radian).value * d_surface
+        ix = np.digitize(fps.Tx.value, x_edges, right=False) - 1
+        iy = np.digitize(fps.Ty.value, y_edges, right=False) - 1
+        
+        return ((dx * dy).to(u.cm**2) / fp_dist[ix,iy]).value
+    
