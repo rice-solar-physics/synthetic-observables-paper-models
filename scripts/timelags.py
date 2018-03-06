@@ -7,7 +7,7 @@ import warnings
 import h5py
 import numpy as np
 import dask.array
-from sunpy.map import Map,GenericMap
+from sunpy.map import Map, GenericMap
 from sunpy.util.metadata import MetaDict
 from astropy.coordinates import SkyCoord
 import astropy.units as u
@@ -17,20 +17,22 @@ from astropy.utils.console import ProgressBar
 class AIATimeLags(object):
     """
     Compute AIA timelag maps from many synthesized AIA observations
-    
+
     Parameters
     ----------
     instr : synthesizAR.instruments.InstrumentSDOAIA
     fits_root_path : str
     """
-    
+
     def __init__(self, instr, hdf5_filename, fits_root_path=None, **kwargs):
         self.instr = instr
         delta_t = np.diff(instr.observing_time.value).cumsum()
-        self.timelags = np.hstack([-delta_t[::-1],np.array([0]),delta_t])*self.instr.observing_time.unit
+        self.timelags = (np.hstack([-delta_t[::-1], np.array([0]), delta_t])
+                         * self.instr.observing_time.unit)
         self.hdf5_filename = hdf5_filename
         if fits_root_path:
-            ff_format = os.path.join(fits_root_path, f'{instr.name}','{channel}','map_t{i_time:06d}.fits')
+            ff_format = os.path.join(fits_root_path,
+                                     f'{instr.name}', '{channel}', 'map_t{i_time:06d}.fits')
             self.load_data(ff_format, **kwargs)
 
     def get_metadata(self, channel_name):
@@ -72,7 +74,7 @@ class AIATimeLags(object):
                             meta.attrs[k] = tmp.meta[k]
                         except TypeError:
                             continue
-                
+
     def make_timeseries(self, channel, left_corner, right_corner):
         darray = self.get_data(channel)
         tmp = Map(np.array(darray[:, :, 0]), self.get_metadata(channel))
@@ -81,7 +83,7 @@ class AIATimeLags(object):
         ts = darray[round(blc.y.value):round(trc.y.value),
                     round(blc.x.value):round(trc.x.value), :].mean(axis=(0, 1)).compute()
         return ts
-    
+
     def correlation_1d(self, channel_a, channel_b, left_corner, right_corner):
         ts_a = self.make_timeseries(channel_a, left_corner, right_corner)
         ts_b = self.make_timeseries(channel_b, left_corner, right_corner)
@@ -90,10 +92,10 @@ class AIATimeLags(object):
         cc = np.fft.irfft(np.fft.rfft(ts_a[::-1], n=self.timelags.shape[0])
                           * np.fft.rfft(ts_b, n=self.timelags.shape[0]), n=self.timelags.shape[0])
         return cc
-    
+
     def correlation_2d(self, channel_a, channel_b, **kwargs):
         """
-        Create Dask task graph to compute cross-correlation using FFT for each pixel in an AIA map 
+        Create Dask task graph to compute cross-correlation using FFT for each pixel in an AIA map
         """
         darray_a = self.get_data(channel_a)[:, :, ::-1]
         darray_b = self.get_data(channel_b)
@@ -107,15 +109,36 @@ class AIATimeLags(object):
         fft_b = dask.array.fft.rfft(v_b, axis=2, n=self.timelags.shape[0])
         # Inverse of product of FFTS to get cross-correlation
         return dask.array.fft.irfft(fft_a * fft_b, axis=2, n=self.timelags.shape[0])
-    
+
+    def make_correlation_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
+        """
+        Build map of max correlation value between two AIA channels
+        """
+        cc = self.correlation_2d(channel_a, channel_b, **kwargs)
+        max_cc = cc.max(axis=2).compute()
+        # Metadata
+        meta = self.get_metadata(channel_a).copy()
+        del meta['instrume']
+        del meta['t_obs']
+        del meta['wavelnth']
+        meta['bunit'] = ''
+        meta['comment'] = f'{channel_a}-{channel_b} cross-correlation'
+
+        plot_settings = {'cmap': 'plasma'}
+        plot_settings.update(kwargs.get('plot_settings', {}))
+        correlation_map = GenericMap(max_cc, meta, plot_settings=plot_settings)
+
+        return correlation_map
+
     def make_timelag_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
         """
         Compute map of timelag associated with maximum cross-correlation between
         two channels in each pixel of an AIA map.
         """
-        cc = self.correlation_2d(channel_a, channel_b, **kwargs)
-        max_cc = cc.max(axis=2).compute()
-        i_max_cc = cc.argmax(axis=2).compute()
+        # NOTE: is there a way to avoid loading the whole thing into memory?
+        cc = self.correlation_2d(channel_a, channel_b, **kwargs).compute()
+        max_cc = cc.max(axis=2)
+        i_max_cc = cc.argmax(axis=2)
         max_timelag = self.timelags[i_max_cc]
         max_timelag = np.where(max_cc < correlation_threshold, np.nan, max_timelag)
         # Metadata
@@ -123,30 +146,12 @@ class AIATimeLags(object):
         del meta['instrume']
         del meta['t_obs']
         del meta['wavelnth']
-        meta_cc = meta.copy()
-        meta_cc['bunit'] = ''
-        meta_cc['comment'] = f'{channel_a}-{channel_b} cross-correlation'
-        meta_timelag = meta.copy()
-        meta_timelag['unit'] = 's'
-        meta_timelag['comment'] = f'{channel_a}-{channel_b} timelag'
+        meta['unit'] = 's'
+        meta['comment'] = f'{channel_a}-{channel_b} timelag'
 
-        plot_settings = {'cmap':'plasma'}
-        correlation_map = GenericMap(max_cc, meta_cc, plot_settings=plot_settings)
-        plot_settings = {'cmap':'RdBu', 'vmin':self.timelags.value.min(), 'vmax':self.timelags.value.max()}
-        timelag_map = GenericMap(max_timelag, meta_timelag, plot_settings=plot_settings)
-        
-        return correlation_map, timelag_map
-    
-    @staticmethod
-    def timelag_map(filename):
-        m = Map(filename)
-        if 'timelag' in m.meta['comment']:
-            m.plot_settings.update({'cmap':'RdBu','vmin':self.timelags.value.min(),'vmax':self.timelags.value.max()})
-        elif 'correlation' in m.meta['comment']:
-            m.plot_Settings.update({'cmap':'plasma'})
-        else:
-            warnings.warn('Map does not seem to be either a correlation or timelag map')
-                
-        return m
-        
-        
+        plot_settings = {'cmap': 'RdBu_r', 'vmin': self.timelags.value.min(),
+                         'vmax': self.timelags.value.max()}
+        plot_settings.update(kwargs.get('plot_settings', {}))
+        timelag_map = GenericMap(max_timelag, meta, plot_settings=plot_settings)
+
+        return timelag_map
