@@ -24,6 +24,7 @@
 
 %% Custom header includes
 
+
 %% Begin main document body
 \begin{document}
 %% Title block
@@ -54,12 +55,21 @@ This is my whole paper. There is not much here. Here's how to cite a
 paper \citet{viall_evidence_2012}. Here's another example of how to cite
 a paper \citep{warren_constraints_2011}.
 
+\authorcomment1{What is(are) the overall point(s) of this paper?}
+
 \section{Modeling}
 \label{modeling}
+In this section, we describe our pipeline for building a model active region and discuss each of the pieces in detail.
+
+\subsection{Magnetic Field Extrapolation}
+\label{field}
+\authorcomment1{Give details about method used to perform field extrapolation, how the fieldlines are traced. Show fieldlines overlaid on magnetogram.}
+
+To create our model active region, we begin by computing a potential field extrapolation 
 
 \subsection{Loop Hydrodynamics}
 \label{loops}
-Details about how loops evolve and the EBTEL model, show EBTEL equations. This can be relatively brief
+
 
 \subsection{Heating Model}
 \label{heating}
@@ -71,16 +81,11 @@ Effects of ion heating?
 \label{forward}
 This section will summarize our pipeline for building our forward model (by example). Explain here what AR we have chosen and brief outline of the section.
 
-\subsubsection{Magnetic Field Extrapolation}
-\label{field}
-Give details about method used to perform field extrapolation, how the fieldlines are traced. Show fieldlines overlaid on magnetogram and maybe an
-observed AIA image as well.
-
 \subsubsection{Atomic Physics}
 \label{atomic}
 Show expression for the intensity and discuss components and how they are calculated, i.e. with CHIANTI. Give details about non-equilibrium ionization calculation as well.
 
-Make point about using instrument response functions versus including a full nonequilibrium treatment. This will be discussed more in depth in the results section as well.
+Make point about using instrument response functions versus including a full nonequilibrium treatment. This will be discussed more in depth in the results section as well. Show a $n-T$ phase space for typical loop evolution and then for constant pressure.
 
 Show plot of temperature response functions with contributions from each element overlaid
 
@@ -88,10 +93,14 @@ Show plot of temperature response functions with contributions from each element
 \label{instrument}
 How the emission is binned, point-spread function applied, correct resolution. Some details about how results can be analyzed in same manner as real observations. This can be relatively brief.
 
+\subsection{Timelag Analysis}
+\label{timelag_analysis}
+
+\authorcomment1{Describe how timelag is calculated, give formulas, show an example maybe (or just refer to previous papers)}
+
 \section{Results}
 \label{results}
-Cooling, high, intermediate, and low frequency cases. How should these be divided up?
-
+\authorcomment1{Cooling, high, intermediate, and low frequency cases. How should these be divided up?}
 Focus on three criteria: heating frequency, nonequilibrium ionization, line-of-sight
 
 \subsection{Heating Scenarios}
@@ -100,7 +109,7 @@ Compare different heating frequencies for different channel pairs using maps and
 Compare with observations shown in \citet{viall_survey_2017}.
 
 \subsection{Equilibrium versus Nonequilibrium Ionization}
-How does nonequilibrium ionization affect the timelag results? Discuss for one case
+How does nonequilibrium ionization affect the timelag results? Discuss for one heating case and compare distributions of timelag maps for both cases. Would probably be good to show an example of the ion populations for a particular loop as well.
 
 \subsection{Effects Due to Line-of-Sight}
 Compute timelag maps for multiple viewing angles. In addition to the actual angle, use angle perpendicular to surface normal and angle parallel to the surface normal.
