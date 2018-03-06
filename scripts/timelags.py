@@ -32,25 +32,24 @@ class AIATimeLags(object):
         if fits_root_path:
             ff_format = os.path.join(fits_root_path, f'{instr.name}','{channel}','map_t{i_time:06d}.fits')
             self.load_data(ff_format, **kwargs)
-    
+
     def get_metadata(self, channel_name):
         with h5py.File(self.hdf5_filename, 'r') as hf:
             meta = dict(hf[channel_name]['meta'].attrs)
         return MetaDict(meta)
-    
+
     def get_data(self, channel_name):
         hf = h5py.File(self.hdf5_filename, 'r')
         return dask.array.from_array(hf[channel_name]['data'], hf[channel_name]['data'].chunks)
-            
-        
+
     def load_data(self, ff_format, **kwargs):
         """
         Create data cubes over desired time range for all channels
         """
-        with h5py.File(self.instr.counts_file,'r') as hf:
-            instr_time = u.Quantity(hf['time'],hf['time'].attrs['units'])
-        with ProgressBar(len(self.instr.channels)*len(self.instr.observing_time),
-                         ipython_widget=kwargs.get('notebook',True)) as progress:
+        with h5py.File(self.instr.counts_file, 'r') as hf:
+            instr_time = u.Quantity(hf['time'], hf['time'].attrs['units'])
+        with ProgressBar(len(self.instr.channels) * len(self.instr.observing_time),
+                         ipython_widget=kwargs.get('notebook', True)) as progress:
             with h5py.File(self.hdf5_filename, 'w') as hf:
                 for channel in self.instr.channels:
                     grp = hf.create_group(channel['name'])
@@ -60,7 +59,7 @@ class AIATimeLags(object):
                     chunks = kwargs.get('chunks', (shape[0]//20, shape[1]//20, shape[2]))
                     dset = grp.create_dataset('data', shape, chunks=chunks)
                     tmp_array = np.zeros(shape)
-                    for i,t in enumerate(self.instr.observing_time):
+                    for i, t in enumerate(self.instr.observing_time):
                         i_time = np.where(t == instr_time)[0][0]
                         tmp = Map(ff_format.format(channel=channel['name'], i_time=i_time))
                         tmp_array[:, :, i] = tmp.data
@@ -76,16 +75,16 @@ class AIATimeLags(object):
                 
     def make_timeseries(self, channel, left_corner, right_corner):
         darray = self.get_data(channel)
-        tmp = Map(np.array(darray[:,:,0]), self.get_metadata(channel))
+        tmp = Map(np.array(darray[:, :, 0]), self.get_metadata(channel))
         blc = tmp.world_to_pixel(SkyCoord(*left_corner, frame=tmp.coordinate_frame))
         trc = tmp.world_to_pixel(SkyCoord(*right_corner, frame=tmp.coordinate_frame))
         ts = darray[round(blc.y.value):round(trc.y.value),
-                    round(blc.x.value):round(trc.x.value), :].mean(axis=(0,1)).compute()
+                    round(blc.x.value):round(trc.x.value), :].mean(axis=(0, 1)).compute()
         return ts
     
     def correlation_1d(self, channel_a, channel_b, left_corner, right_corner):
-        ts_a = self.make_timeseries(self.cubes, channel_a, left_corner, right_corner)
-        ts_b = self.make_timeseries(self.cubes, channel_b, left_corner, right_corner)
+        ts_a = self.make_timeseries(channel_a, left_corner, right_corner)
+        ts_b = self.make_timeseries(channel_b, left_corner, right_corner)
         ts_a /= ts_a.max()
         ts_b /= ts_b.max()
         cc = np.fft.irfft(np.fft.rfft(ts_a[::-1], n=self.timelags.shape[0])
@@ -96,18 +95,18 @@ class AIATimeLags(object):
         """
         Create Dask task graph to compute cross-correlation using FFT for each pixel in an AIA map 
         """
-        darray_a = self.get_data(channel_a)
+        darray_a = self.get_data(channel_a)[:, :, ::-1]
         darray_b = self.get_data(channel_b)
         # Normalize
         max_a = darray_a.max(axis=2)
-        v_a = darray_a / dask.array.where(max_a==0, 1, max_a)[:,:,np.newaxis]
+        v_a = darray_a / dask.array.where(max_a == 0, 1, max_a)[:, :, np.newaxis]
         max_b = darray_b.max(axis=2)
-        v_b = darray_b / dask.array.where(max_b==0, 1, max_b)[:,:,np.newaxis]
+        v_b = darray_b / dask.array.where(max_b == 0, 1, max_b)[:, :, np.newaxis]
         # Fast Fourier Transform of both channels
         fft_a = dask.array.fft.rfft(v_a, axis=2, n=self.timelags.shape[0])
         fft_b = dask.array.fft.rfft(v_b, axis=2, n=self.timelags.shape[0])
         # Inverse of product of FFTS to get cross-correlation
-        return dask.array.fft.irfft(fft_a*fft_b, axis=2, n=self.timelags.shape[0])
+        return dask.array.fft.irfft(fft_a * fft_b, axis=2, n=self.timelags.shape[0])
     
     def make_timelag_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
         """
