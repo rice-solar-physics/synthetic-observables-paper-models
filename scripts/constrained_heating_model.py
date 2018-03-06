@@ -25,8 +25,9 @@ class CustomHeatingModel(object):
         rates = (self.power_law_distributions[loop.name]
                  /(self.heating_options['duration'] 
                    - 0.5*(self.heating_options['duration_rise'] + self.heating_options['duration_decay'])))
+        rates = np.random.permutation(rates)
         delays = (self.base_config['total_time'] - self.number_events*self.heating_options['duration'])*rates/rates.sum()
-        delays *= np.random.uniform(low=1. - 1./(self.number_events**2),high=1.)
+        delays *= np.random.uniform(low=1. - 1./(self.number_events),high=1.)
         running_total = 0.0
         rise_start = np.empty(rates.shape)
         for i in range(self.number_events):
