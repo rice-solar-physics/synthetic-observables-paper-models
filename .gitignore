@@ -1,6 +1,10 @@
 # Dask stuff
 dask-worker-space/
 
+# Data files
+*.fits
+*.h5
+
 # Movies/animations
 *.mp4
 *.gif
