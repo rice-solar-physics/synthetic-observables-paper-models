@@ -1,0 +1,128 @@
+%% Use AASTeX class, version 6.1
+%% Allow for additional class options such as,
+%%  twocolumn   : two text columns, 10 point font, single spaced article.
+%%                This is the most compact and represent the final published
+%%                derived PDF copy of the accepted manuscript from the publisher
+%%  manuscript  : one text column, 12 point font, double spaced article.
+%%  preprint    : one text column, 12 point font, single spaced article.  
+%%  preprint2   : two text columns, 12 point font, single spaced article.
+%%  modern      : a stylish, single text column, 12 point font, article with
+%% 		            wider left and right margins. This uses the Daniel
+%% 		            Foreman-Mackey and David Hogg design.
+%%  astrosymb    : Loads Astrosymb font and define \astrocommands. 
+%%  tighten      : Makes baselineskip slightly smaller, only works with 
+%%                 the twocolumn substyle.
+%%  times        : uses times font instead of the default
+%%  linenumbers  : turn on lineno package.
+%%  trackchanges : required to see the revision mark up and print its output
+%%  longauthor   : Do not use the more compressed footnote style (default) for 
+%%                 the author/collaboration/affiliations. Instead print all
+%%                 affiliation information after each name. Creates a much
+%%                 long author list but may be desirable for short author papers
+
+\documentclass[modern,linenumbers]{aastex62}
+
+%% Custom header includes
+
+
+%% Begin main document body
+\begin{document}
+%% Title block
+\title{Timelag Analysis of Simulated Active Region Cores Heated by Nanoflares}
+
+%% Authors block
+\author[0000-0001-9642-6089]{W. T. Barnes}
+\author{S. J. Bradshaw}
+\affiliation{Department of Physics \& Astronomy, Rice University, Houston, TX 77005-1827}
+\author{N. M. Viall}
+\affiliation{NASA Goddard Space Flight Center, Greenbelt, MD 20771}
+\correspondingauthor{W. T. Barnes}
+\email{will.t.barnes@rice.edu}
+
+%% Abstract block
+\begin{abstract}
+Here is my paper abstract. It is a summary of this paper.
+\end{abstract}
+
+%% Keywords
+\keywords{Sun,corona,nanoflares,active regions}
+
+
+%% Main text
+\section{Introduction}\label{introduction}
+
+This is my whole paper. There is not much here. Here's how to cite a
+paper \citet{viall_evidence_2012}. Here's another example of how to cite
+a paper \citep{warren_constraints_2011}.
+
+\authorcomment1{What is(are) the overall point(s) of this paper?}
+
+\section{Modeling}
+\label{modeling}
+In this section, we describe our pipeline for building a model active region and discuss each of the pieces in detail.
+
+\subsection{Magnetic Field Extrapolation}
+\label{field}
+\authorcomment1{Give details about method used to perform field extrapolation, how the fieldlines are traced. Show fieldlines overlaid on magnetogram.}
+
+To create our model active region, we begin by computing a potential field extrapolation 
+
+\subsection{Loop Hydrodynamics}
+\label{loops}
+
+
+\subsection{Heating Model}
+\label{heating}
+Explain the impulsive heating model, the different frequencies that will be used, the method for constraining the model. Also discuss how the underlying structure and strength of the field may influence the heating and thus the synthesized emission.
+
+Effects of ion heating?
+
+\subsection{Forward Modeling}
+\label{forward}
+This section will summarize our pipeline for building our forward model (by example). Explain here what AR we have chosen and brief outline of the section.
+
+\subsubsection{Atomic Physics}
+\label{atomic}
+Show expression for the intensity and discuss components and how they are calculated, i.e. with CHIANTI. Give details about non-equilibrium ionization calculation as well.
+
+Make point about using instrument response functions versus including a full nonequilibrium treatment. This will be discussed more in depth in the results section as well. Show a $n-T$ phase space for typical loop evolution and then for constant pressure.
+
+Show plot of temperature response functions with contributions from each element overlaid
+
+\subsubsection{Instrument Effects}
+\label{instrument}
+How the emission is binned, point-spread function applied, correct resolution. Some details about how results can be analyzed in same manner as real observations. This can be relatively brief.
+
+\subsection{Timelag Analysis}
+\label{timelag_analysis}
+
+\authorcomment1{Describe how timelag is calculated, give formulas, show an example maybe (or just refer to previous papers)}
+
+\section{Results}
+\label{results}
+\authorcomment1{Cooling, high, intermediate, and low frequency cases. How should these be divided up?}
+Focus on three criteria: heating frequency, nonequilibrium ionization, line-of-sight
+
+\subsection{Heating Scenarios}
+Compare different heating frequencies for different channel pairs using maps and histograms
+
+Compare with observations shown in \citet{viall_survey_2017}.
+
+\subsection{Equilibrium versus Nonequilibrium Ionization}
+How does nonequilibrium ionization affect the timelag results? Discuss for one heating case and compare distributions of timelag maps for both cases. Would probably be good to show an example of the ion populations for a particular loop as well.
+
+\subsection{Effects Due to Line-of-Sight}
+Compute timelag maps for multiple viewing angles. In addition to the actual angle, use angle perpendicular to surface normal and angle parallel to the surface normal.
+
+\section{Summary and Conclusion}
+\label{conclusions}
+
+\acknowledgments
+
+\software{Astropy, Dask, Matplotlib, NumPy, SunPy}
+
+
+\bibliographystyle{aasjournal.bst}
+\bibliography{references.bib}
+
+\end{document}
