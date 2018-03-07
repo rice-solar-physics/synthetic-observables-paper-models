@@ -65,6 +65,8 @@ In this section, we describe our pipeline for building a model active region and
 \label{field}
 \authorcomment1{Give details about method used to perform field extrapolation, how the fieldlines are traced. Show fieldlines overlaid on magnetogram.}
 
+We model the geometry of AR NOAA 1158 by computing the three-dimensional magnetic field using the potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in 
+
 \subsection{Loop Hydrodynamics}
 \label{loops}
 The low plasma-$\beta$ in the corona allows us to model the solar atmosphere as an ensemble of independently-heating loops using a field-aligned hydrodynamic model. To model the dynamics of each individual loop, we use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}. Specifically, we use the version of two-fluid version of the EBTEL model as described in \citep{barnes_inference_2016}. EBTEL solves the time-dependent, spatially-integrated hydrodynamic equations and has been successfully benchmarked against field-aligned hydrodynamic codes. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in 
