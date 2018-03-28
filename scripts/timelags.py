@@ -2,10 +2,12 @@
 Class for computing timelags from AIA maps. Uses Dask to compute timelags in each pixel in parallel
 """
 import os
+import glob
 import warnings
 
 import h5py
 import numpy as np
+from scipy.interpolate import interp1d
 import dask.array
 from sunpy.map import Map, GenericMap
 from sunpy.util.metadata import MetaDict
@@ -56,7 +58,8 @@ class AIATimeLags(object):
                 for channel in self.instr.channels:
                     grp = hf.create_group(channel['name'])
                     # Read in tmp file to get shape
-                    tmp = Map(ff_format.format(channel=channel['name'], i_time=0))
+                    i_time = np.where(self.instr.observing_time[0] == instr_time)[0][0]
+                    tmp = Map(ff_format.format(channel=channel['name'], i_time=i_time))
                     shape = tmp.data.shape + self.instr.observing_time.shape
                     chunks = kwargs.get('chunks', (shape[0]//20, shape[1]//20, shape[2]))
                     dset = grp.create_dataset('data', shape, chunks=chunks)
@@ -87,8 +90,8 @@ class AIATimeLags(object):
     def correlation_1d(self, channel_a, channel_b, left_corner, right_corner):
         ts_a = self.make_timeseries(channel_a, left_corner, right_corner)
         ts_b = self.make_timeseries(channel_b, left_corner, right_corner)
-        ts_a /= ts_a.max()
-        ts_b /= ts_b.max()
+        ts_a = (ts_a - ts_a.mean()) / ts_a.std()
+        ts_b = (ts_b - ts_b.mean()) / ts_b.std()
         cc = np.fft.irfft(np.fft.rfft(ts_a[::-1], n=self.timelags.shape[0])
                           * np.fft.rfft(ts_b, n=self.timelags.shape[0]), n=self.timelags.shape[0])
         return cc
@@ -100,14 +103,16 @@ class AIATimeLags(object):
         darray_a = self.get_data(channel_a)[:, :, ::-1]
         darray_b = self.get_data(channel_b)
         # Normalize
-        max_a = darray_a.max(axis=2)
-        v_a = darray_a / dask.array.where(max_a == 0, 1, max_a)[:, :, np.newaxis]
-        max_b = darray_b.max(axis=2)
-        v_b = darray_b / dask.array.where(max_b == 0, 1, max_b)[:, :, np.newaxis]
+        std_a = darray_a.std(axis=2)
+        std_a = dask.array.where(std_a == 0, 1, std_a)
+        v_a = (darray_a - darray_a.mean(axis=2)[:, :, np.newaxis]) / std_a[:, :, np.newaxis]
+        std_b = darray_b.std(axis=2)
+        std_b = dask.array.where(std_b == 0, 1, std_b)
+        v_b = (darray_b - darray_b.mean(axis=2)[:, :, np.newaxis]) / std_b[:, :, np.newaxis]
         # Fast Fourier Transform of both channels
         fft_a = dask.array.fft.rfft(v_a, axis=2, n=self.timelags.shape[0])
         fft_b = dask.array.fft.rfft(v_b, axis=2, n=self.timelags.shape[0])
-        # Inverse of product of FFTS to get cross-correlation
+        # Inverse of product of FFTS to get cross-correlation (by convolution theorem)
         return dask.array.fft.irfft(fft_a * fft_b, axis=2, n=self.timelags.shape[0])
 
     def make_correlation_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
@@ -130,17 +135,14 @@ class AIATimeLags(object):
 
         return correlation_map
 
-    def make_timelag_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
+    def make_timelag_map(self, channel_a, channel_b, **kwargs):
         """
         Compute map of timelag associated with maximum cross-correlation between
         two channels in each pixel of an AIA map.
         """
-        # NOTE: is there a way to avoid loading the whole thing into memory?
-        cc = self.correlation_2d(channel_a, channel_b, **kwargs).compute()
-        max_cc = cc.max(axis=2)
-        i_max_cc = cc.argmax(axis=2)
+        cc = self.correlation_2d(channel_a, channel_b, **kwargs)
+        i_max_cc = cc.argmax(axis=2).compute()
         max_timelag = self.timelags[i_max_cc]
-        max_timelag = np.where(max_cc < correlation_threshold, np.nan, max_timelag)
         # Metadata
         meta = self.get_metadata(channel_a).copy()
         del meta['instrume']
@@ -155,3 +157,77 @@ class AIATimeLags(object):
         timelag_map = GenericMap(max_timelag, meta, plot_settings=plot_settings)
 
         return timelag_map
+    
+    
+class AIATimeLagsObserved(AIATimeLags):
+    
+    def __init__(self, hdf5_filename, fits_root_path=None, **kwargs):
+        self.hdf5_filename = hdf5_filename
+        if fits_root_path is not None:
+            self.load_data(fits_root_path, **kwargs)
+    
+    def load_data(self, fits_root_path, **kwargs):
+        """
+        Save all AIA maps to HDF5 file. Note that these maps must already be prepped,
+        derotated, and cropped.
+        """
+        channels = [94, 131, 171, 193, 211, 335]
+        cadence = 12.0
+        # Find time interval and reference time for each channel
+        ref_time = {}
+        time_min, time_max = None, None
+        for chan in channels:
+            tmp_list = sorted(glob.glob(os.path.join(fits_root_path, f'*_{chan}_*.fits')))
+            tmp = Map(tmp_list[0], tmp_list[-1])
+            if time_min is None or tmp[0].date < time_min:
+                time_min = tmp[0].date
+            if time_max is None or tmp[1].date > time_max:
+                time_max = tmp[1].date
+            ref_time[f'{chan}'] = tmp[0].date
+            shape = tmp[0].data.shape
+        # Save common time
+        common_time = np.arange(0., (time_max - time_min).seconds, cadence) * u.s
+        with h5py.File(self.hdf5_filename, 'w') as hf:
+            dset = hf.create_dataset('observing_time', data=common_time.value)
+            dset.attrs['units'] = common_time.unit.to_string()
+        chunks = kwargs.get('chunks', (shape[0]//20, shape[1]//20, common_time.shape[0]))
+        # Load all maps from all channels
+        with ProgressBar(len(glob.glob(os.path.join(fits_root_path, '*'))), ipython_widget=kwargs.get('notebook', True)) as progress:
+            for chan in channels:
+                files = sorted(glob.glob(os.path.join(fits_root_path, f'*_{chan}_*.fits')))
+                # Load all data into memory
+                tmp_time = np.zeros((len(files),))
+                tmp_array = np.empty(shape + (len(files),))
+                for i,f in enumerate(files):
+                    # load file
+                    tmp_map = Map(f)
+                    tmp_array[:, :, i] = tmp_map.data
+                    # get time
+                    tmp_time[i] = (tmp_map.date - ref_time[f'{chan}']).seconds
+                    progress.update()
+                # interpolate to common time
+                tmp_array = interp1d(tmp_time, tmp_array, axis=2, fill_value='extrapolate', 
+                                     kind='linear', bounds_error=False, assume_sorted=True)(common_time.value)
+                # Load all data into an HDF5 file
+                with h5py.File(self.hdf5_filename, 'a') as hf:
+                    grp = hf.create_group(f'{chan}')
+                    dset = grp.create_dataset('data', shape+common_time.shape, chunks=chunks)
+                    dset[:,:,:] = tmp_array
+                    meta = grp.create_group('meta')
+                    for k in tmp_map.meta:
+                        try:
+                            meta.attrs[k] = tmp_map.meta[k]
+                        except TypeError:
+                            continue
+                    
+    @property
+    def timelags(self):
+        delta_t = np.diff(self.observing_time.value).cumsum()
+        return (np.hstack([-delta_t[::-1], np.array([0]), delta_t]) 
+                * self.observing_time.unit)
+    
+    @property
+    def observing_time(self):
+        with h5py.File(self.hdf5_filename,'r') as hf:
+            obs_time = u.Quantity(hf['observing_time'], hf['observing_time'].attrs['units'])
+        return obs_time

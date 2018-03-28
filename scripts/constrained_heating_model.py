@@ -2,6 +2,8 @@
 Heating model that constrains total flux according to Withbroe and Noyes 
 estimates of coronal flux.
 """
+import warnings
+
 import numpy as np
 import astropy.units as u
 import astropy.constants as const
@@ -59,10 +61,10 @@ class CustomHeatingModel(object):
         """
         Maximum allowed energy released per event
         """
-        return ((self.heating_options['stress_level']*loop.field_strength.value.max())**2)/8./np.pi
+        return ((self.heating_options['stress_level']*loop.field_strength.value.mean())**2)/8./np.pi
     
     def constrain_distribution(self, field, tolerance=1e-2, max_iterations=100, total_ar_flux=1e7, sigma_increase=1e-1,
-                               sigma_decrease=1e-6):
+                               sigma_decrease=1e-6, verbose=False):
         """
         Iteratively adjust the lower-bound on the power-law distribution such that the total flux over all strands and 
         events is equal to that of some given value, `total_ar_flux`
@@ -91,6 +93,8 @@ class CustomHeatingModel(object):
             # Update lower-bounds
             lower_bounds = np.minimum(np.maximum(lower_bounds + lower_bounds*(1. - phi), sigma_decrease*upper_bounds),
                                       sigma_increase*upper_bounds)
+            if verbose:
+                print(f'Iteration {num_iterations} with error={error} and phi={phi}')
             num_iterations += 1
             
         if num_iterations == max_iterations:
