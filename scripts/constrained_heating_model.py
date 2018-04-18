@@ -63,17 +63,18 @@ class CustomHeatingModel(object):
         """
         return ((self.heating_options['stress_level']*loop.field_strength.value.mean())**2)/8./np.pi
     
-    def constrain_distribution(self, field, tolerance=1e-2, max_iterations=100, total_ar_flux=1e7, sigma_increase=1e-1,
+    def constrain_distribution(self, field, tolerance=1e-2, max_iterations=100, ar_flux_constraint=1e7, sigma_increase=1e-1,
                                sigma_decrease=1e-6, verbose=False):
         """
-        Iteratively adjust the lower-bound on the power-law distribution such that the total flux over all strands and 
-        events is equal to that of some given value, `total_ar_flux`
+        Iteratively adjust the lower-bound on the power-law distribution such that the average flux over all strands and 
+        events is equal to that of some given value, `ar_flux_constraint`
         """
         # Initialize quantities
         power_law_distributions = {}
         num_iterations = 0
         error = 1e300
-        cross_sections = self.calculate_cross_sections(field)
+        
+        # cross_sections = self.calculate_cross_sections(field)
         upper_bounds = np.array([self.max_strand_energy(loop) for loop in field.loops])
         lower_bounds = upper_bounds/100.
         
@@ -85,11 +86,11 @@ class CustomHeatingModel(object):
                 pl = self.power_law(lower_bounds[i],upper_bounds[i],self.heating_options['power_law_slope'],
                                     np.random.rand(self._calculate_number_events(loop)))
                 power_law_distributions[loop.name] = pl
-                weights[i] = pl.sum()*loop.full_length.value*cross_sections[i]
+                weights[i] = pl.sum()*loop.full_length.value
             
             # Update error terms
-            phi = weights.sum()/cross_sections.sum()/total_ar_flux/self.base_config['total_time']
-            error = np.fabs(1. - 1./phi)
+            phi = (weights.sum()/(len(field.loops) * self.base_config['total_time'])) / ar_flux_constraint
+            error = np.fabs(1. - phi)
             # Update lower-bounds
             lower_bounds = np.minimum(np.maximum(lower_bounds + lower_bounds*(1. - phi), sigma_decrease*upper_bounds),
                                       sigma_increase*upper_bounds)

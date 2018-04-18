@@ -96,7 +96,7 @@ class AIATimeLags(object):
                           * np.fft.rfft(ts_b, n=self.timelags.shape[0]), n=self.timelags.shape[0])
         return cc
 
-    def correlation_2d(self, channel_a, channel_b, **kwargs):
+    def correlation_2d(self, channel_a, channel_b):
         """
         Create Dask task graph to compute cross-correlation using FFT for each pixel in an AIA map
         """
@@ -115,12 +115,21 @@ class AIATimeLags(object):
         # Inverse of product of FFTS to get cross-correlation (by convolution theorem)
         return dask.array.fft.irfft(fft_a * fft_b, axis=2, n=self.timelags.shape[0])
 
-    def make_correlation_map(self, channel_a, channel_b, correlation_threshold=1., **kwargs):
+    def make_correlation_map(self, channel_a, channel_b, **kwargs):
         """
         Build map of max correlation value between two AIA channels
         """
-        cc = self.correlation_2d(channel_a, channel_b, **kwargs)
-        max_cc = cc.max(axis=2).compute()
+        cc = self.correlation_2d(channel_a, channel_b)
+        bounds = kwargs.get('timelag_bounds', None)
+        if bounds is not None:
+            indices, = np.where(np.logical_and(self.timelags >= bounds[0],
+                                               self.timelags <= bounds[1]))
+            start = indices[0]
+            stop = indices[-1] + 1
+        else:
+            start = 0
+            stop = self.timelags.shape[0] + 1
+        max_cc = cc[:,:,start:stop].max(axis=2).compute()
         # Metadata
         meta = self.get_metadata(channel_a).copy()
         del meta['instrume']
@@ -140,9 +149,18 @@ class AIATimeLags(object):
         Compute map of timelag associated with maximum cross-correlation between
         two channels in each pixel of an AIA map.
         """
-        cc = self.correlation_2d(channel_a, channel_b, **kwargs)
-        i_max_cc = cc.argmax(axis=2).compute()
-        max_timelag = self.timelags[i_max_cc]
+        cc = self.correlation_2d(channel_a, channel_b)
+        bounds = kwargs.get('timelag_bounds', None)
+        if bounds is not None:
+            indices, = np.where(np.logical_and(self.timelags >= bounds[0],
+                                               self.timelags <= bounds[1]))
+            start = indices[0]
+            stop = indices[-1] + 1
+        else:
+            start = 0
+            stop = self.timelags.shape[0] + 1
+        i_max_cc = cc[:,:,start:stop].argmax(axis=2).compute()
+        max_timelag = self.timelags[start:stop][i_max_cc]
         # Metadata
         meta = self.get_metadata(channel_a).copy()
         del meta['instrume']
@@ -151,8 +169,8 @@ class AIATimeLags(object):
         meta['unit'] = 's'
         meta['comment'] = f'{channel_a}-{channel_b} timelag'
 
-        plot_settings = {'cmap': 'RdBu_r', 'vmin': self.timelags.value.min(),
-                         'vmax': self.timelags.value.max()}
+        plot_settings = {'cmap': 'RdBu_r', 'vmin': self.timelags[start:stop].value.min(),
+                         'vmax': self.timelags[start:stop].value.max()}
         plot_settings.update(kwargs.get('plot_settings', {}))
         timelag_map = GenericMap(max_timelag, meta, plot_settings=plot_settings)
 
