@@ -13,8 +13,9 @@ def download_data(channel, index=None):
     """
     c = drms.Client(email=EMAIL, verbose=True)
     # Time over which to iterate
-    start_time = '2011-02-12T9:32:13' # -interval/2 from when the AR was observed
-    interval = '12h'
+    #start_time = '2011-02-12T9:32:13' # -interval/2 from when the AR was observed
+    start_time = '2011-02-12T21:00:00'
+    interval = '3h'
     cadence = '12s'
     # check that download dir is available
     if not os.path.exists(DOWNLOAD_DIR):
