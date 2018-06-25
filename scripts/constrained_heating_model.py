@@ -10,7 +10,7 @@ import astropy.constants as const
 from astropy.coordinates import SkyCoord
 from sunpy.coordinates import Helioprojective
 
-from synthesizAR.util import heeq_to_hcc_coord
+#from synthesizAR.util import heeq_to_hcc_coord
 
 class CustomHeatingModel(object):
     """

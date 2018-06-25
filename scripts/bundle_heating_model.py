@@ -8,8 +8,6 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.utils.console import ProgressBar
 
-from synthesizAR.util import heeq_to_hcc_coord
-
 
 class BundleHeatingModel(object):
     """
@@ -70,7 +68,7 @@ class BundleHeatingModel(object):
                     total_flux += b.total_flux
                 except IndexError:
                     warnings.warn(f'No storms found for bundle {i}')
-            total_flux *= self.heating_options['stress']**2
+            total_flux *= self.heating_options['stress']**2 / len(self.field.loops)
             phi = total_flux / total_flux_constraint
             error = np.fabs(1. - phi)
             number_storms = int(min(max(number_storms + (1. - phi)*number_storms, safety_decrease*number_storms), 
@@ -89,8 +87,7 @@ class BundleHeatingModel(object):
         footpoints = np.zeros((len(self.field.loops), 2)) * u.arcsec
         with ProgressBar(len(self.field.loops), ipython_widget=True) as progress:
             for i,l in enumerate(self.field.loops):
-                l_hpc = (heeq_to_hcc_coord(*l.coordinates.T, self.field.magnetogram.observer_coordinate)
-                         .transform_to(self.field.magnetogram.coordinate_frame))
+                l_hpc = l.coordinates.transform_to('heliographic_stonyhurst').transform_to(self.field.magnetogram.coordinate_frame)
                 footpoints[i,0] = l_hpc.Tx[0]
                 footpoints[i,1] = l_hpc.Ty[0]
                 progress.update()
@@ -168,7 +165,7 @@ class Bundle(object):
         total_flux = 0.
         for l in self:
             # Set apex where the radial distance is max
-            s_apex = l.field_aligned_coordinate[np.argmax(np.sqrt((l.coordinates**2).sum(axis=1)))].to(u.cm)
+            s_apex = l.field_aligned_coordinate[np.argmax(np.sqrt((l.coordinates.cartesian.xyz**2).sum(axis=0)))].to(u.cm)
             # Use the "coronal" portion of the field (upper 50%) to compute the total storm flux
             delta_s = 0.25 * l.full_length.to(u.cm)
             i_corona, = np.where(np.logical_and(
