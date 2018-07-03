@@ -65,7 +65,13 @@ In this section, we describe our pipeline for building a model active region and
 \label{field}
 \authorcomment1{Give details about method used to perform field extrapolation, how the fieldlines are traced. Show fieldlines overlaid on magnetogram.}
 
-We model the geometry of AR NOAA 1158 by computing the three-dimensional magnetic field using the potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in 
+We choose active region (AR) NOAA 1158, as observed by the HMI instrument \citet{hoeksema_helioseismic_2014} on 12 February 2011, from the list of active regions studied by \citet{warren_systematic_2012}. We model the geometry of AR NOAA 1158 by computing the three-dimensional magnetic field using the potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in section 3 of \citet{sakurai_greens_1982}. 
+
+\begin{figure}
+    %\plotone{dummy}
+    \caption{AR NOAA 1158 with extrapolated fieldlines overlaid}
+    \label{fig:magnetogram}
+\end{figure}
 
 \subsection{Loop Hydrodynamics}
 \label{loops}
@@ -84,15 +90,45 @@ This section will summarize our pipeline for building our forward model (by exam
 
 \subsubsection{Atomic Physics}
 \label{atomic}
+To calculate the forward modeled intensities, we account for the contributions of all transitions of all ions for a selected number of elements (see \autoref{tab:element_table}). For an optically thin, high-temperature ($\sim10^6$ K), low-density ($\sim10^9$ cm$^{-3}$) plasma, the radiated power per unit volume for a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
+
+\begin{equation}
+    \label{eq:ppuv}
+    P(\lambda_{ij}) = n_j(X_k)A_{ji}\Delta E_{ji},\quad[\text{erg cm}^{-3}\text{ s}^{-1}]
+\end{equation}
+where $n_j$ is the number density of ions $X_k$ in excited state $j$, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon  \citep[see][]{mason_spectroscopic_1994,bradshaw_collisional_2013}. \autoref{eq:ppuv} can be rewritten in the more useful form,
+
+\begin{eqnarray*}
+    P(\lambda_{ij}) &=& \frac{n_j(X_k)}{n(X_k)}\frac{n(X_k)}{n(X)}\frac{n(X)}{n(H)}\frac{n(H)}{n_e}n_eA_{ji}\Delta E_{ji}, \\
+    &=& N_j(X,k) f_{X,k} \mathrm{Ab}(X) 0.83 n_e A_{ji} \Delta E_{ji}, \\
+    &=& 0.83 \mathrm{Ab}(X) f_{X,k} N_j(X,k) A_{ji} \Delta E_{ji} n_e,
+\end{eqnarray*}
+where, $N_j$ is the fractional energy level population of level $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, and the ratio of hydrogen and electron number densities is $\approx0.83$. 
+
+Noting that the \textit{emissivity} of the spectral line can be written as $\epsilon_{ij}=N_j A_{ji} \Delta E_{ji}$
+\begin{deluxetable}{ccc}
+    \caption{Elements including in forward-modeled intensity calculation\label{tab:element_table}}
+    \tablehead{
+        \colhead{Element} & \colhead{Number of Ions} & \colhead{Number of Transitions}
+    }
+    \startdata
+    \enddata
+\end{deluxetable}
+
 Show expression for the intensity and discuss components and how they are calculated, i.e. with CHIANTI. Give details about non-equilibrium ionization calculation as well.
+
+Include table with all elements, including number of ions and number of transitions
+
+\subsubsection{Instrument Effects}
+\label{instrument}
 
 Make point about using instrument response functions versus including a full nonequilibrium treatment. This will be discussed more in depth in the results section as well. Show a $n-T$ phase space for typical loop evolution and then for constant pressure.
 
 Show plot of temperature response functions with contributions from each element overlaid
 
-\subsubsection{Instrument Effects}
-\label{instrument}
 How the emission is binned, point-spread function applied, correct resolution. Some details about how results can be analyzed in same manner as real observations. This can be relatively brief.
+
+Also show that our chosen elements fill in the temperature response function appropriately.
 
 \subsection{Timelag Analysis}
 \label{timelag_analysis}
