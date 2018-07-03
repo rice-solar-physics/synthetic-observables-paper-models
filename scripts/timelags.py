@@ -159,22 +159,35 @@ class AIATimeLags(object):
         else:
             start = 0
             stop = self.timelags.shape[0] + 1
-        i_max_cc = cc[:,:,start:stop].argmax(axis=2).compute()
+        if kwargs.get('return_correlation_map'):
+            _cc = cc.compute()
+            max_cc = _cc[:,:,start:stop].max(axis=2)
+            i_max_cc = _cc[:,:,start:stop].argmax(axis=2)
+            del _cc
+        else:
+            i_max_cc = cc[:,:,start:stop].argmax(axis=2).compute()
         max_timelag = self.timelags[start:stop][i_max_cc]
         # Metadata
         meta = self.get_metadata(channel_a).copy()
         del meta['instrume']
         del meta['t_obs']
         del meta['wavelnth']
-        meta['unit'] = 's'
+        meta['bunit'] = 's'
         meta['comment'] = f'{channel_a}-{channel_b} timelag'
-
         plot_settings = {'cmap': 'RdBu_r', 'vmin': self.timelags[start:stop].value.min(),
                          'vmax': self.timelags[start:stop].value.max()}
         plot_settings.update(kwargs.get('plot_settings', {}))
-        timelag_map = GenericMap(max_timelag, meta, plot_settings=plot_settings)
-
-        return timelag_map
+        timelag_map = GenericMap(max_timelag, meta.copy(), plot_settings=plot_settings.copy())
+        if kwargs.get('return_correlation_map'):
+            meta['bunit'] = ''
+            meta['comment'] = f'{channel_a}-{channel_b} cross-correlation'
+            plot_settings['cmap'] = 'plasma'
+            del plot_settings['vmin']
+            del plot_settings['vmax']
+            correlation_map = GenericMap(max_cc, meta, plot_settings=plot_settings)
+            return timelag_map,correlation_map
+        else:
+            return timelag_map
     
     
 class AIATimeLagsObserved(AIATimeLags):
