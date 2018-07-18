@@ -15,6 +15,8 @@ from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.utils.console import ProgressBar
 
+from synthesizAR.util import get_keys
+
 
 class AIATimeLags(object):
     """
@@ -51,7 +53,7 @@ class AIATimeLags(object):
         Create data cubes over desired time range for all channels
         """
         with h5py.File(self.instr.counts_file, 'r') as hf:
-            instr_time = u.Quantity(hf['time'], hf['time'].attrs['units'])
+            instr_time = u.Quantity(hf['time'], get_keys(hf['time'].attrs, ('unit','units')))
         with ProgressBar(len(self.instr.channels) * len(self.instr.observing_time),
                          ipython_widget=kwargs.get('notebook', True)) as progress:
             with h5py.File(self.hdf5_filename, 'w') as hf:
@@ -220,7 +222,7 @@ class AIATimeLagsObserved(AIATimeLags):
         common_time = np.arange(0., (time_max - time_min).seconds, cadence) * u.s
         with h5py.File(self.hdf5_filename, 'w') as hf:
             dset = hf.create_dataset('observing_time', data=common_time.value)
-            dset.attrs['units'] = common_time.unit.to_string()
+            dset.attrs['unit'] = common_time.unit.to_string()
         chunks = kwargs.get('chunks', (shape[0]//20, shape[1]//20, common_time.shape[0]))
         # Load all maps from all channels
         with ProgressBar(len(glob.glob(os.path.join(fits_root_path, '*'))), ipython_widget=kwargs.get('notebook', True)) as progress:
@@ -260,5 +262,5 @@ class AIATimeLagsObserved(AIATimeLags):
     @property
     def observing_time(self):
         with h5py.File(self.hdf5_filename,'r') as hf:
-            obs_time = u.Quantity(hf['observing_time'], hf['observing_time'].attrs['units'])
+            obs_time = u.Quantity(hf['observing_time'], get_keys(hf['observing_time'].attrs, ('unit', 'units')))
         return obs_time
