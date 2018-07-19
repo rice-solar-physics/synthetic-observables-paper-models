@@ -93,8 +93,7 @@ class DistributedAIACube(object):
         Note that this should really check for date-obs and then do something different if that
         exists
         """
-        return u.Quantity([h['t_obs'] for h in self.headers],
-                          self.headers[self.channels[0]][0]['tunit'])
+        return u.Quantity([h['t_obs'] for h in self.headers], self.headers[0]['tunit'])
 
     @property
     def shape(self,):
