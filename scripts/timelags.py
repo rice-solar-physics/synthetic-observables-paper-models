@@ -1,21 +1,11 @@
 """
 Class for computing timelags from AIA maps. Uses Dask to compute timelags in each pixel in parallel
 """
-import os
-import glob
-import warnings
-
-import h5py
 import numpy as np
-from scipy.interpolate import interp1d
 import dask.array as da
-from sunpy.map import Map, GenericMap
-from sunpy.util.metadata import MetaDict
+from sunpy.map import GenericMap
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from astropy.utils.console import ProgressBar
-
-from synthesizAR.util import get_keys
 
 from aiacube import DistributedAIACollection
 
@@ -52,8 +42,7 @@ class AIATimeLags(DistributedAIACollection):
         """
         Create Dask task graph to compute cross-correlation using FFT for each pixel in an AIA map
         """
-        shape = self[channel_a].maps[0].data.shape
-        chunks = kwargs.get('chunks', (shape[0]//10, shape[1]//10))
+        chunks = kwargs.get('chunks', (self[channel_a].shape[0]//10, self[channel_a].shape[1]//10))
         cube_a = self[channel_a].rechunk(self[channel_a].time.shape+chunks)[::-1, :, :]
         cube_b = self[channel_b].rechunk(self[channel_b].time.shape+chunks)
         # Normalize
