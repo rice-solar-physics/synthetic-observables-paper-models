@@ -3,6 +3,7 @@ Object for dealing efficiently with large out-of-core AIA datacubes.
 Nearly all of this is inspired by work done by Stuart Mumford, in particular how to handle
 FITS files in Dask.
 """
+import warnings
 import dask.bytes
 import dask.array as da
 import dask
@@ -52,6 +53,10 @@ class DistributedAIACube(object):
     #TODO: Refactor this to use ndcube instead
     """
     def __init__(self, maps, headers):
+        if not all([m.data.shape == maps[0].data.shape for m in maps]):
+            raise ValueError('All maps must have same dimensions')
+        if not all([m.data.dtype == maps[0].data.dtype for m in maps]):
+            raise ValueError('All maps must have same dtype')
         self.maps = maps
         self.headers = headers
 
@@ -92,6 +97,14 @@ class DistributedAIACube(object):
                           self.headers[self.channels[0]][0]['tunit'])
 
     @property
+    def shape(self,):
+        return self.maps[0].data.shape
+
+    @property
+    def dtype(self,):
+        return self.maps[0].data.dtype
+
+    @property
     def unstacked_data(self,):
         return [da.from_delayed(m.data, dtype=m.data.dtype, shape=m.data.shape) for m in self.maps]
 
@@ -121,6 +134,7 @@ class DistributedAIACollection(object):
 
     #TODO: refactor this to use ndcube sequence
     #TODO: figure out useful methods to add here
+    #TODO: Add a check for data being aligned?
     #NOTE: It is assumed that the data in this container are all aligned, i.e. prepped and derotated
     """
 
@@ -129,7 +143,9 @@ class DistributedAIACollection(object):
         if not all([a.shape == args[0].shape for a in args]):
             raise ValueError('All spatial dimensions must be the same')
         if not all([a.time.shape == args[0].time.shape for a in args]):
-            raise ValueError('All time dimensions must be the same')
+            # Not an error because may have missing timesteps in observations
+            # Will interpolate later to account for this
+            raise warnings.warn('Time dimensions are not all equal length')
         self._cubes = {f"{a.headers[0]['wavelnth']}": a for a in args}
         self.channels = self._cubes.keys()
 
