@@ -61,7 +61,7 @@ class DistributedAIACube(object):
         headers = cls._get_headers(openfiles)
         dtype, shape = cls._get_dtype_and_shape(headers)
         maps = cls._get_maps(openfiles, headers, dtype, shape)
-        return cls(maps, headers, dtype, shape)
+        return cls(maps, headers)
 
     @staticmethod
     def _get_maps(openfiles, headers, dtype, shape):
