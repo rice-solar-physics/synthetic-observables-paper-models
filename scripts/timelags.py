@@ -21,7 +21,7 @@ class AIATimeLags(DistributedAIACollection):
         return np.hstack([-delta_t[::-1], np.array([0]), delta_t]) * self[c].time.unit
 
     def make_timeseries(self, channel, left_corner, right_corner, **kwargs):
-        tmp = self[channel].maps[0].compute()
+        tmp = self[channel].maps[0]
         x_l, y_l = tmp.world_to_pixel(SkyCoord(*left_corner, frame=tmp.coordinate_frame))
         x_u, y_u = tmp.world_to_pixel(SkyCoord(*right_corner, frame=tmp.coordinate_frame))
         x_l, y_l, x_u, y_u = np.round([x_l.value, y_l.value, x_u.value, y_u.value]).astype(np.int)
