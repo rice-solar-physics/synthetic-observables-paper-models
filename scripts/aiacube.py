@@ -145,7 +145,7 @@ class DistributedAIACollection(object):
             # Will interpolate later to account for this
             raise warnings.warn('Time dimensions are not all equal length')
         self._cubes = {f"{a.headers[0]['wavelnth']}": a for a in args}
-        self.channels = self._cubes.keys()
+        self.channels = list(self._cubes.keys())
 
     def __getitem__(self, channel):
         channel = f'{channel}'
