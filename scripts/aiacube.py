@@ -64,7 +64,7 @@ class DistributedAIACube(object):
         return cls(maps, headers, dtype, shape)
 
     @staticmethod
-    def _get_maps(self, openfiles, headers, dtype, shape):
+    def _get_maps(openfiles, headers, dtype, shape):
         arrays = [da.from_array(DelayedFITS(f, shape=shape, dtype=dtype, hdu=0),
                                 chunks=shape) for f in openfiles]
         return [sunpy.map.Map(a, h) for a, h in zip(arrays, headers)]
