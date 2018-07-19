@@ -9,7 +9,6 @@ import numpy as np
 import dask.bytes
 import dask.array as da
 import distributed
-from dask import delayed
 from astropy.io import fits
 from astropy.time import Time
 import astropy.units as u
@@ -105,7 +104,7 @@ class DistributedAIACube(object):
 
     @property
     def unstacked_data(self,):
-        return [da.from_delayed(m.data, dtype=m.data.dtype, shape=m.data.shape) for m in self.maps]
+        return [m.data for m in self.maps]
 
     @property
     def stacked_data(self,):
