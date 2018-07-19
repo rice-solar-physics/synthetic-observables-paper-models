@@ -4,20 +4,20 @@ Nearly all of this is inspired by work done by Stuart Mumford, in particular how
 FITS files in Dask.
 """
 import warnings
+
+import numpy as np
 import dask.bytes
 import dask.array as da
-import dask
 import distributed
-from dask import delayed, compute
+from dask import delayed
 from astropy.io import fits
 from astropy.time import Time
 import astropy.units as u
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
-import numpy as np
 import sunpy.map
 from sunpy.util.metadata import MetaDict
 
-__all__ = ['DistributedAIACube',]
+__all__ = ['DistributedAIACube']
 
 
 def validate_dtype_shape(head):
