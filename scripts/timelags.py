@@ -16,18 +16,40 @@ class AIATimeLags(DistributedAIACollection):
     """
     @property
     def timelags(self):
-        c = self.channels[0]
-        delta_t = np.diff(self[c].time.value).cumsum()
-        return np.hstack([-delta_t[::-1], np.array([0]), delta_t]) * self[c].time.unit
+        if np.all([np.all(self[c].time == self[self.channels[0]].time) for c in self.channels]):
+            delta_t = np.diff(self[self.channels[0]].time.value).cumsum()
+            return np.hstack([-delta_t[::-1], np.array([0]), delta_t]) * self[self.channels[0]].time.unit
+        else:
+            t_interp = self._interpolate_time()
+            delta_t = np.diff(t_interp.value).cumsum()
+            return np.hstack([-delta_t[::-1], np.array([0]), delta_t]) * t_interp.unit
+    
+    @property
+    def _interpolate_time(self,):
+        min_t = min([self[c].time.min() for c in self.channels])
+        max_t = max([self[c].time.max() for c in self.channels])
+        n_t = max([self[c].time.shape[0] for c in self.channels])
+        return np.linspace(min_t, max_t, n_t)
+    
+    def _interpolate(self,cube,time):
+        #t_interp = self._interpolate_time
+        #return da.apply_along_axis(self._wrap_numpy_interp, 0, cube, time, t_interp)
+        # FIXME: issues with applying np interp
+        pass
+        
+    @staticmethod
+    def _wrap_numpy_interp(array, time, new_time):
+        print(time.shape)
+        print(array.shape)
+        return np.interp(new_time,time,array)
 
     def make_timeseries(self, channel, left_corner, right_corner, **kwargs):
         tmp = self[channel].maps[0]
         x_l, y_l = tmp.world_to_pixel(SkyCoord(*left_corner, frame=tmp.coordinate_frame))
         x_u, y_u = tmp.world_to_pixel(SkyCoord(*right_corner, frame=tmp.coordinate_frame))
         x_l, y_l, x_u, y_u = np.round([x_l.value, y_l.value, x_u.value, y_u.value]).astype(np.int)
-        chunks = kwargs.get('chunks', (tmp.data.shape[0]//10, tmp.data.shape[1]//10))
-        return (self[channel].rechunk(self[channel].time.shape+chunks)[:, y_l:y_u, x_l:x_u]
-                .mean(axis=(1, 2)))
+        chunks = kwargs.get('chunks', (self[channel].shape[0], self[channel].shape[1]//10, self[channel].shape[2]//10))
+        return (self[channel].rechunk(chunks)[:, y_l:y_u, x_l:x_u].mean(axis=(1, 2)))
 
     def correlation_1d(self, channel_a, channel_b, left_corner, right_corner, **kwargs):
         ts_a = self.make_timeseries(channel_a, left_corner, right_corner, **kwargs)
@@ -42,9 +64,11 @@ class AIATimeLags(DistributedAIACollection):
         """
         Create Dask task graph to compute cross-correlation using FFT for each pixel in an AIA map
         """
-        chunks = kwargs.get('chunks', (self[channel_a].shape[0]//10, self[channel_a].shape[1]//10))
-        cube_a = self[channel_a].rechunk(self[channel_a].time.shape+chunks)[::-1, :, :]
-        cube_b = self[channel_b].rechunk(self[channel_b].time.shape+chunks)
+        chunks = kwargs.get('chunks',(self[channel_a].shape[0],
+                                      self[channel_a].shape[1]//10,
+                                      self[channel_a].shape[2]//10))
+        cube_a = self[channel_a].rechunk(chunks)[::-1, :, :]
+        cube_b = self[channel_b].rechunk(chunks)
         # Normalize
         std_a = cube_a.std(axis=0)
         std_a = da.where(std_a == 0, 1, std_a)
@@ -74,7 +98,7 @@ class AIATimeLags(DistributedAIACollection):
             stop = self.timelags.shape[0] + 1
         max_cc = cc[start:stop, :, :].max(axis=0).compute()
         # Metadata
-        meta = self[channel_a].headers[0].copy()
+        meta = self[channel_a].maps[0].meta.copy()
         del meta['instrume']
         del meta['t_obs']
         del meta['wavelnth']
@@ -113,7 +137,7 @@ class AIATimeLags(DistributedAIACollection):
             i_max_cc = cc[start:stop, :, :].argmax(axis=0).compute()
         max_timelag = self.timelags[start:stop][i_max_cc]
         # Metadata
-        meta = self[channel_a].headers[0].copy()
+        meta = self[channel_a].maps[0].meta.copy()
         del meta['instrume']
         del meta['t_obs']
         del meta['wavelnth']

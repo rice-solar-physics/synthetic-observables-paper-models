@@ -51,13 +51,12 @@ class DistributedAIACube(object):
 
     #TODO: Refactor this to use ndcube instead
     """
-    def __init__(self, maps, headers):
+    def __init__(self, maps):
         if not all([m.data.shape == maps[0].data.shape for m in maps]):
             raise ValueError('All maps must have same dimensions')
         if not all([m.data.dtype == maps[0].data.dtype for m in maps]):
             raise ValueError('All maps must have same dtype')
         self.maps = maps
-        self.headers = headers
 
     @classmethod
     def from_files(cls, read_template):
@@ -65,7 +64,7 @@ class DistributedAIACube(object):
         headers = cls._get_headers(openfiles)
         dtype, shape = cls._get_dtype_and_shape(headers)
         maps = cls._get_maps(openfiles, headers, dtype, shape)
-        return cls(maps, headers)
+        return cls(maps)
 
     @staticmethod
     def _get_maps(openfiles, headers, dtype, shape):
@@ -89,14 +88,18 @@ class DistributedAIACube(object):
     @property
     def time(self,):
         """
-        Note that this should really check for date-obs and then do something different if that
-        exists
+        Create time array
         """
-        return u.Quantity([h['t_obs'] for h in self.headers], self.headers[0]['tunit'])
-
+        # Simulations just store the seconds, should probably fix that
+        if 'tunit' in self.maps[0].meta:
+            return u.Quantity([m.meta['t_obs'] for m in self.maps], self.maps[0].meta['tunit'])
+        else:
+            return u.Quantity([(Time(m.meta['t_obs']) - Time(self.maps[0].meta['t_obs'])).to(u.s) 
+                               for m in self.maps])
+            
     @property
     def shape(self,):
-        return self.maps[0].data.shape
+        return self.time.shape + self.maps[0].data.shape
 
     @property
     def dtype(self,):
@@ -112,6 +115,16 @@ class DistributedAIACube(object):
 
     def rechunk(self, shape):
         return self.stacked_data.rechunk(shape)
+    
+    def average(self,**kwargs):
+        """
+        Time-average in each pixel
+        """
+        chunks = kwargs.get('chunks', (self.shape[0], self.shape[1]//10, self.shape[2]//10))
+        cube = self.rechunk(chunks)
+        # FIXME: should this be a weighted average? How to calculate the weights?
+        # FIXME: should we modify any of the metadata before taking an average?
+        return sunpy.map.Map(cube.mean(axis=0,dtype=np.float64), self.maps[0].meta.copy())
 
     def prep(self,):
         """
@@ -138,13 +151,13 @@ class DistributedAIACollection(object):
 
     def __init__(self, *args, **kwargs):
         # Check all spatial and time shapes the same
-        if not all([a.shape == args[0].shape for a in args]):
+        if not all([a.shape[1:] == args[0].shape[1:] for a in args]):
             raise ValueError('All spatial dimensions must be the same')
-        if not all([a.time.shape == args[0].time.shape for a in args]):
+        if not all([a.shape[0] == args[0].shape[0] for a in args]):
             # Not an error because may have missing timesteps in observations
             # Will interpolate later to account for this
             raise warnings.warn('Time dimensions are not all equal length')
-        self._cubes = {f"{a.headers[0]['wavelnth']}": a for a in args}
+        self._cubes = {f"{a.maps[0].meta['wavelnth']}": a for a in args}
         self.channels = list(self._cubes.keys())
 
     def __getitem__(self, channel):
