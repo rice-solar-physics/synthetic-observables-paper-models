@@ -20,17 +20,20 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[modern,linenumbers]{aastex62}
-
-%% Custom header includes
-
-
-%% Begin main document body
+\documentclass[preprint,linenumbers]{aastex62}
+%% Include packages
+\usepackage{amsmath}
+%% Custom commands
+\DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
+\newcommand{\AR}{active region}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Body                                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-%% Title block
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Title and Authors                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Timelag Analysis of Simulated Active Region Cores Heated by Nanoflares}
-
-%% Authors block
 \author[0000-0001-9642-6089]{W. T. Barnes}
 \author{S. J. Bradshaw}
 \affiliation{Department of Physics \& Astronomy, Rice University, Houston, TX 77005-1827}
@@ -38,17 +41,17 @@
 \affiliation{NASA Goddard Space Flight Center, Greenbelt, MD 20771}
 \correspondingauthor{W. T. Barnes}
 \email{will.t.barnes@rice.edu}
-
-%% Abstract block
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Abstract                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-Here is my paper abstract. It is a summary of this paper.
+The abstract will go here.
 \end{abstract}
-
 %% Keywords
 \keywords{Sun,corona,nanoflares,active regions}
-
-
-%% Main text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Introduction                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}\label{introduction}
 
 This is my whole paper. There is not much here. Here's how to cite a
@@ -57,9 +60,14 @@ a paper \citep{warren_constraints_2011}.
 
 \authorcomment1{What is(are) the overall point(s) of this paper?}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Methods                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Modeling}
 \label{modeling}
 In this section, we describe our pipeline for building a model active region and discuss each of the pieces in detail.
+
+Somewhere, discuss 
 
 \subsection{Magnetic Field Extrapolation}
 \label{field}
@@ -75,14 +83,14 @@ We choose active region (AR) NOAA 1158, as observed by the HMI instrument \citet
 
 \subsection{Loop Hydrodynamics}
 \label{loops}
-The low plasma-$\beta$ in the corona allows us to model the solar atmosphere as an ensemble of independently-heating loops using a field-aligned hydrodynamic model. To model the dynamics of each individual loop, we use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}. Specifically, we use the version of two-fluid version of the EBTEL model as described in \citep{barnes_inference_2016}. EBTEL solves the time-dependent, spatially-integrated hydrodynamic equations and has been successfully benchmarked against field-aligned hydrodynamic codes. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in 
+The low plasma-$\beta$ in the corona allows us to model the solar atmosphere as an ensemble of independently-heating loops using a field-aligned hydrodynamic model. To model the dynamics of each individual loop, we use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}. Specifically, we use the version of two-fluid version of the EBTEL model as described in \citep{barnes_inference_2016}. EBTEL solves the time-dependent, spatially-integrated hydrodynamic equations and has been successfully benchmarked against field-aligned hydrodynamic codes. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in a few minutes.
 
 
 \subsection{Heating Model}
 \label{heating}
 Explain the impulsive heating model, the different frequencies that will be used, the method for constraining the model. Also discuss how the underlying structure and strength of the field may influence the heating and thus the synthesized emission.
 
-Effects of ion heating?
+Show sample plot with three panels: 1) heating, 2) temperature, and 3) density as a function of time for high, intermediate, and low frequency heating for a single loop.
 
 \subsection{Forward Modeling}
 \label{forward}
@@ -130,36 +138,86 @@ How the emission is binned, point-spread function applied, correct resolution. S
 
 Also show that our chosen elements fill in the temperature response function appropriately.
 
+\section{Analysis}
+\label{analysis}
+
+\authorcomment2{Should this whole section just go in the results section?}
+
 \subsection{Timelag Analysis}
 \label{timelag_analysis}
 
-\authorcomment1{Describe how timelag is calculated, give formulas, show an example maybe (or just refer to previous papers)}
+We apply the timelag method of \citet{viall_evidence_2012} to both our simulated and observed intensities. To find the associated timelag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the lag which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
 
+\begin{equation}\label{eq:cc_pre}
+    \mathcal{C}_{AB}(\tau) = \mathcal{I}_A(t)\star\mathcal{I}_B(t) = \mathcal{I}_A(-t)\ast\mathcal{I}_B(t)
+\end{equation}
+
+where $\star$ and $\ast$ represent the correlation and convolution operators, respectively, $\mathcal{I}_c(t)=(I_c(t)-\bar{I}_c)/\sigma_{I_c}$ is the mean-subtracted and scaled intensity of channel $c$ as a function of time, and $\tau$ is the lag. Taking the fourier transform of both sides of \autoref{eq:cc_pre} and using the convolution theorem,
+
+\begin{align}\label{eq:cc}
+    \mathcal{F}(\mathcal{C}_{AB}) &= \mathcal{F}(\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)), \nonumber\\
+    &= \mathcal{F}(\mathcal{I}_A(-t))\mathcal{F}(\mathcal{I}_B(t)), \nonumber\\
+    \mathcal{C}_{AB}(\tau) &= \mathcal{F}^{-1}(\mathcal{F}(\mathcal{I}_A(-t))\mathcal{F}(\mathcal{I}_B(t))).
+\end{align}
+
+Furthermore, the \textit{timelag} between channels $A$ and $B$ is defined as,
+
+\begin{equation}
+    \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau)
+\end{equation}
+
+By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500 pixel by 500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly test Fourier transform algorithms in the NumPy python package for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}.
+
+\authorcomment2{Show an example dask DAG here?}
+
+\subsection{Emission Measure Distributions}
+\label{em_dist}
+
+\authorcomment1{Describe method for computing EM distributions and slopes}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Results                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 \label{results}
-\authorcomment1{Cooling, high, intermediate, and low frequency cases. How should these be divided up?}
-Focus on three criteria: heating frequency, nonequilibrium ionization, line-of-sight
+\authorcomment1{High, intermediate, and low frequency cases plus control models. How should these be divided up?}
 
-\subsection{Heating Scenarios}
+Two questions we want to try to answer:
+\begin{enumerate}
+    \item How is the timelag related to the heating frequency?
+    \item What heating model is most consistent with observed timelags?
+\end{enumerate}
+
+\subsection{Intensities}
 Compare different heating frequencies for different channel pairs using maps and histograms
 
 Compare with observations shown in \citet{viall_survey_2017}.
 
-\subsection{Equilibrium versus Nonequilibrium Ionization}
-How does nonequilibrium ionization affect the timelag results? Discuss for one heating case and compare distributions of timelag maps for both cases. Would probably be good to show an example of the ion populations for a particular loop as well.
+\subsection{Timelags}
 
-\subsection{Effects Due to Line-of-Sight}
-Compute timelag maps for multiple viewing angles. In addition to the actual angle, use angle perpendicular to surface normal and angle parallel to the surface normal.
+\subsection{Emission Measure Slopes}
 
+\subsection{Comparison with Observations}
+\label{compare_obs}
+
+\authorcomment1{Here, show observed timelags (do not really need to show intensities I don't think...) and observed EM slopes}
+\authorcomment1{Describe random forest technique, results of the classification}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Summary                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Summary and Conclusion}
 \label{conclusions}
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Acknowledgment                            %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \acknowledgments
-
-\software{Astropy, Dask, Matplotlib, NumPy, SunPy}
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Software                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\software{Astropy\citep{astropy_collaboration_astropy_2013}, Dask\citep{dask_development_team_dask_2016}, Matplotlib\citep{hunter_matplotlib_2007}, NumPy\citep{oliphant_guide_2006}, SunPy\citep{sunpy_community_sunpypython_2015}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   References                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{aasjournal.bst}
 \bibliography{references.bib}
-
 \end{document}
