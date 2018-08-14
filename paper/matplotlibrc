@@ -1,13 +1,14 @@
 #Text
-## Use CM fonts for everything (to match document)
-## set to usetex = True later
-#font.family : serif
-#font.serif : Computer Modern
-font.family : stixgeneral
-text.usetex : false
-mathtext.fontset : stix
+## Use LaTeX fonts if possible
+font.family : serif
+font.serif : Computer Modern
+text.usetex : True
+## If LaTeX is not available, Stix works ok 
+# font.family : stixgeneral
+# mathtext.fontset : stix
+# text.usetex : False
 #Axes
-axes.unicode_minus : false # may be need for some fonts
+#axes.unicode_minus : false # may be need for some fonts
 axes.titlesize : 12
 axes.labelsize : 12
 #Lines
