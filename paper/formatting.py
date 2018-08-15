@@ -49,3 +49,23 @@ def get_figsize(wf=0.5, hf=(5.**0.5-1.0)/2.0, columnwidth=513.11743):
     fig_width = fig_width_pt*inches_per_pt  # width in inches
     fig_height = fig_width*hf      # height in inches
     return (fig_width, fig_height)
+
+
+# Custom histogram plotting that respects rcparams
+def hist_step(ax, vals, bins, **kwargs):
+    """
+    Alternative to matplotlib hist that respects matplotlibrc styling
+    
+    Parameters
+    ----------
+    ax : Matplotlib axis
+    vals : value in each bin
+    bins : Bin edges, including the rightmost edge
+    kwargs : Plotting keyword arguments
+    """
+    ymin = ax.get_ylim()[0]
+    ax.step(bins[:-1], vals, where='post', **kwargs)
+    ax.step(bins[-2:],[vals[-1],vals[-1]], where='pre', **kwargs)
+    ax.vlines(bins[0], ymin, vals[0], **kwargs)
+    ax.vlines(bins[-1], ymin, vals[-1], **kwargs)
+    
