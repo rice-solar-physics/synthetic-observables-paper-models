@@ -1,0 +1,119 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Methods                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Modeling}\label{modeling}
+In this section, we describe our pipeline for building a model active region and discuss each of the pieces in detail.
+
+Somewhere, discuss 
+
+\subsection{Magnetic Field Extrapolation}\label{field}
+\authorcomment1{Give details about method used to perform field extrapolation, how the fieldlines are traced. Show fieldlines overlaid on magnetogram.}
+
+We choose \AR NOAA 1158, as observed by the HMI instrument \citet{hoeksema_helioseismic_2014} on 12 February 2011, from the list of active regions studied by \citet{warren_systematic_2012}. We model the geometry of AR NOAA 1158 by computing the three-dimensional magnetic field using the potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in section 3 of \citet{sakurai_greens_1982}. 
+
+\begin{figure*}
+    \plotone{../figures/hmi_aia_lines.pdf}
+    \caption{HMI (left) and AIA 171\AA (right) observations of \AR NOAA 1158, with 250 out of the total 5000 fieldlines overlaid.}
+    \label{fig:magnetogram}
+\end{figure*}
+
+\begin{figure}
+    \plotone{../figures/loop_distribution.pdf}
+    \caption{Distribution of loop lengths derived from tracing fieldlines through NOAA 1158}
+    \label{fig:loops}
+\end{figure}
+
+\subsection{Loop Hydrodynamics}\label{loops}
+The low-$\beta$ nature of the coronal plasma allows us to model the solar atmosphere as an ensemble of independently-heating loops using a field-aligned hydrodynamic model. To model the dynamics of each individual loop, we use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}. Specifically, we use the version of two-fluid version of the EBTEL model as described in \citep{barnes_inference_2016}. EBTEL solves the time-dependent, spatially-integrated hydrodynamic equations and has been successfully benchmarked against field-aligned hydrodynamic codes. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in a few minutes.
+
+\subsection{Heating Model}\label{heating}
+We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of total duration $\tau=200$ s. For each event $i$, there are two parameters: the maximum heating rate $Q_i$ and the waiting time prior to the event $t_{wait,i}$. We choose $Q_i$ from a power-law distribution with slope $-2.5$ and we define the waiting time such that $t_{wait,i}$ is the amount of time between when event $i-1$ ends and event $i$ begins. Using the model of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $t_{wait,i}\propto Q_i$. The physical motivation for this scaling is as follows: 
+
+\authorcomment1{Here provide an explanation of the heating frequency model}
+
+\begin{figure}
+    \plotone{../figures/hydro_profiles.pdf}
+    \caption{Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single loop.}
+    \label{fig:hydro}
+\end{figure}
+
+\authorcomment1{Here provide explanation of how the input energy is constrained based on the field and observations}
+
+\subsection{Forward Modeling}\label{forward}
+
+\subsubsection{Atomic Physics}\label{atomic}
+
+\input{element_table.tex}
+
+To calculate the forward modeled intensities, we account for the contributions of all transitions of all ions for a selected number of elements (see \autoref{tab:elements}). For an optically thin, high-temperature ($\sim10^6$ K), low-density ($\sim10^9$ cm$^{-3}$) plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
+
+\begin{equation}
+    \label{eq:ppuv}
+    P(\lambda_{ij}) = n_j(X_k)A_{ji}\Delta E_{ji},\quad[\text{erg cm}^{-3}\text{ s}^{-1}]
+\end{equation}
+
+where $n_j$ is the number density of ions $X_k$ in excited state $j$, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon  \citep[see][]{mason_spectroscopic_1994,bradshaw_collisional_2013}. \autoref{eq:ppuv} can be rewritten in the more useful form,
+
+\begin{eqnarray*}
+    P(\lambda_{ij}) &=& \frac{n_j(X_k)}{n(X_k)}\frac{n(X_k)}{n(X)}\frac{n(X)}{n(H)}\frac{n(H)}{n_e}n_eA_{ji}\Delta E_{ji}, \\
+    &=& N_j(X,k) f_{X,k} \mathrm{Ab}(X) 0.83 n_e A_{ji} \Delta E_{ji}, \\
+    &=& 0.83 \mathrm{Ab}(X) f_{X,k} N_j(X,k) A_{ji} \Delta E_{ji} n_e,
+\end{eqnarray*}
+
+where, $N_j$ is the fractional energy level population of level $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, and the ratio of hydrogen and electron number densities is $\approx0.83$. Note that $N_j A_{ji} \Delta E_{ji}$ is also sometimes referred to as the emissivity.
+
+To compute \autoref{eq:ppuv}, we use the CHIANTI atomic database \citep{dere_chianti_1997,young_chianti_2016}. We use the abundances of \citet{feldman_potential_1992} as provided by CHIANTI. $A_{ji}$ and $E_{ji}$ for each transition can be looked up in the database. $N_j$ is a function of temperature, density, and energy level and is computed by equating the relevant excitation and de-excitation mechanisms. We selected elements from CHIANTI based on their contribution to the AIA passbands.
+
+CHIANTI also provides $f_{X,k}$ as a function of temperature though this calculation in \textit{ionization equilibrium}, i.e. assuming that ionization and recombination are always in balance. In the rarefied solar corona, where the plasma is likely heated impulsively, it is not gauranteed that the ionization timescale is less than the heating timescale, meaning that the ionization state is not necessarily representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. In order to account for this possible non-equilibrium, we compute $f_{X,k}$ by solving the time-dependent level population equations for each ion in each element,
+
+\begin{equation}\label{eq:nei}
+    \frac{\partial f_k}{\partial t} = n_e(R_{k+1}f_{k+1} + I_{k-1}f_{k-1} - I_kf_k - R_kf_k)
+\end{equation}
+
+where $R_k$ and $I_k$ are the temperature-dependent recombination and ionization rates, respectively, of level $k$. Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Casting \autoref{eq:nei} in matrix form,
+
+\begin{equation}\label{eq:nei_mat}
+    \dot{\mathbf{F}} = \mathbf{A}\mathbf{F},
+\end{equation}
+
+where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z+1\times Z+1}$ tridiagonal matrix containing the ionization and recombination rates, multiplied by the electron density. Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff'', making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
+
+\begin{equation}
+    \mathbf{F}_{j+1} = \mathbf{F}_j + \frac{\Delta t}{2}(\dot{\mathbf{F}}_{j+1} + \dot{\mathbf{F}}_j) + \mathrm{h.o.t.}
+\end{equation}
+
+where the $j$ index represents time. Rearranging the above expression and using \autoref{eq:nei_mat}, we can find an expression for $\mathbf{F}_{j+1}$,
+
+\begin{equation}
+    \mathbf{F}_{j+1} \approx \left(\mathbb{I} - \frac{\Delta t}{2}\mathbf{A}_{j+1}\right)^{-1}\left(\mathbb{I} + \frac{\Delta t}{2}\mathbf{A}_{j}\right)\mathbf{F}_j
+\end{equation}
+
+where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we need only compute $\mathbf{A}_j$ for each $T(t_j)$ and set $\mathbf{F}_0$ to the equilibrium ion populations. We solve \autoref{eq:nei_mat} for all elements in \autoref{tab:elements} and for each loop in the \AR.
+
+\subsubsection{Instrument Effects}\label{instrument}
+
+To compute the observed \textit{intensity} along the line of sight, we need to know how much of the emission the instrument would actually detect. In this case, we want to model intensities from AIA. Thus, we convolve \autoref{eq:ppuv} with the instrument response,
+
+\begin{equation}\label{eq:intensity}
+    I_c = \frac{1}{4\pi}\sum_{\{ij\}}\int_{\text{LOS}}\mathrm{d}hP(\lambda_{ij})R_c(\lambda_{ij})
+\end{equation}
+
+where $I_c$ is the intensity for a given pixel in channel $c$, $R_c$ is the wavelength response function of the instrument for channel $c$, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the line-of-sight (LOS). Further details regarding the AIA wavelength response functions, $R_c$, can be found in \citet{boerner_initial_2012}.
+
+\autoref{fig:aia_response} shows the effective temperature response functions for the six EUV channels on AIA compared against those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database, we recover nearly all of the response from each channel. The high-temperature contribution in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
+
+Note that when computing the intensity in each channel of AIA, we do not simply multiply $n^2$ by the SolarSoft temperature response functions. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume 1) ionization equilibrium and 2) constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases we are considering 
+
+\begin{figure}
+    \plotone{../figures/nt_phase_space.pdf}
+    \caption{}
+    \label{fig:nt_phase_space}
+\end{figure}
+
+\begin{figure*}
+    \plotone{../figures/aia_response.pdf}
+    \caption{SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization.}
+    \label{fig:aia_response}
+\end{figure*}
+
+\authorcomment1{How the emission is binned, point-spread function applied, correct resolution. Some details about how results can be analyzed in same manner as real observations. This can be relatively brief.}
