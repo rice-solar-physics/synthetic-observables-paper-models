@@ -31,6 +31,10 @@ def qualitative_palette(n):
 # Default columnwidth is hardcoded for this paper
 def get_figsize(wf=0.5, hf=(5.**0.5-1.0)/2.0, columnwidth=513.11743):
     """
+    Calculate figure sizes to get consistent font sizes between latex and 
+    matplotlib. See `this SO post <https://stackoverflow.com/questions/29187618/matplotlib-and-latex-beamer-correct-size>`_.
+    For this to work, your figures in LaTeX should NOT be scaled.
+    
     Parameters
     ----------
     wf : `float`

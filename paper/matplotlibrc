@@ -12,7 +12,7 @@ text.usetex : True
 axes.titlesize : 12
 axes.labelsize : 12
 #Lines
-lines.linewidth : 2
+lines.linewidth : 1
 #Ticks
 xtick.labelsize : 10
 ytick.labelsize : 10
