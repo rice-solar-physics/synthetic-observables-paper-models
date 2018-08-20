@@ -24,6 +24,11 @@ Here are some ideas for this paper and other papers to follow based on this proj
   * How do results change when we add the emission measure slope?
   * How do the timelag only results compare to the emission measure slopes?
 
+### Color Palette
+
+* For our three different heating functions, use the first three colors in the `colorblind` palette in Seaborn
+* For different elements in the response function plot, use colorbrewer `Set1`
+
 ## Bundle Heating Model
 
 * Bundle heating model that connects heating frequency to field strength
