@@ -11,7 +11,7 @@ dependencies:
 - matplotlib
 - h5py
 - astropy
-- sunpy
+- sunpy>=0.9.2
 - scikit-learn
 - dask
 - dask-ml
