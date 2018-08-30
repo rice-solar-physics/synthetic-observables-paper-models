@@ -1,6 +1,7 @@
 """
 Few simple utilities for formatting figures nicely
 """
+import numpy as np
 import seaborn
 import matplotlib.colors
 
@@ -19,7 +20,13 @@ def heating_palette():
 
 
 def heating_cmap():
-    return matplotlib.colors.ListedColormap(heating_palette(),N=3),
+    return matplotlib.colors.ListedColormap(heating_palette(),N=3)
+
+
+def timelag_cmap():
+    return matplotlib.colors.LinearSegmentedColormap.from_list(
+        'seaborn_ryb_r', 
+        np.array(seaborn.color_palette('colorblind'))[[0,9,7,8,3]])
 
 
 # General qualitative color palette
