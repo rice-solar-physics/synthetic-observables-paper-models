@@ -15,7 +15,7 @@ dependencies:
 - scikit-learn
 - dask
 - dask-ml
-- distributed
+- distributed=1.22.0
 - ipywidgets
 - yt
 - pip:
