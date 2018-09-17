@@ -15,18 +15,16 @@ def rwb_cmap():
 
 
 # Color palette for heating functions
-def heating_palette():
-    return seaborn.color_palette(palette='colorblind', n_colors=3,)
+def heating_palette(n_colors=3):
+    return seaborn.color_palette(palette='colorblind', n_colors=n_colors,)
 
 
 def heating_cmap():
-    return matplotlib.colors.ListedColormap(heating_palette(),N=3)
+    return matplotlib.colors.ListedColormap(heating_palette(n_colors=3), N=3)
 
 
 def timelag_cmap():
-    return matplotlib.colors.LinearSegmentedColormap.from_list(
-        'seaborn_ryb_r', 
-        np.array(seaborn.color_palette('colorblind'))[[0,9,7,8,3]])
+    return 'RdYlBu_r'
 
 
 # General qualitative color palette
