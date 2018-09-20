@@ -24,7 +24,7 @@ We compute the intensities for the 94, 131, 171, 193, 211, and 335 \AA{} channel
 \end{figure*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Timelag Maps %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Timelag Maps}\label{timelag_maps}
+\subsection{Maps: Timelags and Cross-Correlations}\label{maps}
 
 We apply the timelag method of \citet{viall_evidence_2012} to our simulated intensities for all of the heating scenarios discussed in \autoref{heating}. The details of the timelag calculation are given in \autoref{timelags}. For each pixel in the active region, we compute the cross-correlation for every possible channel pair (15 in total) and find the temporal offset which maximizes the correlation. This offset, or \textit{timelag}, given by \autoref{eq:timelag}, indicates how much the second light curve must be shifted in time compared to the first in order to maximize the cross-correlation between the two light curves. By convention, we order the channel pairs such that the hot channel is listed first, meaning that a positive timelag corresponds to the variability in the hotter channel followed by variability in the cooler channel, thus indicating cooling plasma. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), we mask that pixel and color it white. 
 
@@ -50,10 +50,10 @@ Lastly, we look at results from the 193-171 \AA{} channel pair as shown in the l
     \label{fig:model_correlations}
 \end{figure*}
 
-\autoref{fig:model_correlations} shows the peak cross-correlation value, $\max\mathcal{C}_{AB}$, for each selected channel pair. Looking first at all three channel pairs, we see that, on average, the cross-correlation increases as the heating frequency decreases. Additionally, we find that the highest cross-correlations tend to be in the center of the \AR{} while the lowest tend to be on the outer edge. Furthermore, other than the ``cooling'' scenario, we find that there are large variations from one loop to the next for all heating frequencies.  
+\autoref{fig:model_correlations} shows the peak cross-correlation value, $\max\mathcal{C}_{AB}$, for each selected channel pair. Looking first at all three channel pairs, we see that, on average, the cross-correlation increases as the heating frequency decreases. Additionally, we find that the highest cross-correlations tend to be in the center of the \AR{} while the lowest tend to be on the outer edge. Furthermore, other than the ``cooling'' scenario, we find that there are large variations from one loop to the next for all heating frequencies. In \citetalias{paper_two}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Histograms of Timelags %%%%%%%%%%%%%%%%
-\subsection{Histograms of Timelags}\label{timelag_histograms}
+\subsection{Histograms: Histograms and Cross-Correlations}\label{histograms}
 
 \authorcomment1{Compare different heating frequencies for different channel pairs using histograms; show how going from high to low frequencies relaxes to the cooling time between peak temperatures of channels}
 
@@ -82,8 +82,23 @@ Dealing with our second point, nearly all of those pairs that do not exhibit thi
 \authorcomment1{Relationship to properties of the magnetic field? Energy density?}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Emission Measure Slopes %%%%%%%%%%%%%%%%
-\subsection{Emission Measure Slopes}
+\subsection{Emission Measure Slopes}\label{em_slopes}
 
 In addition to the timelag, we also compute the emission measure distribution (\dem) using the method of \citet{hannah_differential_2012} using both our simulated and observed AIA data. \dem provides a measure of how much plasma is emitting over a range of temperatures and has been used by many workers to assess heating frequency in \AR{} cores \citep[][and references therein]{tripathi_emission_2011,warren_constraints_2011,warren_systematic_2012,schmelz_cold_2012,bradshaw_diagnosing_2012,reep_diagnosing_2013,barnes_inference_2016,barnes_inference_2016,barnes_inference_2016-1}. 
 
 A common technique is to fit a power-law $\mathrm{EM}(T)\sim T^a$ to \dem between approximately 1 and 4 MK and is effectively a measure of how isothermal the distribution is. Many workers \citep[see Table 3 of][and references therein]{bradshaw_diagnosing_2012} have found $2<a<5$. \citet{cargill_active_2014} used a range of waiting times dependent on the event energy (see \autoref{heating}) and found that he could account for the observed range of slopes. Thus, the \dem slope $a$ is one important diagnostic for assessing how often a single loop may be reheated. We compute $a$ between $10^6$ and $10^{6.6}$ K for each pixel in our \AR{}.
+
+\authorcomment1{Show EM in a few bins for all three heating cases in addition to slopes}
+
+
+\begin{figure*}
+    \plotone{../figures/em_slope_maps.pdf}
+    \caption{Maps of EM slopes}
+    \label{fig:slope_maps}
+\end{figure*}
+
+\begin{figure}
+    \plotone{../figures/em_slope_histograms.pdf}
+    \caption{Distributions of EM slopes}
+    \label{fig:slope_maps}
+\end{figure}
