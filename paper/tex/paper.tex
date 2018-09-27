@@ -20,7 +20,7 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[preprint,linenumbers]{aastex62}
+\documentclass[preprint, linenumbers]{aastex62}
 %% Include packages
 \usepackage{amsmath}
 \usepackage{calc}
@@ -28,7 +28,8 @@
 \DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
 \newcommand{\AR}{active region}
 \newcommand{\dem}{$\mathrm{EM}(T)$}
-\defcitealias{paper_two}{Paper II}
+%% Paper Aliases
+\defcitealias{barnes_understanding_2018-1}{Paper II}
 % Overriding plotting macros because I don't want TeX scaling my figures at all
 \renewcommand\plotone[1]{%
     \centering
@@ -86,7 +87,7 @@ The abstract will go here.
 %                                   Software                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \software{
-    Astropy\citep{the_astropy_collaboration_astropy_2018},
+    Astropy \citep{the_astropy_collaboration_astropy_2018},
     Dask\citep{dask_development_team_dask_2016},
     Matplotlib\citep{hunter_matplotlib_2007},
     NumPy\citep{oliphant_guide_2006},
