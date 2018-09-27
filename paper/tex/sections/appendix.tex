@@ -40,27 +40,28 @@ where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we nee
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Appendix 2: Timelags                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Computing Timelags}\label{timelags}
+\section{Computing Timelags}\label{timelag_details}
 
 To find the associated timelag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the lag which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
 \begin{equation}\label{eq:cc_pre}
     \mathcal{C}_{AB}(\tau) = \mathcal{I}_A(t)\star\mathcal{I}_B(t) = \mathcal{I}_A(-t)\ast\mathcal{I}_B(t)
 \end{equation}
-where $\star$ and $\ast$ represent the correlation and convolution operators, respectively, $\mathcal{I}_c(t)=(I_c(t)-\bar{I}_c)/\sigma_{I_c}$ is the mean-subtracted and scaled intensity of channel $c$ as a function of time, and $\tau$ is the lag. Taking the fourier transform of both sides of \autoref{eq:cc_pre} and using the convolution theorem,
+where $\star$ and $\ast$ represent the correlation and convolution operators, respectively, $\tau$ is the lag and
+\begin{equation*}
+    \mathcal{I}_c(t)=\frac{I_c(t)-\bar{I}_c}{\sigma_{c}},
+\end{equation*}
+is the mean-subtracted and scaled intensity of channel $c$ as a function of time. Taking the fourier transform of both sides of \autoref{eq:cc_pre} and using the convolution theorem,
+\begin{align*}
+    \mathcal{F}\{\mathcal{C}_{AB}(\tau)\} &= \mathcal{F}\{\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)\},\\
+    &= \mathcal{F}\{\mathcal{I}_A(-t)\}\mathcal{F}\{\mathcal{I}_B(t)\}.
+\end{align*}
+Taking the inverse Fourier transform, $\mathcal{F}^{-1}$, of both sides of the above expression gives,
 \begin{align}\label{eq:cc}
-    \mathcal{F}(\mathcal{C}_{AB}) &= \mathcal{F}(\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)), \nonumber\\
-    &= \mathcal{F}(\mathcal{I}_A(-t))\mathcal{F}(\mathcal{I}_B(t)), \nonumber\\
-    \mathcal{C}_{AB}(\tau) &= \mathcal{F}^{-1}(\mathcal{F}(\mathcal{I}_A(-t))\mathcal{F}(\mathcal{I}_B(t))).
+    \mathcal{C}_{AB}(\tau) &= \mathcal{F}^{-1}\{\mathcal{F}\{\mathcal{I}_A(-t)\}\mathcal{F}\{\mathcal{I}_B(t)\}\}.
 \end{align}
-Furthermore, the \textit{timelag} between channels $A$ and $B$ is defined as,
+Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields the same result as that of the correlation defined in section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{timelag} between channels $A$ and $B$ is defined as,
 \begin{equation}\label{eq:timelag}
     \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau).
 \end{equation}
 
-\begin{figure}
-    \plotone{../figures/correlation_1d_example.pdf}
-    \caption{Normalized pixel-averaged intensity timeseries for all six AIA EUV channels (top) and cross-correlation curves for selected channel pairs (bottom) for the ``cooling'' case.}
-    \label{fig:correlation_1d}
-\end{figure}
-
-By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500 pixel by 500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy python package for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we are able to compute timelags for all 15 channel pairs in every pixel of the \AR{} in approximately twenty minutes.
+By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy Python library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we are able to compute timelags for all 15 channel pairs in every pixel of the \AR{} in approximately twenty minutes.
