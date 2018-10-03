@@ -42,7 +42,7 @@ where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we nee
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Computing Timelags}\label{timelag_details}
 
-To find the associated timelag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the lag which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
+To find the associated timelag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the delay which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
 \begin{equation}\label{eq:cc_pre}
     \mathcal{C}_{AB}(\tau) = \mathcal{I}_A(t)\star\mathcal{I}_B(t) = \mathcal{I}_A(-t)\ast\mathcal{I}_B(t)
 \end{equation}
