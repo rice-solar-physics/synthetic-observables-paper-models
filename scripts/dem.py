@@ -9,7 +9,7 @@ import matplotlib.colors
 import astropy.units as u
 import hissw
 
-from synthesizAR.maps import EMCube
+from synthesizAR.analysis.dem import EMCube
 
 __all__ = ['GenericModel', 'IDLModel', 'HannahKontarModel']
 
@@ -80,6 +80,7 @@ class HannahKontarModel(IDLModel):
             'n_sample': 1,
             'maps': self.mapcube.T.tolist(),
             'response_matrix': self.response_matrix.tolist(),
+            'normalized': True,
         }
 
     @property
@@ -96,11 +97,13 @@ class HannahKontarModel(IDLModel):
     def _template(self,):
         return """
         data = {{maps}}
-        print,size(data)
         ; Set some basic parameters
         nx=n_elements(data[*,0,0])
         ny=n_elements(data[0,*,0])
         nchannels=n_elements(data[0,0,*])
+        
+        ; May need exposure times (these are just taken from some FITS files)
+        exptimes = [2.901051,2.901311,2.000197,1.999629,2.901278,2.900791]
 
         ; Filter out bad pixels
         sat_lvl={{ saturation_level }}
@@ -115,11 +118,20 @@ class HannahKontarModel(IDLModel):
         data[*,ny-edg0:ny-1,*]=0.0
 
         ; Calculate errors
+        {% if percent_error is defined %}
+        data_errors = {{ percent_error }}*data
+        {% else %}
         data_errors=fltarr(nx,ny,nchannels)
         channels = [94,131,171,193,211,335]
         common aia_bp_error_common,common_errtable
         common_errtable=aia_bp_read_error_table('{{ aia_error_table_filename }}')
-        for i=0,nchannels-1 do data_errors[*,*,i]=aia_bp_estimate_error(reform(data[*,*,i]),replicate(channels[i],nx,ny),n_sample={{ n_sample }})
+        for i=0,nchannels-1 do begin
+            norm_factor=1
+            {% if normalized %}norm_factor = exptimes[i]{% endif %}
+            data_errors[*,*,i]=aia_bp_estimate_error(reform(data[*,*,i])*norm_factor,replicate(channels[i],nx,ny),n_sample={{ n_sample }})
+            data_errors[*,*,i]=data_errors[*,*,i]/exptimes[i] ;Is this the right thing to do?
+        endfor
+        {% endif %}
 
         ; Get temperature bins
         response_logt = {{log_temperature}}
@@ -129,4 +141,9 @@ class HannahKontarModel(IDLModel):
         response_matrix = {{ response_matrix }}
 
         ; DEM Calculation
+        {% if not normalized %}
+        for i=0,nchannels-1 do begin
+            data[*,*,i] = data[*,*,i]/exptimes[i]
+        endfor
+        {% endif %}
         dn2dem_pos_nb,data,data_errors,response_matrix,response_logt,temperature,dem,dem_errors,logt_errors,chi_squared,dn_regularized"""
