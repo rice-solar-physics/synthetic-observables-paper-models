@@ -22,9 +22,36 @@
 
 \documentclass[manuscript,linenumbers]{aastex62}
 %% Include packages
-\usepackage{pythontex}
 \usepackage{amsmath}
 \usepackage{calc}
+\usepackage{pythontex}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% PythonTeX Bug Fix % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% pytexbug fix for context in customcode.
+\makeatletter
+\renewenvironment{pythontexcustomcode}[2][begin]{%
+	\VerbatimEnvironment
+	\Depythontex{env:pythontexcustomcode:om:n}%
+	\ifstrequal{#1}{begin}{}{%
+		\ifstrequal{#1}{end}{}{\PackageError{\pytx@packagename}%
+			{Invalid optional argument for pythontexcustomcode}{}
+		}%
+	}%
+	\xdef\pytx@type{CC:#2:#1}%
+	\edef\pytx@cmd{code}%
+	% PATCH \def\pytx@context{}%
+	\pytx@SetContext
+	% END PATCH
+	\def\pytx@group{none}%
+	\pytx@BeginCodeEnv[none]}%
+{\end{VerbatimOut}%
+\setcounter{FancyVerbLine}{\value{pytx@FancyVerbLineTemp}}%
+\stepcounter{\pytx@counter}%
+}%
+\makeatother
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\setpythontexcontext{figurewidth=\the\textwidth}
 %% Custom commands
 \DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
 \newcommand{\AR}{active region}
@@ -53,6 +80,16 @@
 %                                   Body                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
+% TeXFigure Manager
+\begin{pythontexcustomcode}{py}
+import texfigure
+texfigure.configure_latex_plots(pytex)
+pytex.formatter = texfigure.repr_latex_formatter
+import matplotlib.pyplot as plt
+\end{pythontexcustomcode}
+\begin{pycode}[manager]
+manager = texfigure.Manager(pytex, './')
+\end{pycode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Title and Authors                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
