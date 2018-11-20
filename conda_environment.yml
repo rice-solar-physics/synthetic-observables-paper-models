@@ -20,5 +20,6 @@ dependencies:
 - yt
 - pip:
   - plasmapy
+  - git+https://github.com/Cadair/texfigure.git
   - git+git://github.com/wtbarnes/fiasco.git
   - git+git://github.com/wtbarnes/synthesizAR.git
