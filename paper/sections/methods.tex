@@ -95,13 +95,9 @@ ax.text(xtext.value, ytext.value, r'AIA 171 $\mathrm{\mathring{A}}$', color='w')
 #                  Save figure                     #
 ####################################################
 fig_aia_hmi_lines = manager.save_figure('magnetogram',)
+fig_aia_hmi_lines.caption = r'HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.'
 \end{pycode}
-%\py[manager]|fig_aia_hmi_lines|
-\begin{figure}
-    %\plotone{}
-    \caption{HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.}
-    \label{fig:magnetogram}
-\end{figure}
+\py[manager]|fig_aia_hmi_lines|
 
 After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing does a reasonable job of capturing the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops.
 
@@ -155,7 +151,7 @@ In this work we explore three different heating scenarios: low-, intermediate-, 
 We choose to parameterize the heating in terms of the cooling time rather than an absolute value of $\langle t_{wait}\rangle$ as $\tau_{cool}\sim L$ \citep[see appendix]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low frequency heating for a 20 Mm loop, it would correspond to high frequency heating in the case of a 150 Mm loop. By parameterizing the heating in this way, we ensure that all loops in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro} shows the heating rate, electron temperature, and density as a function of time, for a single loop, for all three of the heating scenarios list above. 
 
 \begin{figure}
-    \plotone{../figures/hydro_profiles.pdf}
+    \plotone{figures/hydro_profiles.pdf}
     \caption{Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single loop. The colors denote the heating frequency as defined in the legend. The corresponding loop has a half length of $L/2\approx40$ Mm and a mean field strength of $\bar{B}\approx30$ G.}
     \label{fig:hydro}
 \end{figure}
@@ -225,13 +221,13 @@ where $I_c$ is the intensity for a given pixel in channel $c$, $R_c$ is the wave
 Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions in SolarSoft. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume 1) ionization equilibrium and 2) constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:nt_phase_space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density. \authorcomment3{Cut or move this paragraph to an appendix?}
 
 \begin{figure}
-    \plotone{../figures/nt_phase_space.pdf}
+    \plotone{figures/nt_phase_space.pdf}
     \caption{$n-T$ phase-space orbits for a single loop for the three heating scenarios as defined by the legend. The black line indicates a constant pressure of $10^{15}$ K cm$^{-3}$. \authorcomment3{Possibly move this to an appendix}}
     \label{fig:nt_phase_space}
 \end{figure}
 
 \begin{figure*}
-    \plotone{../figures/aia_response.pdf}
+    \plotone{figures/aia_response.pdf}
     \caption{SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization. \authorcomment3{Possibly move this to an appendix}}
     \label{fig:aia_response}
 \end{figure*}
