@@ -8,19 +8,128 @@
 
 We choose \AR{} NOAA 1158, as observed by the HMI instrument \citet{hoeksema_helioseismic_2014} on 12 February 2011, from the list of active regions studied by \citet{warren_systematic_2012}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk center.
 
-\begin{figure*}
-    \plotone{../figures/hmi_aia_lines.pdf}
+\begin{pycode}[manager]
+# Load AR
+import synthesizAR
+import os
+ar = synthesizAR.Field.restore(os.path.join(manager.data_dir, 'base_noaa1158'), lazy=True)
+\end{pycode}
+\begin{pycode}[manager]
+# Import maps
+aia_map = Map(manager.data_file('aia_171_cutout.fits'))
+hmi_map = Map(manager.data_file('hmi_magnetogram.fits'))
+# Prep HMI map
+hmi_map = hmi_map.rotate(order=3).submap(
+    aia_map.bottom_left_coord, aia_map.top_right_coord)
+# Plot
+fig = plt.figure()
+line_frequency = 20
+plt.subplots_adjust(wspace=0.03)
+####################################################
+#                       HMI                        #
+####################################################
+ax = fig.add_subplot(1,2,1,projection=hmi_map,)
+hmi_map.plot(
+    title=False,annotate=False,
+    norm=matplotlib.colors.SymLogNorm(100,vmin=-1e3,vmax=1e3),
+    cmap='RdBu_r')
+for l in ar.loops[::line_frequency]:
+    c = l.coordinates.transform_to(
+            'heliographic_stonyhurst').transform_to(hmi_map.coordinate_frame)
+    ax.plot_coord(c, '-', color='k', lw=1, alpha=0.35)
+ax.grid(alpha=0)
+# HPC Axes
+lon,lat = ax.coords[0],ax.coords[1]
+lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
+lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
+lon.set_axislabel(r'Helioprojective Longitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
+lat.set_axislabel(r'Helioprojective Latitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
+# HGS Axes
+hgs_lon,hgs_lat = hmi_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.75,color='k')
+hgs_lat.set_ticklabel_visible(False)
+hgs_lon.set_ticklabel_visible(False)
+hgs_lon.set_axislabel('')
+hgs_lat.set_axislabel('')
+hgs_lat.set_ticks_visible(False)
+hgs_lon.set_ticks_visible(False)
+hgs_lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
+hgs_lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
+# Label
+xtext,ytext = hmi_map.world_to_pixel(
+    SkyCoord(Tx=-425*u.arcsec,Ty=-95*u.arcsec,frame=hmi_map.coordinate_frame))
+ax.text(xtext.value, ytext.value, 'HMI LOS Magnetogram', color='k')
+####################################################
+#                       AIA                        #
+####################################################
+ax = fig.add_subplot(1,2,2,projection=aia_map,)
+aia_map.plot(
+    title=False,annotate=False,
+    norm=ImageNormalize(vmin=0,vmax=5e3,stretch=AsinhStretch(0.1)))
+for l in ar.loops[::line_frequency]:
+    c = l.coordinates.transform_to(
+            'heliographic_stonyhurst').transform_to(aia_map.coordinate_frame)
+    ax.plot_coord(c, '-', color='w', lw=1, alpha=0.35)
+ax.grid(alpha=0)
+# HPC Axes
+lon,lat = ax.coords[0],ax.coords[1]
+lon.set_ticks(color='w')
+lat.set_ticks(color='w')
+lat.set_ticklabel_visible(False)
+# HGS Axes
+hgs_lon,hgs_lat = aia_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.75,color='w')
+hgs_lat.set_axislabel('Heliographic Latitude [arcsec]',
+                      fontsize=plt.rcParams['axes.labelsize'])
+hgs_lon.set_axislabel('Heliographic Longitude [arcsec]',
+                      fontsize=plt.rcParams['axes.labelsize'])
+hgs_lat.set_ticklabel_visible(True)
+hgs_lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
+hgs_lon.set_ticklabel_visible(True)
+hgs_lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
+hgs_lat.set_ticks_visible(False)
+hgs_lon.set_ticks_visible(False)
+# Label
+xtext,ytext = aia_map.world_to_pixel(
+    SkyCoord(Tx=-425*u.arcsec,Ty=-95*u.arcsec,frame=aia_map.coordinate_frame))
+ax.text(xtext.value, ytext.value, r'AIA 171 $\mathrm{\mathring{A}}$', color='w')
+####################################################
+#                  Save figure                     #
+####################################################
+fig_aia_hmi_lines = manager.save_figure('magnetogram',)
+\end{pycode}
+%\py[manager]|fig_aia_hmi_lines|
+\begin{figure}
+    %\plotone{}
     \caption{HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.}
     \label{fig:magnetogram}
-\end{figure*}
+\end{figure}
 
 After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing does a reasonable job of capturing the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops.
 
-\begin{figure}
-    \plotone{../figures/loop_distribution.pdf}
-    \caption{Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.}
-    \label{fig:loops}
-\end{figure}
+%\begin{figure}
+%    \plotone{../figures/loop_distribution.pdf}
+%    \caption{Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.}
+%    \label{fig:loops}
+%\end{figure}
+
+\begin{pycode}[manager]
+from formatting import hist_step
+fig = plt.figure()
+ax = fig.gca()
+vals,bins = np.histogram([l.full_length.to(u.Mm).value for l in ar.loops], bins='scott',)
+hist_step(ax, vals, bins, color='k',lw=2)
+ax.set_xlabel(r'$L$ [Mm]');
+ax.set_ylabel(r'Number of Loops');
+ax.set_ylim(-100,1300)
+ax.set_xlim(-1,260)
+# Spines
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_bounds(ax.get_yticks()[1], ax.get_yticks()[-2])
+ax.spines['bottom'].set_bounds(ax.get_xticks()[1], ax.get_xticks()[-2])
+fig_loop_dist = manager.save_figure('loops',)
+fig_loop_dist.caption = r'Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.'
+\end{pycode}
+\py[manager]|fig_loop_dist|
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Loop Hydrodynamics %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Loop Hydrodynamics}\label{loops}
