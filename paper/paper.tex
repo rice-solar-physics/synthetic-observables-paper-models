@@ -1,0 +1,160 @@
+%% Use AASTeX class, version 6.1
+%% Allow for additional class options such as,
+%%  twocolumn   : two text columns, 10 point font, single spaced article.
+%%                This is the most compact and represent the final published
+%%                derived PDF copy of the accepted manuscript from the publisher
+%%  manuscript  : one text column, 12 point font, double spaced article.
+%%  preprint    : one text column, 12 point font, single spaced article.  
+%%  preprint2   : two text columns, 12 point font, single spaced article.
+%%  modern      : a stylish, single text column, 12 point font, article with
+%% 		            wider left and right margins. This uses the Daniel
+%% 		            Foreman-Mackey and David Hogg design.
+%%  astrosymb    : Loads Astrosymb font and define \astrocommands. 
+%%  tighten      : Makes baselineskip slightly smaller, only works with 
+%%                 the twocolumn substyle.
+%%  times        : uses times font instead of the default
+%%  linenumbers  : turn on lineno package.
+%%  trackchanges : required to see the revision mark up and print its output
+%%  longauthor   : Do not use the more compressed footnote style (default) for 
+%%                 the author/collaboration/affiliations. Instead print all
+%%                 affiliation information after each name. Creates a much
+%%                 long author list but may be desirable for short author papers
+
+\documentclass[manuscript,linenumbers]{aastex62}
+%% Include packages
+\usepackage{amsmath}
+\usepackage{calc}
+\usepackage{pgf}
+\usepackage{pythontex}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% PythonTeX Bug Fix % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% pytexbug fix for context in customcode.
+\makeatletter
+\renewenvironment{pythontexcustomcode}[2][begin]{%
+	\VerbatimEnvironment
+	\Depythontex{env:pythontexcustomcode:om:n}%
+	\ifstrequal{#1}{begin}{}{%
+		\ifstrequal{#1}{end}{}{\PackageError{\pytx@packagename}%
+			{Invalid optional argument for pythontexcustomcode}{}
+		}%
+	}%
+	\xdef\pytx@type{CC:#2:#1}%
+	\edef\pytx@cmd{code}%
+	% PATCH \def\pytx@context{}%
+	\pytx@SetContext
+	% END PATCH
+	\def\pytx@group{none}%
+	\pytx@BeginCodeEnv[none]}%
+{\end{VerbatimOut}%
+\setcounter{FancyVerbLine}{\value{pytx@FancyVerbLineTemp}}%
+\stepcounter{\pytx@counter}%
+}%
+\makeatother
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\setpythontexcontext{figurewidth=\the\columnwidth}
+%% Custom commands
+\DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
+\newcommand{\AR}{active region}
+\newcommand{\dem}{$\mathrm{EM}(T)$}
+\newcommand{\includepgf}[1]{\IfFileExists{#1}{\input{#1}}{}}
+%% Paper Aliases
+\defcitealias{barnes_understanding_2018-1}{Paper II}
+% Overriding plotting macros because I don't want TeX scaling my figures at all
+\renewcommand\plotone[1]{%
+    \centering
+    \includegraphics[]{#1}
+}
+\newlength\graphicwidth
+\def\myfig#1#2{%
+    \setlength\graphicwidth{\widthof{\includegraphics{#1}}}
+    \hfill\vbox{\parskip=0pt\hsize=\graphicwidth
+    \includegraphics{#1}\vskip2pt\vtop{\centering
+    \footnotesize
+    \hsize=\graphicwidth
+    #2\vskip1pt
+    }}\hfill
+}
+\renewcommand{\sectionautorefname}{Section}
+\renewcommand{\subsectionautorefname}{Section}
+\renewcommand{\subsubsectionautorefname}{Section}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Body                                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+% TeXFigure Manager
+\begin{pythontexcustomcode}{py}
+import texfigure
+texfigure.configure_latex_plots(pytex)
+pytex.formatter = texfigure.repr_latex_formatter
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors
+from sunpy.map import Map
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+from astropy.visualization import ImageNormalize,AsinhStretch
+# Set some plot styling here
+plt.rcParams['xtick.direction'] = 'in'
+plt.rcParams['ytick.direction'] = 'in'
+plt.rcParams['savefig.dpi'] = 200
+plt.rcParams['savefig.format'] = 'pdf'
+plt.rcParams['savefig.bbox'] = 'tight'
+\end{pythontexcustomcode}
+\begin{pycode}[manager]
+manager = texfigure.Manager(pytex, './')
+\end{pycode}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Title and Authors                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\title{Understanding Heating Frequency in Active Region Cores through Synthetic Observables I. Modeling}
+\author[0000-0001-9642-6089]{W. T. Barnes}
+\author{S. J. Bradshaw}
+\affiliation{Department of Physics \& Astronomy, Rice University, Houston, TX 77005-1827}
+\author{N. M. Viall}
+\affiliation{NASA Goddard Space Flight Center, Greenbelt, MD 20771}
+\correspondingauthor{W. T. Barnes}
+\email{will.t.barnes@rice.edu}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Abstract                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}
+    A key question surrounding the coronal heating problem is the frequency at which the coronal plasma is reheated. In the context of active regions, there is a longstanding debate regarding whether individual loops are heated steadily or impulsively. To properly address this question detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamics loop models. We use this pipeline to model time-dependent active region intensities as observed by SDO/AIA and derive commonly used observables from our synthetic data. We find that signatures of the heating frequency persist in both the timelag and emission measure slope. A follow up paper will use these modeled observables to classify the real AIA data in terms of the heating frequency.
+\end{abstract}
+%% Keywords
+\keywords{Sun,corona,nanoflares,active regions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Sections                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%The column width is \the\textwidth
+\input{sections/intro}
+\input{sections/methods}
+\input{sections/results}
+\input{sections/summary}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Acknowledgment                            %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\acknowledgments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Software                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\software{
+    Astropy \citep{the_astropy_collaboration_astropy_2018},
+    Dask\citep{dask_development_team_dask_2016},
+    Matplotlib\citep{hunter_matplotlib_2007},
+    NumPy\citep{oliphant_guide_2006},
+    seaborn\citep{waskom_seaborn_2018},
+    SunPy\citep{sunpy_community_sunpypython_2015},
+    yt\citep{turk_yt_2011}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Appendix                                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix
+\input{sections/appendix}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   References                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{aasjournal.bst}
+\bibliography{references.bib}
+\end{document}
