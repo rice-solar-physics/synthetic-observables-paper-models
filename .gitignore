@@ -343,6 +343,3 @@ TSWLatexianTemp*
 
 # standalone packages
 *.sta
-
-# Track paper figures
-!paper/figures/*.pdf
