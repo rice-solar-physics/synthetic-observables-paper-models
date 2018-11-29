@@ -1,5 +1,5 @@
 # Before publishing, all of these versions need to be pinned!
-name: synthesized-timelags
+name: synthetic-observables
 channels:
 - defaults
 - conda-forge
@@ -11,11 +11,11 @@ dependencies:
 - matplotlib
 - h5py
 - astropy
-- sunpy>=0.9.2
+- sunpy
 - scikit-learn
 - dask
 - dask-ml
-- distributed=1.22.0
+- distributed
 - ipywidgets
 - yt
 - pip:
