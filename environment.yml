@@ -12,12 +12,11 @@ dependencies:
 - h5py
 - astropy
 - sunpy
-- scikit-learn
 - dask
-- dask-ml
 - distributed
 - ipywidgets
 - yt
+- seaborn
 - pip:
   - plasmapy
   - git+https://github.com/Cadair/texfigure.git
