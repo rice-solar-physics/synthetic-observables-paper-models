@@ -6,14 +6,6 @@ import seaborn
 import matplotlib.colors
 
 
-# Nice looking RWB diverging colormap
-def rwb_cmap():
-    p = seaborn.color_palette('deep')
-    return matplotlib.colors.LinearSegmentedColormap.from_list(
-        'rwb_nice', [p[0], (1, 1, 1), p[3],],N=1000,
-    )
-
-
 # Color palette for heating functions
 def heating_palette(n_colors=3):
     return seaborn.color_palette(palette='colorblind', n_colors=n_colors,)
@@ -21,10 +13,6 @@ def heating_palette(n_colors=3):
 
 def heating_cmap():
     return matplotlib.colors.ListedColormap(heating_palette(n_colors=3), N=3)
-
-
-def timelag_cmap():
-    return 'RdYlBu_r'
 
 
 # General qualitative color palette
