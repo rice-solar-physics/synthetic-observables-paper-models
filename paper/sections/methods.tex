@@ -179,7 +179,23 @@ In addition to these three multi-event heating models, we also run two single-ev
 
 \subsubsection{Atomic Physics}\label{atomic}
 
-\input{element_table.tex}
+\begin{pycode}[manager_methods]
+import plasmapy.atomic
+from astropy.table import Table
+from astropy.io import ascii
+from synthesizAR.atomic import EmissionModel
+em = EmissionModel.restore(os.path.join(manager_methods.data_dir, 'base_emission_model.json'))
+data = {'Element': [], 'Number of Ions': [], 'Number of Transitions': [],}
+for i in em:
+    data['Element'].append(i.atomic_symbol)
+    data['Number of Ions'].append(1)
+    data['Number of Transitions'].append(i.transitions.wavelength.shape[0] if hasattr(i.transitions, 'wavelength') else 0)
+df = pd.DataFrame(data=data).groupby('Element').sum().reset_index()
+z = df['Element'].map(plasmapy.atomic.atomic_number)
+df = df.assign(z = z).sort_values(by='z', axis=0).drop(columns='z')
+caption = r"Elements included in the calculation of \autoref{eq:intensity}. Ions and transitions are those included in the CHIANTI atomic database.\label{tab:elements}"
+\end{pycode}
+\py[manager_methods]|ascii.write(Table.from_pandas(df), format='aastex', caption=caption)|
 
 To calculate the forward modeled intensities, we account for the contributions of all transitions of all ions for a selected number of elements (see \autoref{tab:elements}). For an optically thin, high-temperature ($\sim10^6$ K), low-density ($\sim10^9$ cm$^{-3}$) plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
 
