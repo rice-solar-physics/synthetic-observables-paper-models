@@ -3,21 +3,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Modeling}\label{modeling}
 
+\begin{pycode}[manager_methods]
+manager_methods = texfigure.Manager(pytex, './', python_dir='python', fig_dir='figures', data_dir='data')
+\end{pycode}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Field Extrapolation %%%%%%%%%%%%%%%%%%%%
 \subsection{Magnetic Field Extrapolation}\label{field}
 
 We choose \AR{} NOAA 1158, as observed by the HMI instrument \citet{hoeksema_helioseismic_2014} on 12 February 2011, from the list of active regions studied by \citet{warren_systematic_2012}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk center.
 
-\begin{pycode}[manager]
+\begin{pycode}[manager_methods]
 # Load AR
-import synthesizAR
-import os
-ar = synthesizAR.Field.restore(os.path.join(manager.data_dir, 'base_noaa1158'), lazy=True)
-\end{pycode}
-\begin{pycode}[manager]
+ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), lazy=True)
 # Import maps
-aia_map = Map(manager.data_file('aia_171_cutout.fits'))
-hmi_map = Map(manager.data_file('hmi_magnetogram.fits'))
+aia_map = Map(manager_methods.data_file('aia_171_cutout.fits'))
+hmi_map = Map(manager_methods.data_file('hmi_magnetogram.fits'))
 # Prep HMI map
 hmi_map = hmi_map.rotate(order=3).submap(
     aia_map.bottom_left_coord, aia_map.top_right_coord)
@@ -94,20 +94,14 @@ ax.text(xtext.value, ytext.value, r'AIA 171 $\mathrm{\mathring{A}}$', color='w')
 ####################################################
 #                  Save figure                     #
 ####################################################
-fig_aia_hmi_lines = manager.save_figure('magnetogram',)
+fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
 fig_aia_hmi_lines.caption = r'HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.'
 \end{pycode}
-\py[manager]|fig_aia_hmi_lines|
+\py[manager_methods]|fig_aia_hmi_lines|
 
 After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing does a reasonable job of capturing the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops.
 
-%\begin{figure}
-%    \plotone{../figures/loop_distribution.pdf}
-%    \caption{Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.}
-%    \label{fig:loops}
-%\end{figure}
-
-\begin{pycode}[manager]
+\begin{pycode}[manager_methods]
 from formatting import hist_step
 fig = plt.figure()
 ax = fig.gca()
@@ -122,10 +116,10 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_bounds(ax.get_yticks()[1], ax.get_yticks()[-2])
 ax.spines['bottom'].set_bounds(ax.get_xticks()[1], ax.get_xticks()[-2])
-fig_loop_dist = manager.save_figure('loops',)
+fig_loop_dist = manager_methods.save_figure('loops',)
 fig_loop_dist.caption = r'Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.'
 \end{pycode}
-\py[manager]|fig_loop_dist|
+\py[manager_methods]|fig_loop_dist|
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Loop Hydrodynamics %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Loop Hydrodynamics}\label{loops}

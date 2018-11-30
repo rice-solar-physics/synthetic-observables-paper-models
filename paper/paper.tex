@@ -84,6 +84,7 @@
 \begin{document}
 % TeXFigure Manager
 \begin{pythontexcustomcode}{py}
+import os
 import texfigure
 texfigure.configure_latex_plots(pytex)
 pytex.formatter = texfigure.repr_latex_formatter
@@ -93,7 +94,8 @@ import matplotlib.colors
 from sunpy.map import Map
 import astropy.units as u
 from astropy.coordinates import SkyCoord
-from astropy.visualization import ImageNormalize,AsinhStretch
+from astropy.visualization import ImageNormalize,AsinhStretch,SqrtStretch
+import synthesizAR
 # Set some plot styling here
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
@@ -101,9 +103,6 @@ plt.rcParams['savefig.dpi'] = 200
 plt.rcParams['savefig.format'] = 'pdf'
 plt.rcParams['savefig.bbox'] = 'tight'
 \end{pythontexcustomcode}
-\begin{pycode}[manager]
-manager = texfigure.Manager(pytex, './', python_dir='python', fig_dir='figures', data_dir='data')
-\end{pycode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Title and Authors                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
