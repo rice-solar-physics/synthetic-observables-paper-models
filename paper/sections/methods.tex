@@ -142,13 +142,52 @@ In this work we explore three different heating scenarios: low-, intermediate-, 
      \end{cases}
 \end{equation}
 
-We choose to parameterize the heating in terms of the cooling time rather than an absolute value of $\langle t_{wait}\rangle$ as $\tau_{cool}\sim L$ \citep[see appendix]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low frequency heating for a 20 Mm loop, it would correspond to high frequency heating in the case of a 150 Mm loop. By parameterizing the heating in this way, we ensure that all loops in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro} shows the heating rate, electron temperature, and density as a function of time, for a single loop, for all three of the heating scenarios list above. 
+We choose to parameterize the heating in terms of the cooling time rather than an absolute value of $\langle t_{wait}\rangle$ as $\tau_{cool}\sim L$ \citep[see appendix]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low frequency heating for a 20 Mm loop, it would correspond to high frequency heating in the case of a 150 Mm loop. By parameterizing the heating in this way, we ensure that all loops in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single loop, for all three of the heating scenarios list above. 
 
-\begin{figure}
-    \plotone{figures/hydro_profiles.pdf}
-    \caption{Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single loop. The colors denote the heating frequency as defined in the legend. The corresponding loop has a half length of $L/2\approx40$ Mm and a mean field strength of $\bar{B}\approx30$ G.}
-    \label{fig:hydro}
-\end{figure}
+\begin{pycode}[manager_methods]
+import h5py
+from formatting import heating_palette
+fig,axes = plt.subplots(3, 1, sharex=True)
+plt.subplots_adjust(hspace=0.)
+colors = heating_palette()
+i_loop=680
+heating = ['high_frequency', 'intermediate_frequency','low_frequency']
+loop = ar.loops[i_loop]
+for i,h in enumerate(heating):
+    loop.parameters_savefile = os.path.join(manager_methods.data_dir, f'{h}', 'loop_parameters.h5')
+    with h5py.File(loop.parameters_savefile, 'r') as hf:
+        q = np.array(hf[f'loop{i_loop:06d}']['heating_rate'])
+    axes[0].plot(loop.time, q, color=colors[i], label=h.split('_')[0].capitalize(),)
+    axes[1].plot(loop.time, loop.electron_temperature[:,0].to(u.MK), color=colors[i],)
+    axes[2].plot(loop.time, loop.density[:,0]/1e9, color=colors[i],)
+# Legend
+axes[0].legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02),frameon=False,)
+# Labels and limits
+axes[0].set_xlim(0,3e4)
+#axes[0].set_ylim(-1e-3,2e-2)
+axes[0].set_yticks([0.005,0.015,0.025])
+axes[1].set_ylim(0.1,8)
+#axes[1].set_yticks(axes[1].get_yticks()[1:-1])
+axes[2].set_ylim(0,1.8)
+axes[0].set_ylabel(r'$Q$ [erg$/$cm$^{3}$$/$s]')
+axes[1].set_ylabel(r'$T$ [MK]')
+axes[2].set_ylabel(r'$n$ [10$^9$ cm$^{-3}$]')
+axes[2].set_xlabel(r'$t$ [s]')
+# Spines
+axes[0].spines['bottom'].set_visible(False)
+axes[0].spines['top'].set_visible(False)
+axes[0].spines['right'].set_visible(False)
+axes[0].tick_params(axis='x',which='both',bottom=False)
+axes[1].spines['top'].set_visible(False)
+axes[1].spines['bottom'].set_visible(False)
+axes[1].spines['right'].set_visible(False)
+axes[1].tick_params(axis='x',which='both',bottom=False)
+axes[2].spines['top'].set_visible(False)
+axes[2].spines['right'].set_visible(False)
+fig_hydro_profiles = manager_methods.save_figure('hydro-profiles')
+fig_hydro_profiles.caption = r'Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single loop. The colors denote the heating frequency as defined in the legend. The corresponding loop has a half length of $L/2\approx40$ Mm and a mean field strength of $\bar{B}\approx30$ G.'
+\end{pycode}
+\py[manager_methods]|fig_hydro_profiles|
 
 In order to make meaningful comparisons between the various heating scenarios, we constrain the total flux into the \AR{} to be $F_{\ast}=10^7$ erg cm$^{-2}$ s$^{-1}$ \citep{withbroe_mass_1977}. For a single impulsive event $i$ as described above, the energy density is $E_i=\tau Q_i/2$. Summing over all events on all loops that comprise the \AR{},
 \begin{equation}
@@ -228,13 +267,33 @@ where $I_c$ is the intensity for a given pixel in channel $c$, $R_c$ is the wave
 
 \autoref{fig:aia_response} shows the effective temperature response functions for the six EUV channels on AIA compared against those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database, we recover nearly all of the response from each channel. The high-temperature contribution in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
 
-Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions in SolarSoft. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume 1) ionization equilibrium and 2) constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:nt_phase_space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density. \authorcomment3{Cut or move this paragraph to an appendix?}
+Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions in SolarSoft. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume 1) ionization equilibrium and 2) constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density. \authorcomment3{Cut or move this paragraph to an appendix?}
 
-\begin{figure}
-    \plotone{figures/nt_phase_space.pdf}
-    \caption{$n-T$ phase-space orbits for a single loop for the three heating scenarios as defined by the legend. The black line indicates a constant pressure of $10^{15}$ K cm$^{-3}$. \authorcomment3{Possibly move this to an appendix}}
-    \label{fig:nt_phase_space}
-\end{figure}
+\begin{pycode}[manager_methods]
+fig = plt.figure()
+ax = fig.gca()
+min_T = 1e300*u.K
+max_T = 0*u.K
+for i,h in enumerate(heating):
+    loop.parameters_savefile = os.path.join(manager_methods.data_dir, f'{h}', 'loop_parameters.h5')
+    ax.plot(loop.electron_temperature[:,0], loop.density[:,0], color=colors[i], alpha=0.75,
+            label=h.split('_')[0].capitalize())
+    min_T = min(min_T, loop.electron_temperature.min())
+    max_T = max(max_T, loop.electron_temperature.max())
+p = 1e15*u.K/(u.cm**3)
+T = np.linspace(min_T,max_T,1000)
+ax.plot(T, p/T, color='k')
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_ylabel(r'$n$ [cm$^{-3}$]')
+ax.set_xlabel(r'$T$ [K]')
+ax.legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02),frameon=False,)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+fig_hydro_phase_space = manager_methods.save_figure('hydro-phase-space')
+fig_hydro_phase_space.caption = r'$n-T$ phase-space orbits for a single loop for the three heating scenarios as defined by the legend. The black line indicates a constant pressure of $10^{15}$ K cm$^{-3}$. \authorcomment3{Possibly move this to an appendix}'
+\end{pycode}
+\py[manager_methods]|fig_hydro_phase_space|
 
 \begin{figure*}
     \plotone{figures/aia_response.pdf}
