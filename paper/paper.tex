@@ -57,27 +57,16 @@
 \DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
 \newcommand{\AR}{active region}
 \newcommand{\dem}{$\mathrm{EM}(T)$}
-\newcommand{\includepgf}[1]{\IfFileExists{#1}{\input{#1}}{}}
-%% Paper Aliases
-\defcitealias{barnes_understanding_2018-1}{Paper II}
 % Overriding plotting macros because I don't want TeX scaling my figures at all
 \renewcommand\plotone[1]{%
     \centering
     \includegraphics[]{#1}
 }
-\newlength\graphicwidth
-\def\myfig#1#2{%
-    \setlength\graphicwidth{\widthof{\includegraphics{#1}}}
-    \hfill\vbox{\parskip=0pt\hsize=\graphicwidth
-    \includegraphics{#1}\vskip2pt\vtop{\centering
-    \footnotesize
-    \hsize=\graphicwidth
-    #2\vskip1pt
-    }}\hfill
-}
 \renewcommand{\sectionautorefname}{Section}
 \renewcommand{\subsectionautorefname}{Section}
 \renewcommand{\subsubsectionautorefname}{Section}
+%% Paper Aliases
+\defcitealias{barnes_understanding_2018-1}{Paper II}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Body                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
