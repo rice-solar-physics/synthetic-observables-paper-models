@@ -74,21 +74,69 @@ While there are differences between the AIA intensities for different heating sc
 
 In addition to the timelag, we also derive emission measure distributions (\dem{}) from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.5}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing the \dem{} at each timestep, we compute the time-averaged intensity in each pixel of each channel and compute the \dem{} only once. We assume uncertainties of 20\% on the forward-modeled intensity data in every pixel and every channel. After computing the \dem{} in each pixel, we do a first-order polynomial fit to the log-transformed emission measure to calculate the emission measure slope, $a$.
 
-\begin{figure*}
-    \plotone{figures/em_slope_maps.pdf}
-    \caption{Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high (left), intermediate (center), and low (right) frequency cases. The \dem{} is computed from intensities in the 6 EUV channels of AIA using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $5.8<\log{T}<6.4$. The maps have been cropped in order to focus on the part of the \AR{} where $a$ is defined.}
-    \label{fig:slope_maps}
-\end{figure*}
+\begin{pycode}[manager_results]
+fig = plt.figure()
+cax = fig.add_axes([0.13, 0.0, 0.77, 0.04])
+params = {'cmap': 'viridis', 'vmin': 2, 'vmax': 5, 'title': False, 'annotate': False}
+for i,h in enumerate(heating):
+    m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
+    m = m.submap(SkyCoord(Tx=-365*u.arcsec,Ty=-290*u.arcsec,frame=m.coordinate_frame),
+                 SkyCoord(Tx=-230*u.arcsec,Ty=-165*u.arcsec,frame=m.coordinate_frame))
+    ax = fig.add_subplot(1, len(heating), i+1, projection=m)
+    im = m.plot(axes=ax, **params)
+    ax.grid(alpha=0)
+    lon,lat = ax.coords
+    if i > 0:
+        lon.set_ticks_visible(False)
+        lon.set_ticklabel_visible(False)
+        lat.set_ticks_visible(False)
+        lat.set_ticklabel_visible(False)
+    else:
+        lat.set_ticks(number=3)
+        lon.set_axislabel('Helioprojective Longitude [arcsec]',
+                          fontsize=plt.rcParams['axes.labelsize'])
+        lat.set_axislabel('Helioprojective Latitude [arcsec]',
+                          fontsize=plt.rcParams['axes.labelsize'])
+        lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
+        lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
+    ax.set_title(h.split('_')[0].capitalize())
+plt.subplots_adjust(hspace=0.,wspace=0.05)
+cbar = fig.colorbar(im, cax=cax, orientation='horizontal');
+cbar.set_ticks([2,3,4,5])
+fig_slope_maps = manager_results.save_figure('em-slope-maps',)
+fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high (left), intermediate (center), and low (right) frequency cases. The \dem{} is computed from intensities in the 6 EUV channels of AIA using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $5.8<\log{T}<6.4$. The maps have been cropped in order to focus on the part of the \AR{} where $a$ is defined.'  
+\end{pycode}
+\py[manager_results]|fig_slope_maps|
 
-\autoref{fig:slope_maps} shows the resulting \dem{} slope $a$ in each pixel of our forward-modeled \AR{} for the low, intermediate, and high frequency cases. We fit the \dem{} over all bins in the temperature range $5.8\le\log T\le6.4$ so as to avoid fitting across the peak of the \dem{} and underestimating the slope. We exclude pixels with $\mathrm{EM}(T)<10^{23}$ cm$^{-5}$ in any temperature bin within the fitting interval and we do not include fits with $r^2<0.9$, where we are using $r^2$, the correlation coefficient, as a goodness-of-fit measure for the linear fit. Looking at the three panels in \autoref{fig:slope_maps}, we find that overall, the \dem{} slope $a$ tends to decrease with decreasing frequency. The low frequency map (rightmost panel) shows many values close to 2. From the discussion above, this is expected as the low frequency case is essentially repeated single nanoflares on each strand. As the heating frequency increases, the slopes become larger, indicating a narrowing \dem{} distribution. The indermediate frequency map (center panel) shows many values around 3 and the high frequency map (leftmost panel) shows many slopes close to 5, indicating an even more isothermal distribution. 
+\autoref{fig:em-slope-maps} shows the resulting \dem{} slope $a$ in each pixel of our forward-modeled \AR{} for the low, intermediate, and high frequency cases. We fit the \dem{} over all bins in the temperature range $5.8\le\log T\le6.4$ so as to avoid fitting across the peak of the \dem{} and underestimating the slope. We exclude pixels with $\mathrm{EM}(T)<10^{23}$ cm$^{-5}$ in any temperature bin within the fitting interval and we do not include fits with $r^2<0.9$, where we are using $r^2$, the correlation coefficient, as a goodness-of-fit measure for the linear fit. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, the \dem{} slope $a$ tends to decrease with decreasing frequency. The low frequency map (rightmost panel) shows many values close to 2. From the discussion above, this is expected as the low frequency case is essentially repeated single nanoflares on each strand. As the heating frequency increases, the slopes become larger, indicating a narrowing \dem{} distribution. The indermediate frequency map (center panel) shows many values around 3 and the high frequency map (leftmost panel) shows many slopes close to 5, indicating an even more isothermal distribution. 
 
-\begin{figure}
-    \plotone{figures/em_slope_histograms.pdf}
-    \caption{Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high, intermediate, and low frequency heating scenarios. The data displayed here is the same as in \autoref{fig:slope_maps}. The values of $a$ are binned between 1 and 6 with bin widths of 0.05.}
-    \label{fig:slope_histograms}
-\end{figure}
+\begin{pycode}[manager_results]
+from formatting import heating_palette
+fig = plt.figure()
+ax = fig.gca()
+bins = np.arange(1, 6, 0.05)
+bin_centers = (bins[:-1] + bins[1:])/2
+params = {'bins': bins, 'histtype': 'step','density':False, 'lw':1}
+for i,h in enumerate(heating):
+    d = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits')).data.flatten()
+    h, b, _ = ax.hist(d[~np.isnan(d)], **params, color=heating_palette()[i],
+                      label=h.split('_')[0].capitalize())
+ax.set_xlim(1.5, 5.5);
+ax.set_xticks([2, 3, 4, 5])
+ax.legend(frameon=False, loc=1)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.set_yticks(ax.get_yticks()[1:-1])
+ax.spines['left'].set_bounds(ax.get_yticks()[0],ax.get_yticks()[-1])
+ax.spines['bottom'].set_bounds(ax.get_xticks()[0],ax.get_xticks()[-1])
+ax.set_xlabel(r'$a$')
+ax.set_ylabel(r'Number of Pixels')
+fig_slope_histograms = manager_results.save_figure('em-slope-histograms')
+fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high,intermediate, and low frequency heating scenarios. The data displayed here is the same as in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 1 and 6 with bin widths of 0.05.'
+\end{pycode}
+\py[manager_results]|fig_slope_histograms|
 
-\autoref{fig:slope_histograms} shows the distribution $a$ values for the high, intermediate, and low frequency cases. Consistent with the discussion above and \autoref{fig:slope_maps}, we find that the low frequency distribution peaks at $a\approx2.3$, with the intermediate and high frequency cases peaking at successively higher values, approximately 2.7 and 3.3, respectively. The low and intermediate distributions are approximately the same width while the high frequency distribution is significantly wider. While the peaks appear reasonably well-separated, our results suggest that using the \dem{} slope alone to classifying heating heating frequency in observations is likely to be difficult, particularly in the case of low versus intermediate frequency. In \citetalias{barnes_understanding_2018-1}, we compare our modeled \dem{} slopes to values of $a$ derived from observations of NOAA 11158.
+\autoref{fig:em-slope-histograms} shows the distribution $a$ values for the high, intermediate, and low frequency cases. Consistent with the discussion above and \autoref{fig:em-slope-maps}, we find that the low frequency distribution peaks at $a\approx2.3$, with the intermediate and high frequency cases peaking at successively higher values, approximately 2.7 and 3.3, respectively. The low and intermediate distributions are approximately the same width while the high frequency distribution is significantly wider. While the peaks appear reasonably well-separated, our results suggest that using the \dem{} slope alone to classifying heating heating frequency in observations is likely to be difficult, particularly in the case of low versus intermediate frequency. In \citetalias{barnes_understanding_2018-1}, we compare our modeled \dem{} slopes to values of $a$ derived from observations of NOAA 11158.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Timelag Maps %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
