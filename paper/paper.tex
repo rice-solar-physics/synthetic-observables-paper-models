@@ -52,7 +52,7 @@
 }%
 \makeatother
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\setpythontexcontext{figurewidth=\the\columnwidth}
+\setpythontexcontext{textwidth=\the\textwidth,figurewidth=\the\columnwidth}
 %% Custom commands
 \DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
 \newcommand{\AR}{active region}
@@ -87,6 +87,18 @@ from astropy.coordinates import SkyCoord
 from astropy.visualization import ImageNormalize,AsinhStretch,SqrtStretch
 import synthesizAR
 # Set some plot styling here
+plt.rcParams['font.family'] = 'serif'
+plt.rcParams['font.serif'] = 'Computer Modern'
+plt.rcParams['text.usetex'] = True
+plt.rcParams['axes.titlesize'] = 10
+plt.rcParams['axes.labelsize'] = 10
+plt.rcParams['legend.fontsize'] = 8
+plt.rcParams['xtick.labelsize'] = 8
+plt.rcParams['ytick.labelsize'] = 8
+plt.rcParams['xtick.major.pad'] = 8
+plt.rcParams['xtick.minor.pad'] = 8
+plt.rcParams['ytick.major.pad'] = 8
+plt.rcParams['ytick.minor.pad'] = 8
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
 plt.rcParams['savefig.dpi'] = 200
@@ -115,7 +127,6 @@ plt.rcParams['savefig.bbox'] = 'tight'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Sections                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%The column width is \the\textwidth
 \input{sections/intro}
 \input{sections/methods}
 \input{sections/results}

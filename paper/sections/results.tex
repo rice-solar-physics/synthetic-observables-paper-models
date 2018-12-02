@@ -15,7 +15,8 @@ We forward-model time-dependent AIA intensities using the method outlined in \au
 We compute the intensities for the 94, 131, 171, 193, 211, and 335 \AA{} channels of SDO/AIA using the procedure described in \autoref{forward}. We compute the intensity in each pixel of the model \AR{} over a total simulation period of $3\times10^4$ s or $\approx8.3$ hours with the exception of the cooling case which is only run for $10^4$ s. We complete this procedure for each of the five heating scenarios described in \autoref{heating}.
 
 \begin{pycode}[manager_results]
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=0.5, 
+                                           figure_width_context='textwidth'))
 plt.subplots_adjust(hspace=0.05,wspace=0.05)
 t = 1500
 path_format = os.path.join(manager_results.data_dir, '{}', 'map_t{:06d}_{}.fits')
@@ -60,6 +61,8 @@ for i,f in enumerate(heating):
                     color='w',fontsize=plt.rcParams['xtick.labelsize'])
 fig_intensity_maps = manager_results.save_figure('intensity-map',)
 fig_intensity_maps.caption = r'Snapshots of intensity across the whole \AR{} at $t=15\times10^3$ s. The rows correspond to the six EUV channels of AIA and the columns are the three different heating frequencies. In each column, the colarbar is on a square root scale and is normalized between zero and the maximum intensity in the low-frequency case. The color tables are the standard AIA color tables as implemented in SunPy \citep{sunpy_community_sunpypython_2015}.'
+fig_intensity_maps.figure_env_name = 'figure*'
+fig_intensity_maps.figure_width = r'\textwidth'
 \end{pycode}
 \py[manager_results]|fig_intensity_maps|
 
@@ -75,7 +78,8 @@ While there are differences between the AIA intensities for different heating sc
 In addition to the timelag, we also derive emission measure distributions (\dem{}) from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.5}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing the \dem{} at each timestep, we compute the time-averaged intensity in each pixel of each channel and compute the \dem{} only once. We assume uncertainties of 20\% on the forward-modeled intensity data in every pixel and every channel. After computing the \dem{} in each pixel, we do a first-order polynomial fit to the log-transformed emission measure to calculate the emission measure slope, $a$.
 
 \begin{pycode}[manager_results]
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1/3,
+                                           figure_width_context='textwidth'))
 cax = fig.add_axes([0.13, 0.0, 0.77, 0.04])
 params = {'cmap': 'viridis', 'vmin': 2, 'vmax': 5, 'title': False, 'annotate': False}
 for i,h in enumerate(heating):
@@ -104,7 +108,9 @@ plt.subplots_adjust(hspace=0.,wspace=0.05)
 cbar = fig.colorbar(im, cax=cax, orientation='horizontal');
 cbar.set_ticks([2,3,4,5])
 fig_slope_maps = manager_results.save_figure('em-slope-maps',)
-fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high (left), intermediate (center), and low (right) frequency cases. The \dem{} is computed from intensities in the 6 EUV channels of AIA using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $5.8<\log{T}<6.4$. The maps have been cropped in order to focus on the part of the \AR{} where $a$ is defined.'  
+fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high (left), intermediate (center), and low (right) frequency cases. The \dem{} is computed from intensities in the 6 EUV channels of AIA using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $5.8<\log{T}<6.4$. The maps have been cropped in order to focus on the part of the \AR{} where $a$ is defined.'
+fig_slope_maps.figure_env_name = 'figure*'
+fig_slope_maps.figure_width = r'\textwidth' 
 \end{pycode}
 \py[manager_results]|fig_slope_maps|
 
@@ -112,7 +118,7 @@ fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixe
 
 \begin{pycode}[manager_results]
 from formatting import heating_palette
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0,))
 ax = fig.gca()
 bins = np.arange(1, 6, 0.05)
 bin_centers = (bins[:-1] + bins[1:])/2
@@ -133,6 +139,7 @@ ax.set_xlabel(r'$a$')
 ax.set_ylabel(r'Number of Pixels')
 fig_slope_histograms = manager_results.save_figure('em-slope-histograms')
 fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high,intermediate, and low frequency heating scenarios. The data displayed here is the same as in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 1 and 6 with bin widths of 0.05.'
+fig_slope_histograms.figure_width = r'\columnwidth' 
 \end{pycode}
 \py[manager_results]|fig_slope_histograms|
 
@@ -156,7 +163,8 @@ We apply the timelag method of \citet{viall_evidence_2012} to our simulated inte
 \subsubsection{Maps}\label{timelag_maps}
 
 \begin{pycode}[manager_results]
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=3/5,
+                                           figure_width_context='textwidth'))
 cax = fig.add_axes([0.125, 0.02, 0.775, 0.02])
 heating = ['high_frequency', 'intermediate_frequency', 'low_frequency', 'random', 'cooling']
 file_format = os.path.join(manager_results.data_dir, '{}', '{}_{}_{}.fits')
@@ -199,6 +207,8 @@ plt.subplots_adjust(wspace=0.05,hspace=0.05)
 cbar = fig.colorbar(im, cax=cax,orientation='horizontal')
 fig_timelag_maps = manager_results.save_figure('timelag-maps',)
 fig_timelag_maps.caption = r'Timelag maps for three different channel pairs for all five of the heating models described in \autoref{heating}. The value of each pixel indicates the temporal offset which maximizes the cross-correlation (see \autoref{eq:timelag}). The columns indicate the different channel pairs and the rows indicate the three heating scenarios plus our two control cases. The colorbar ranges from -5000 s to +5000 s.'
+fig_timelag_maps.figure_env_name = 'figure*'
+fig_timelag_maps.figure_width = r'\textwidth' 
 \end{pycode}
 \py[manager_results]|fig_timelag_maps|
 
@@ -213,7 +223,8 @@ Additionally, we note the presence of negative 211-131 \AA{} timelags in the cen
 Lastly, we look at results from the 193-171 \AA{} channel pair as shown in the last row of \autoref{fig:timelag-maps}. Note that in all five heating scenarios, zero timelag dominates the inner core of the \AR{}. This underscores the point that zero timelags do not correspond to steady heating \citep[see][]{viall_transition_2015,viall_signatures_2016}. As in the other two channel pairs, we find positive timelags which decrease in duration as we move towards the center of the \AR{} and this pattern becomes more apparent as the frequency decreases. Furthermore, we find very few negative timelags other than in the high frequency case where the cross-correlation is less likely to have a ``preferred'' timelag. This is because, unlike the 94 \AA{} and 131 \AA{} channels, the 193 \AA{} and 171 \AA{} channels are strongly peaked about a single temperature. Thus, persistent, spatially-coherent negative timelags could only be caused by a heating signature from 0.9 MK up to 1.5 MK. 
 
 \begin{pycode}[manager_results]
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=3/5,
+                                           figure_width_context='textwidth'))
 cax = fig.add_axes([0.125, 0.02, 0.775, 0.02])
 plot_params = {'title': False, 'annotate': False, 'vmin': 0, 'vmax': 1, 'cmap': 'magma',}
 for j,h in enumerate(heating):
@@ -250,6 +261,8 @@ plt.subplots_adjust(wspace=0.05,hspace=0.05)
 cbar = fig.colorbar(im, cax=cax,orientation='horizontal')
 fig_correlation_maps = manager_results.save_figure('correlation-maps',)
 fig_correlation_maps.caption = r'Same as \autoref{fig:timelag-maps} except here we show the maximum value of $\mathcal{C}_{AB}$ in each pixel.'
+fig_correlation_maps.figure_env_name = 'figure*'
+fig_correlation_maps.figure_width = r'\textwidth'
 \end{pycode}
 \py[manager_results]|fig_correlation_maps|
 
@@ -261,7 +274,9 @@ fig_correlation_maps.caption = r'Same as \autoref{fig:timelag-maps} except here 
 \begin{pycode}[manager_results]
 channel_pairs = [(94,335), (94,171), (94,193),(94,131),(94,211),(335,131),(335,193),(335,211),
                  (335,171),(211,131),(211,171),(211,193),(193,171),(193,131),(171,131),]
-fig,axes = plt.subplots(len(channel_pairs),len(heating))
+fig,axes = plt.subplots(len(channel_pairs), len(heating),
+                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,       
+                                                  figure_width_context='textwidth'))
 bins = np.arange((-10e3*u.s).value, (10e3*u.s).value, (60*u.s).value)
 plot_params = {'histtype':'step', 'lw':1, 'bins':bins,'log':True,}
 from formatting import heating_palette
@@ -307,6 +322,8 @@ axes[len(channel_pairs)-1,0].set_xlabel(r'$\tau_{AB}$ [s]')
 plt.subplots_adjust(hspace=0,wspace=0)
 fig_timelag_histograms = manager_results.save_figure('timelag-histograms',)
 fig_timelag_histograms.caption = r'Histograms of timelag values across the whole \AR{}. The rows indicate the different channel pairs and the columns indicate the different heating models. Colors are used to denote the various heating models. The bin range is $\pm5000$ s and the bin width is 30 s. As with the timelag maps, we do not include timelags corresponding to $\mathcal{C}_{AB}<0.1$.'
+fig_timelag_histograms.figure_env_name = 'figure*'
+fig_timelag_histograms.figure_width = r'\textwidth'
 \end{pycode}
 \py[manager_results]|fig_timelag_histograms|
 
