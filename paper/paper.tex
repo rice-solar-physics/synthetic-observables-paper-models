@@ -52,16 +52,11 @@
 }%
 \makeatother
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\setpythontexcontext{textwidth=\the\textwidth,figurewidth=\the\columnwidth}
+\setpythontexcontext{textwidth=\the\textwidth,columnwidth=\the\columnwidth,figurewidth=\the\columnwidth}
 %% Custom commands
 \DeclareMathOperator*{\argmax}{arg\,max} % in your preamble
 \newcommand{\AR}{active region}
 \newcommand{\dem}{$\mathrm{EM}(T)$}
-% Overriding plotting macros because I don't want TeX scaling my figures at all
-\renewcommand\plotone[1]{%
-    \centering
-    \includegraphics[]{#1}
-}
 \renewcommand{\sectionautorefname}{Section}
 \renewcommand{\subsectionautorefname}{Section}
 \renewcommand{\subsubsectionautorefname}{Section}
@@ -75,9 +70,9 @@
 \begin{pythontexcustomcode}{py}
 import os
 import texfigure
-texfigure.configure_latex_plots(pytex)
 pytex.formatter = texfigure.repr_latex_formatter
 import numpy as np
+import h5py
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors
@@ -85,7 +80,9 @@ from sunpy.map import Map
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.visualization import ImageNormalize,AsinhStretch,SqrtStretch
+import plasmapy.atomic
 import synthesizAR
+from synthesizAR.atomic import EmissionModel
 # Set some plot styling here
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = 'Computer Modern'
