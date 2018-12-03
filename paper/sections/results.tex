@@ -4,7 +4,21 @@
 \section{Results}\label{results}
 
 \begin{pycode}[manager_results]
-manager_results = texfigure.Manager(pytex, './', number=2, python_dir='python', fig_dir='figures', data_dir='data')
+manager_results = texfigure.Manager(
+    pytex,
+    './',
+    number=2,
+    python_dir='python',
+    fig_dir='figures',
+    data_dir='data'
+)
+channels = [94,131,171,193,211,335]
+heating = ['high_frequency', 'intermediate_frequency','low_frequency']
+channel_pairs = [(94,335), (94,171), (94,193),(94,131),(94,211),(335,131),(335,193),
+                 (335,211),(335,171),(211,131),(211,171),(211,193),(193,171),(193,131),
+                 (171,131),]
+selected_channel_pairs = [channel_pairs[i] for i in (0, 9, 12)]
+from formatting import qualitative_palette, heating_palette
 \end{pycode}
 
 We forward-model time-dependent AIA intensities using the method outlined in \autoref{forward} for the heating scenarios discussed in \autoref{heating}. We discuss the synthetic intensities in \autoref{intensities}. We then compute the emission measure distributions and slopes (\autoref{em_slopes}) as well as the timelags (\autoref{timelags}) from our synthetic data. In \citetalias{barnes_understanding_2018-1}, we will use these synthetic observables to classify observables derived from observations of NOAA 11158 in terms of the heating frequency.
@@ -20,8 +34,6 @@ fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=0.5,
 plt.subplots_adjust(hspace=0.05,wspace=0.05)
 t = 1500
 path_format = os.path.join(manager_results.data_dir, '{}', 'map_t{:06d}_{}.fits')
-heating = ['high_frequency', 'intermediate_frequency','low_frequency']
-channels = [94,131,171,193,211,335]
 for i,f in enumerate(heating):
     for j,c in enumerate(channels):
         m = Map(path_format.format(f,t,c))
@@ -117,8 +129,8 @@ fig_slope_maps.figure_width = r'\textwidth'
 \autoref{fig:em-slope-maps} shows the resulting \dem{} slope $a$ in each pixel of our forward-modeled \AR{} for the low, intermediate, and high frequency cases. We fit the \dem{} over all bins in the temperature range $5.8\le\log T\le6.4$ so as to avoid fitting across the peak of the \dem{} and underestimating the slope. We exclude pixels with $\mathrm{EM}(T)<10^{23}$ cm$^{-5}$ in any temperature bin within the fitting interval and we do not include fits with $r^2<0.9$, where we are using $r^2$, the correlation coefficient, as a goodness-of-fit measure for the linear fit. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, the \dem{} slope $a$ tends to decrease with decreasing frequency. The low frequency map (rightmost panel) shows many values close to 2. From the discussion above, this is expected as the low frequency case is essentially repeated single nanoflares on each strand. As the heating frequency increases, the slopes become larger, indicating a narrowing \dem{} distribution. The indermediate frequency map (center panel) shows many values around 3 and the high frequency map (leftmost panel) shows many slopes close to 5, indicating an even more isothermal distribution. 
 
 \begin{pycode}[manager_results]
-from formatting import heating_palette
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0,))
+fig = plt.figure(
+    figsize=texfigure.figsize(pytex, scale=1.0, figure_width_context='columnwidth'))
 ax = fig.gca()
 bins = np.arange(1, 6, 0.05)
 bin_centers = (bins[:-1] + bins[1:])/2
@@ -151,13 +163,61 @@ fig_slope_histograms.figure_width = r'\columnwidth'
 
 We apply the timelag method of \citet{viall_evidence_2012} to our simulated intensities for all of the heating scenarios discussed in \autoref{heating}. The details of the timelag calculation are given in \autoref{timelag_details}. For each pixel in the active region, we compute the cross-correlation for every possible channel pair (15 in total) and find the temporal offset which maximizes the correlation. This offset, or \textit{timelag}, given by \autoref{eq:timelag}, indicates how much the second light curve must be shifted in time compared to the first in order to maximize the cross-correlation between the two light curves. By convention, we order the channel pairs such that the hot channel is listed first, meaning that a positive timelag corresponds to variability in the hotter channel followed by variability in the cooler channel. In other words, a positive timelag indicates cooling plasma.
 
-\begin{figure}
-    \plotone{figures/correlation_1d_example.pdf}
-    \caption{Normalized pixel-averaged intensity timeseries for all six AIA EUV channels (top) and cross-correlation curves for selected channel pairs (bottom) for the ``cooling'' case. The dots indicate the peak in the cross-correlation curve.}
-    \label{fig:correlation_1d}
-\end{figure}
+\begin{pycode}[manager_results]
+fig,axes = plt.subplots(
+    2, 1, figsize=texfigure.figsize(pytex, scale=1.0,
+                                    figure_width_context='columnwidth'))
+plt.subplots_adjust(hspace=0.35)
+colors = qualitative_palette(len(channels))
+filename = os.path.join(manager_results.data_dir, 'cooling/timelag_1d_example.h5')
+### Timeseries ###
+with h5py.File(filename, 'r') as h5:
+    grp = h5['timeseries']
+    time = u.Quantity(grp['time'], grp['time'].attrs['unit'])
+    for i,c in enumerate(channels):
+        ts = u.Quantity(grp[f'{c}'], grp[f'{c}'].attrs['unit'])
+        ts = ts/ts.max()
+        axes[0].plot(time, ts, label=f'${c}$ $\mathrm{{\mathring{{A}}}}$',
+                     color=colors[i])
+axes[0].legend(frameon=False,ncol=1,loc=1)#loc="lower left", bbox_to_anchor=(1.02,0))
+axes[0].set_ylim(-0.05,1.01)
+axes[0].set_xlim(-500,time[-1].to(u.s).value*1.001)
+axes[0].set_yticks(np.linspace(0,1,3))
+axes[0].set_xlabel(r'$t$ [s]')
+axes[0].set_ylabel(r'$I_{c}/I_{c,max}$')
+axes[0].spines['top'].set_visible(False)
+axes[0].spines['right'].set_visible(False)
+axes[0].spines['bottom'].set_bounds(axes[0].get_xticks()[1], axes[0].get_xticks()[-1])
+axes[0].spines['left'].set_bounds(axes[0].get_yticks()[0], axes[0].get_yticks()[-1])
+### Cross-correlations ###
+with h5py.File(filename, 'r') as h5:
+    grp = h5['cross_correlations']
+    timelags = u.Quantity(grp['timelags'], grp['timelags'].attrs['unit'])
+    for i,(ca,cb) in enumerate(selected_channel_pairs):
+        cc = u.Quantity(grp[f'{ca}_{cb}'], grp[f'{ca}_{cb}'].attrs['unit'])
+        axes[1].plot(timelags, cc, label=f'{ca}-{cb} $\mathrm{{\mathring{{A}}}}$',
+                     color=colors[i])
+        axes[1].plot(timelags[cc.argmax()], cc.max(), marker='o', markersize=5,
+                     color=colors[i], ls='')
+axes[1].axvline(x=0,ls=':',color='k')
+axes[1].set_xlim(-1.2*(5e3*u.s).value, 1.2*(5e3*u.s).value)
+axes[1].set_ylim(-0.3, 1.01)
+axes[1].set_yticks(np.linspace(-0.2,1,4))
+axes[1].set_xticks(np.linspace(-5e3,5e3,6))
+axes[1].legend(frameon=False,ncol=1,loc=2)
+axes[1].set_ylabel(r'$\mathcal{C}_{AB}$')
+axes[1].set_xlabel(r'$\tau$ [s]')
+axes[1].spines['top'].set_visible(False)
+axes[1].spines['right'].set_visible(False)
+axes[1].spines['bottom'].set_bounds(axes[1].get_xticks()[0], axes[1].get_xticks()[-1])
+axes[1].spines['left'].set_bounds(axes[1].get_yticks()[0], axes[1].get_yticks()[-1])
+fig_timelag_example = manager_results.save_figure('timelag-example',)
+fig_timelag_example.caption = r'Normalized pixel-averaged intensity timeseries for all six AIA EUV channels (top) and cross-correlation curves for selected channel pairs (bottom) for the ``cooling'' case. The dots indicate the peak in the cross-correlation curve.'
+fig_timelag_example.figure_width = r'\columnwidth'
+\end{pycode}
+\py[manager_results]|fig_timelag_example|
 
-\autoref{fig:correlation_1d} shows an example calculation of \autoref{eq:cc} for a pixel-averaged timeseries from the ``cooling'' case described in \autoref{heating}. The top panel shows the intensity, normalized to the peak value, of each EUV AIA channel. The bottom panel shows the cross-correlation curve, as a function of the offset, $\tau$, for three sample channel pairs. Note that the intensities peak in successively cooler channels as the loop plasma cools following the single heating event at $t=0$ s. The cross-correlation curves in the lower panel have peaks (denoted by the colored dots) at lags ($\tau$) approximately equal to the separation in the intensity peaks. Note that all of the timelags are positive for these channel pairs though the $\mathcal{C}_{94-335}$ curve does show a weaker peak at a negative timelag due to the doubly-peaked nature of the 94 \AA channel, with the cooler peak at a lower temperature than the 335 \AA channel (see \autoref{fig:aia_response}).
+\autoref{fig:timelag-example} shows an example calculation of \autoref{eq:cc} for a pixel-averaged timeseries from the ``cooling'' case described in \autoref{heating}. The top panel shows the intensity, normalized to the peak value, of each EUV AIA channel. The bottom panel shows the cross-correlation curve, as a function of the offset, $\tau$, for three sample channel pairs. Note that the intensities peak in successively cooler channels as the loop plasma cools following the single heating event at $t=0$ s. The cross-correlation curves in the lower panel have peaks (denoted by the colored dots) at lags ($\tau$) approximately equal to the separation in the intensity peaks. Note that all of the timelags are positive for these channel pairs though the $\mathcal{C}_{94-335}$ curve does show a weaker peak at a negative timelag due to the doubly-peaked nature of the 94 \AA channel, with the cooler peak at a lower temperature than the 335 \AA channel (see \autoref{fig:aia_response}).
 
 %%
 \subsubsection{Maps}\label{timelag_maps}
@@ -166,7 +226,7 @@ We apply the timelag method of \citet{viall_evidence_2012} to our simulated inte
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=3/5,
                                            figure_width_context='textwidth'))
 cax = fig.add_axes([0.125, 0.02, 0.775, 0.02])
-heating = ['high_frequency', 'intermediate_frequency', 'low_frequency', 'random', 'cooling']
+heating += ['random', 'cooling']
 file_format = os.path.join(manager_results.data_dir, '{}', '{}_{}_{}.fits')
 correlation_threshold = 0.1
 plot_params = {'title': False, 'annotate': False, 'vmin': -(5e3*u.s).to(u.s).value,
@@ -272,11 +332,10 @@ fig_correlation_maps.figure_width = r'\textwidth'
 \subsubsection{Histograms}\label{timelag_histograms}
 
 \begin{pycode}[manager_results]
-channel_pairs = [(94,335), (94,171), (94,193),(94,131),(94,211),(335,131),(335,193),(335,211),
-                 (335,171),(211,131),(211,171),(211,193),(193,171),(193,131),(171,131),]
-fig,axes = plt.subplots(len(channel_pairs), len(heating),
-                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,       
-                                                  figure_width_context='textwidth'))
+fig,axes = plt.subplots(
+    len(channel_pairs), len(heating),
+    figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
+                              figure_width_context='textwidth'))
 bins = np.arange((-10e3*u.s).value, (10e3*u.s).value, (60*u.s).value)
 plot_params = {'histtype':'step', 'lw':1, 'bins':bins,'log':True,}
 from formatting import heating_palette

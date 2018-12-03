@@ -4,7 +4,13 @@
 \section{Modeling}\label{modeling}
 
 \begin{pycode}[manager_methods]
-manager_methods = texfigure.Manager(pytex, './', python_dir='python', fig_dir='figures', data_dir='data')
+manager_methods = texfigure.Manager(
+    pytex, './',
+    python_dir='python',
+    fig_dir='figures',
+    data_dir='data'
+)
+from formatting import qualitative_palette, heating_palette
 \end{pycode}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Field Extrapolation %%%%%%%%%%%%%%%%%%%%
@@ -107,7 +113,8 @@ After computing the three-dimensional vector field from the observed magnetogram
 
 \begin{pycode}[manager_methods]
 from formatting import hist_step
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,))
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
+                                           figure_width_context='columnwidth'))
 ax = fig.gca()
 vals,bins = np.histogram([l.full_length.to(u.Mm).value for l in ar.loops], bins='scott',)
 hist_step(ax, vals, bins, color='k',lw=2)
@@ -150,10 +157,9 @@ In this work we explore three different heating scenarios: low-, intermediate-, 
 We choose to parameterize the heating in terms of the cooling time rather than an absolute value of $\langle t_{wait}\rangle$ as $\tau_{cool}\sim L$ \citep[see appendix]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low frequency heating for a 20 Mm loop, it would correspond to high frequency heating in the case of a 150 Mm loop. By parameterizing the heating in this way, we ensure that all loops in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single loop, for all three of the heating scenarios list above. 
 
 \begin{pycode}[manager_methods]
-import h5py
-from formatting import heating_palette
 fig,axes = plt.subplots(3, 1, sharex=True,
-                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,))
+                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
+                                                  figure_width_context='columnwidth'))
 plt.subplots_adjust(hspace=0.)
 colors = heating_palette()
 i_loop=680
@@ -226,10 +232,8 @@ In addition to these three multi-event heating models, we also run two single-ev
 \subsubsection{Atomic Physics}\label{atomic}
 
 \begin{pycode}[manager_methods]
-import plasmapy.atomic
 from astropy.table import Table
 from astropy.io import ascii
-from synthesizAR.atomic import EmissionModel
 em = EmissionModel.restore(os.path.join(manager_methods.data_dir, 'base_emission_model.json'))
 data = {'Element': [], 'Number of Ions': [], 'Number of Transitions': [],}
 for i in em:
@@ -272,12 +276,13 @@ To compute the observed \textit{intensity} along the line of sight, we need to k
 \end{equation}
 where $I_c$ is the intensity for a given pixel in channel $c$, $R_c$ is the wavelength response function of the instrument for channel $c$, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the line-of-sight (LOS). Further details regarding the AIA wavelength response functions, $R_c$, can be found in \citet{boerner_initial_2012}.
 
-\autoref{fig:aia_response} shows the effective temperature response functions for the six EUV channels on AIA compared against those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database, we recover nearly all of the response from each channel. The high-temperature contribution in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
+\autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared against those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database, we recover nearly all of the response from each channel. The high-temperature contribution in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
 
 Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions in SolarSoft. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume 1) ionization equilibrium and 2) constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density. \authorcomment3{Cut or move this paragraph to an appendix?}
 
 \begin{pycode}[manager_methods]
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,))
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0, 
+                                           figure_width_context='columnwidth'))
 ax = fig.gca()
 min_T = 1e300*u.K
 max_T = 0*u.K
@@ -303,10 +308,52 @@ fig_hydro_phase_space.figure_width = r'\columnwidth'
 \end{pycode}
 \py[manager_methods]|fig_hydro_phase_space|
 
-\begin{figure*}
-    \plotone{figures/aia_response.pdf}
-    \caption{SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization. \authorcomment3{Possibly move this to an appendix}}
-    \label{fig:aia_response}
-\end{figure*}
+\begin{pycode}[manager_methods]
+from synthesizAR.instruments import InstrumentSDOAIA
+from scipy.interpolate import splev
+aia = InstrumentSDOAIA([0,1]*u.s, observer_coordinate=None)
+em = EmissionModel.restore(os.path.join(manager_methods.data_dir, 'base_emission_model.json'))
+fig,axes = plt.subplots(2, 3, sharex=True, sharey=True,
+                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=2/3,       
+                                                  figure_width_context='textwidth'))
+T = np.logspace(5,8,100)
+p = 10**(15)*u.K/(u.cm**3)
+const_p_indices = np.array([(i,np.argmin(np.fabs(em.density.value-d.value))) 
+                            for i,d in enumerate(p/em.temperature)])
+with h5py.File(os.path.join(manager_methods.data_dir, 'effective_aia_response.h5'), 'r') as hf:
+    colors = qualitative_palette(len([k for k in hf['94']])-1)
+    for i, (ax, channel) in enumerate(zip(axes.flatten(), aia.channels)):
+        grp = hf[channel['name']]
+        real_response = splev(T, channel['temperature_response_spline'])
+        ax.plot(T, real_response, ls='-',color='k',)
+        ax.plot(em.temperature, 
+                np.array(grp['response'])[const_p_indices[:,0],const_p_indices[:,1]],
+                color='k',ls='--',lw=2)
+        elements = sorted([e for e in grp if e != 'response'],
+                          key=lambda x: plasmapy.atomic.atomic_number(x))
+        for j,element in enumerate(elements):
+            ax.plot(em.temperature, 
+                    np.array(grp[element])[const_p_indices[:,0],const_p_indices[:,1]],
+                    color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element), 
+                    lw=2)
+        if i==0:
+            ax.legend(ncol=len(elements), loc="lower left", bbox_to_anchor=(0.25,1.02),
+                      frameon=False)
+        ax.text(1e7,3e-25,f'{channel["name"]} $\mathrm{{\mathring{{A}}}}$',
+                fontsize=plt.rcParams['axes.labelsize'])
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_ylim([2e-30,2e-24])
+ax.set_xlim([1e5,8e7])
+ax.set_yticks(ax.get_yticks()[::2])
+axes[1,0].set_ylabel(r'$K_c$ [DN cm$^5$ s$^{-1}$ pixel$^{-1}$]')
+axes[1,0].set_xlabel(r'$T$ [K]')
+plt.subplots_adjust(wspace=0.,hspace=0.)
+fig_aia_response = manager_methods.save_figure('aia-response')
+fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization. \authorcomment3{Possibly move this to an appendix}'
+fig_aia_response.figure_env_name = 'figure*'
+fig_aia_response.figure_width = r'\textwidth'
+\end{pycode}
+\py[manager_methods]|fig_aia_response|
 
 Once we have computed the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} and for all the loops in our \AR{}, we compute the LOS integral in \autoref{eq:intensity} by first converting all of the loop coordinates to a Helioprojective coordinate frame defined by the position of the SDO spacecraft. We then compute a weighted two-dimensional histogram of these transformed coordinates, using the emissivity values at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument, i.e. in the case of AIA, a single bin, representing a single pixel, has a width of 0.6 arcseconds. Finally, we simulate the point spread function of the instrument by applying a gaussian filter to the resulting histogram. We do this for each timestep, as defined by the cadence of the instrument, and for each channel. For each heating scenario, this gives us approximately $1.8\times10^4$ separate images.
