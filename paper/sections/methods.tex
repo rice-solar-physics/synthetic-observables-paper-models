@@ -14,7 +14,7 @@ We choose \AR{} NOAA 1158, as observed by the HMI instrument \citet{hoeksema_hel
 
 \begin{pycode}[manager_methods]
 # Load AR
-ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), lazy=True)
+ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), )
 # Import maps
 aia_map = Map(manager_methods.data_file('aia_171_cutout.fits'))
 hmi_map = Map(manager_methods.data_file('hmi_magnetogram.fits'))
@@ -22,7 +22,8 @@ hmi_map = Map(manager_methods.data_file('hmi_magnetogram.fits'))
 hmi_map = hmi_map.rotate(order=3).submap(
     aia_map.bottom_left_coord, aia_map.top_right_coord)
 # Plot
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=0.5,       
+                                           figure_width_context='textwidth'))
 line_frequency = 20
 plt.subplots_adjust(wspace=0.03)
 ####################################################
@@ -73,6 +74,7 @@ ax.grid(alpha=0)
 # HPC Axes
 lon,lat = ax.coords[0],ax.coords[1]
 lon.set_ticks(color='w')
+lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
 lat.set_ticks(color='w')
 lat.set_ticklabel_visible(False)
 # HGS Axes
@@ -96,6 +98,8 @@ ax.text(xtext.value, ytext.value, r'AIA 171 $\mathrm{\mathring{A}}$', color='w')
 ####################################################
 fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
 fig_aia_hmi_lines.caption = r'HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.'
+fig_aia_hmi_lines.figure_env_name = 'figure*'
+fig_aia_hmi_lines.figure_width = r'\textwidth'
 \end{pycode}
 \py[manager_methods]|fig_aia_hmi_lines|
 
@@ -103,7 +107,7 @@ After computing the three-dimensional vector field from the observed magnetogram
 
 \begin{pycode}[manager_methods]
 from formatting import hist_step
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,))
 ax = fig.gca()
 vals,bins = np.histogram([l.full_length.to(u.Mm).value for l in ar.loops], bins='scott',)
 hist_step(ax, vals, bins, color='k',lw=2)
@@ -118,6 +122,7 @@ ax.spines['left'].set_bounds(ax.get_yticks()[1], ax.get_yticks()[-2])
 ax.spines['bottom'].set_bounds(ax.get_xticks()[1], ax.get_xticks()[-2])
 fig_loop_dist = manager_methods.save_figure('loops',)
 fig_loop_dist.caption = r'Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.'
+fig_loop_dist.figure_width = r'\columnwidth'
 \end{pycode}
 \py[manager_methods]|fig_loop_dist|
 
@@ -147,7 +152,8 @@ We choose to parameterize the heating in terms of the cooling time rather than a
 \begin{pycode}[manager_methods]
 import h5py
 from formatting import heating_palette
-fig,axes = plt.subplots(3, 1, sharex=True)
+fig,axes = plt.subplots(3, 1, sharex=True,
+                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,))
 plt.subplots_adjust(hspace=0.)
 colors = heating_palette()
 i_loop=680
@@ -186,6 +192,7 @@ axes[2].spines['top'].set_visible(False)
 axes[2].spines['right'].set_visible(False)
 fig_hydro_profiles = manager_methods.save_figure('hydro-profiles')
 fig_hydro_profiles.caption = r'Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single loop. The colors denote the heating frequency as defined in the legend. The corresponding loop has a half length of $L/2\approx40$ Mm and a mean field strength of $\bar{B}\approx30$ G.'
+fig_hydro_profiles.figure_width = r'\columnwidth'
 \end{pycode}
 \py[manager_methods]|fig_hydro_profiles|
 
@@ -270,7 +277,7 @@ where $I_c$ is the intensity for a given pixel in channel $c$, $R_c$ is the wave
 Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions in SolarSoft. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume 1) ionization equilibrium and 2) constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density. \authorcomment3{Cut or move this paragraph to an appendix?}
 
 \begin{pycode}[manager_methods]
-fig = plt.figure()
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,))
 ax = fig.gca()
 min_T = 1e300*u.K
 max_T = 0*u.K
@@ -292,6 +299,7 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 fig_hydro_phase_space = manager_methods.save_figure('hydro-phase-space')
 fig_hydro_phase_space.caption = r'$n-T$ phase-space orbits for a single loop for the three heating scenarios as defined by the legend. The black line indicates a constant pressure of $10^{15}$ K cm$^{-3}$. \authorcomment3{Possibly move this to an appendix}'
+fig_hydro_phase_space.figure_width = r'\columnwidth'
 \end{pycode}
 \py[manager_methods]|fig_hydro_phase_space|
 
