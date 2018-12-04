@@ -31,7 +31,7 @@ We compute the intensities for the 94, 131, 171, 193, 211, and 335 \AA{} channel
 \begin{pycode}[manager_results]
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=0.5, 
                                            figure_width_context='textwidth'))
-plt.subplots_adjust(hspace=0.05,wspace=0.05)
+plt.subplots_adjust(hspace=0.03,wspace=0.03)
 t = 1500
 path_format = os.path.join(manager_results.data_dir, '{}', 'map_t{:06d}_{}.fits')
 for i,f in enumerate(heating):
@@ -135,7 +135,8 @@ fig = plt.figure(
 ax = fig.gca()
 bins = np.arange(1, 6, 0.05)
 bin_centers = (bins[:-1] + bins[1:])/2
-params = {'bins': bins, 'histtype': 'step','density':False, 'lw':1}
+params = {'bins': bins, 'histtype': 'step','density': False, 
+          'lw': plt.rcParams['lines.linewidth']}
 peaks = {}
 for i,h in enumerate(heating):
     d = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits')).data.flatten()
@@ -303,7 +304,9 @@ for j,h in enumerate(heating):
         lon = ax.coords[0]
         lat = ax.coords[1]
         lon.set_ticks(number=3,color='w')
-        lat.set_ticks(number=3,color='w') 
+        lat.set_ticks(number=3,color='w')
+        lon.frame.set_linewidth(0)
+        lat.frame.set_linewidth(0)
         if j == 0 and i == 1:
             lat.set_axislabel(r'Helioprojective Latitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
             lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'], rotation='vertical')
@@ -340,7 +343,8 @@ fig,axes = plt.subplots(
     figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
                               figure_width_context='textwidth'))
 bins = np.arange((-10e3*u.s).value, (10e3*u.s).value, (60*u.s).value)
-plot_params = {'histtype':'step', 'lw':1, 'bins':bins,'log':True,}
+plot_params = {'histtype':'step', 'bins':bins,'log':True,
+               'lw': 1}
 from formatting import heating_palette
 colors = heating_palette(n_colors=len(heating))
 for i,cp in enumerate(channel_pairs):
@@ -351,7 +355,7 @@ for i,cp in enumerate(channel_pairs):
         mc = Map(file_format.format(h,'correlation',*cp))
         m = Map(m.data, m.meta, mask=np.where(mc.data<=correlation_threshold, True, False))
         hist, bins, _ = ax.hist(m.data[~m.mask].flatten(), **plot_params, color=colors[j])
-        ax.axvline(x=0, ls=':', alpha=0.75, lw=1, color='k')
+        ax.axvline(x=0, ls=':', alpha=0.75, color='k', lw=1)
         # Channel and Heating Labels
         if j==0 and (i+1)%2 != 0:
             ax.set_ylabel('{}-{}'.format(*cp))

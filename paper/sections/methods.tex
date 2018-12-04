@@ -112,12 +112,12 @@ fig_aia_hmi_lines.figure_width = r'\textwidth'
 After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops.
 
 \begin{pycode}[manager_methods]
-from formatting import hist_step
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
                                            figure_width_context='columnwidth'))
 ax = fig.gca()
-vals,bins = np.histogram([l.full_length.to(u.Mm).value for l in ar.loops], bins='scott',)
-hist_step(ax, vals, bins, color='k',lw=2)
+vals,bins,_ = ax.hist(
+    [l.full_length.to(u.Mm).value for l in ar.loops],
+    bins='scott', color='k', histtype='step', lw=plt.rcParams['lines.linewidth'])
 ax.set_xlabel(r'$L$ [Mm]');
 ax.set_ylabel(r'Number of Loops');
 ax.set_ylim(-100,1300)
@@ -176,11 +176,11 @@ for i,h in enumerate(heating):
 axes[0].legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02),frameon=False,)
 # Labels and limits
 axes[0].set_xlim(0,3e4)
-#axes[0].set_ylim(-1e-3,2e-2)
 axes[0].set_yticks([0.005,0.015,0.025])
 axes[1].set_ylim(0.1,8)
-#axes[1].set_yticks(axes[1].get_yticks()[1:-1])
+axes[1].set_yticks(axes[1].get_yticks()[::2])
 axes[2].set_ylim(0,1.8)
+axes[2].set_yticks(axes[2].get_yticks()[::2])
 axes[0].set_ylabel(r'$Q$ [erg$/$cm$^{3}$$/$s]')
 axes[1].set_ylabel(r'$T$ [MK]')
 axes[2].set_ylabel(r'$n$ [10$^9$ cm$^{-3}$]')
@@ -296,14 +296,13 @@ with h5py.File(os.path.join(manager_methods.data_dir, 'effective_aia_response.h5
         ax.plot(T, real_response, ls='-',color='k',)
         ax.plot(em.temperature, 
                 np.array(grp['response'])[const_p_indices[:,0],const_p_indices[:,1]],
-                color='k',ls='--',lw=2)
+                color='k',ls='--',)
         elements = sorted([e for e in grp if e != 'response'],
                             key=lambda x: plasmapy.atomic.atomic_number(x))
         for j,element in enumerate(elements):
             ax.plot(em.temperature, 
                     np.array(grp[element])[const_p_indices[:,0],const_p_indices[:,1]],
-                    color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element), 
-                    lw=2)
+                    color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element),)
         if i==0:
             ax.legend(ncol=len(elements), loc="lower left", bbox_to_anchor=(0.25,1.02),
                         frameon=False)
@@ -334,6 +333,7 @@ fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
 ax = fig.gca()
 min_T = 1e300*u.K
 max_T = 0*u.K
+colors = heating_palette()
 for i,h in enumerate(heating):
     loop.parameters_savefile = os.path.join(manager_methods.data_dir, f'{h}', 'loop_parameters.h5')
     ax.plot(loop.electron_temperature[:,0], loop.density[:,0], color=colors[i], alpha=0.75,
