@@ -7,7 +7,7 @@ In order to account for ionization non-equilibrium, we compute $f_{X,k}$ by solv
 \begin{equation}\label{eq:nei}
     \frac{\partial f_k}{\partial t} = n_e(R_{k+1}f_{k+1} + I_{k-1}f_{k-1} - I_kf_k - R_kf_k)
 \end{equation}
-where $R_k$ and $I_k$ are the temperature-dependent recombination and ionization rates, respectively, of level $k$. Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Setting the left hand side of \autoref{eq:nei} gives the equation of ionization equilibrium. Casting \autoref{eq:nei} in matrix form,
+where $R_k$ and $I_k$ are the temperature-dependent recombination and ionization rates, respectively, of level $k$. Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Setting the left hand side of \autoref{eq:nei} to zero gives the equation of ionization equilibrium. Casting \autoref{eq:nei} in matrix form,
 \begin{equation}\label{eq:nei_mat}
     \dot{\mathbf{F}} = \mathbf{A}\mathbf{F},
 \end{equation}
