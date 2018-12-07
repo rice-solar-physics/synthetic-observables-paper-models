@@ -20,7 +20,7 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[manuscript,linenumbers]{aastex62}
+\documentclass[twocolumn,linenumbers]{aastex62}
 %% Include packages
 \usepackage{amsmath}
 \usepackage{calc}
@@ -101,6 +101,13 @@ plt.rcParams['ytick.direction'] = 'in'
 plt.rcParams['savefig.dpi'] = 200
 plt.rcParams['savefig.format'] = 'pdf'
 plt.rcParams['savefig.bbox'] = 'tight'
+# Some useful quantities
+channels = [94,131,171,193,211,335]
+heating = ['high_frequency', 'intermediate_frequency','low_frequency']
+channel_pairs = [(94,335), (94,171), (94,193),(94,131),(94,211),(335,131),(335,193),
+                 (335,211),(335,171),(211,131),(211,171),(211,193),(193,171),(193,131),
+                 (171,131),]
+selected_channel_pairs = [channel_pairs[i] for i in (0, 9, 12)]
 \end{pythontexcustomcode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Title and Authors                         %
@@ -117,7 +124,7 @@ plt.rcParams['savefig.bbox'] = 'tight'
 %                                   Abstract                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-    A key question surrounding the coronal heating problem is the frequency at which the coronal plasma is reheated. In the context of active regions, there is a longstanding debate regarding whether individual loops are heated steadily or impulsively. To properly address this question detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamics loop models. We use this pipeline to model time-dependent active region intensities as observed by SDO/AIA and derive commonly used observables from our synthetic data. We find that signatures of the heating frequency persist in both the timelag and emission measure slope. A follow up paper will use these modeled observables to classify the real AIA data in terms of the heating frequency.
+A key question surrounding the coronal heating problem is the frequency at which the coronal plasma is reheated. In the context of active regions, there is a longstanding debate regarding whether individual loops are heated steadily or impulsively. To properly address this question detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamics loop models. We use this pipeline to model time-dependent active region intensities as observed by SDO/AIA for a range of nanoflare heating frequencies. From our synthetic EUV data, we compute the emission measure slope and timelag and find that signatures of the heating frequency persist in both of these parameters. In a follow up paper, we will use these synthetic observables to train a machine learning classification model in order to classify real AIA data in terms of the heating frequency.
 \end{abstract}
 %% Keywords
 \keywords{Sun,corona,nanoflares,active regions}

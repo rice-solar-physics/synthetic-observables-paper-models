@@ -106,10 +106,11 @@ fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
 fig_aia_hmi_lines.caption = r'HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.'
 fig_aia_hmi_lines.figure_env_name = 'figure*'
 fig_aia_hmi_lines.figure_width = r'\textwidth'
+fig_aia_hmi_lines.placement = ''
 \end{pycode}
 \py[manager_methods]|fig_aia_hmi_lines|
 
-After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops.
+After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops. Note that a large portion of the loops are short loops located near the center of the \AR{}.
 
 \begin{pycode}[manager_methods]
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
@@ -136,12 +137,14 @@ fig_loop_dist.figure_width = r'\columnwidth'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Loop Hydrodynamics %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Loop Hydrodynamics}\label{loops}
 
-The low-$\beta$ nature of the coronal plasma allows us to model the solar atmosphere as an ensemble of independently-heated loops using a field-aligned hydrodynamic model. To model the dynamics of each individual loop, we use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}. Specifically, we use the two-fluid version of the EBTEL model as described in \citep{barnes_inference_2016}. EBTEL solves the time-dependent, spatially-integrated hydrodynamic equations and has been successfully benchmarked against field-aligned hydrodynamic codes. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in a few minutes. \authorcomment1{More explicit details about EBTEL simulations here}
+Due to the low-$\beta$ nature of the corona, we can treat each loop traced from our field extrapolation as an isolated atmosphere. We use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}, specifically the two-fluid version of the EBTEL model \citep{barnes_inference_2016} to model the dynamics in each loop. The two-fluid EBTEL code solves the time-dependent, two-fluid hydrodynamic equations spatially-integrated over the coronal part of the loop for the electron pressure and temperature, ion pressure and temperature, and density. The two-fluid EBTEL model accounts for radiative losses in both the transition region and corona, thermal conduction (including flux limiting), and binary Coulomb collisions between electrons and ions. The time-dependent heating input is configurable and can be deposited in the electrons and/or ions. A detailed description of the model and a complete derivation of the two-fluid EBTEL equations can be found in Appendix B of \citet{barnes_inference_2016}.
+
+For each of our $5\times10^3$ loops, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the heating into the electrons. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in a few minutes. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Heating %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Heating Model}\label{heating}
 
-We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of total duration $\tau_{event}=200$ s. For each event $i$, there are two parameters: the maximum heating rate $Q_i$ and the waiting time prior to the event $t_{wait,i}$. We choose $Q_i$ from a power-law distribution with slope $-2.5$ and we define the waiting time such that $t_{wait,i}$ is the amount of time between when event $i-1$ ends and event $i$ begins. Following the approach of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $t_{wait,i}\propto Q_i$. The physical motivation for this scaling is as follows. In the nanoflare model of \citet{parker_nanoflares_1988}, random convective motions continually stress loops rooted in the photosphere, leading to the buildup and and eventual release of energy. If the field is stressed for a long amount of time without relaxation, large discontinuities will have time to develop in the field, leading to a dramatic release of energy. Conversely, if the field relaxes quickly, there is not enough time for the field to become sufficiently stressed and the resulting energy release will be relatively small. 
+We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of duration $\tau_{event}=200$ s. For each event $i$, there are two parameters: the peak heating rate $q_i$ and the waiting time prior to the event $t_{wait,i}$. We choose $Q_i$ from a power-law distribution with slope $-2.5$ and we define the waiting time such that $t_{wait,i}$ is the amount of time between when event $i-1$ ends and event $i$ begins. Following the approach of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $t_{wait,i}\propto Q_i$. The physical motivation for this scaling is as follows. In the nanoflare model of \citet{parker_nanoflares_1988}, random convective motions continually stress loops rooted in the photosphere, leading to the buildup and and eventual release of energy. If the field is stressed for a long amount of time without relaxation, large discontinuities will have time to develop in the field, leading to a dramatic release of energy. Conversely, if the field relaxes quickly, there is not enough time for the field to become sufficiently stressed and the resulting energy release will be relatively small. 
 
 In this work we explore three different heating scenarios: low-, intermediate-, and high-frequency nanoflares. We define the \textit{heating frequency} in terms of the ratio between the loop cooling time, $\tau_{cool}$, and the average waiting time of all events on a given strand, $\langle t_{wait}\rangle$,
 
@@ -154,7 +157,7 @@ In this work we explore three different heating scenarios: low-, intermediate-, 
      \end{cases}
 \end{equation}
 
-We choose to parameterize the heating in terms of the cooling time rather than an absolute value of $\langle t_{wait}\rangle$ as $\tau_{cool}\sim L$ \citep[see appendix]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low frequency heating for a 20 Mm loop, it would correspond to high frequency heating in the case of a 150 Mm loop. By parameterizing the heating in this way, we ensure that all loops in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single loop, for all three of the heating scenarios list above. 
+We choose to parameterize the heating in terms of the cooling time rather than an absolute waiting time as $\tau_{cool}\sim L$ \citep[see appendix]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low frequency heating for a 20 Mm loop, it would correspond to high frequency heating in the case of a 150 Mm loop. By parameterizing the heating in this way, we ensure that all loops in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single loop, for the three heating scenarios listed above. 
 
 \begin{pycode}[manager_methods]
 fig,axes = plt.subplots(3, 1, sharex=True,
@@ -202,19 +205,19 @@ fig_hydro_profiles.figure_width = r'\columnwidth'
 \end{pycode}
 \py[manager_methods]|fig_hydro_profiles|
 
-In order to make meaningful comparisons between the various heating scenarios, we constrain the total flux into the \AR{} to be $F_{\ast}=10^7$ erg cm$^{-2}$ s$^{-1}$ \citep{withbroe_mass_1977}. For a single impulsive event $i$ as described above, the energy density is $E_i=\tau_{event} Q_i/2$. Summing over all events on all loops that comprise the \AR{},
+Additionally, for each heating frequency, we constrain the total flux into the \AR{} to be $F_{\ast}=10^7$ erg cm$^{-2}$ s$^{-1}$ \citep{withbroe_mass_1977}. For a single impulsive event $i$, the energy density is $E_i=\tau_{event} q_i/2$. Summing over all events on all loops that comprise the \AR{} gives,
 \begin{equation}
     F_{AR} = \frac{\sum_l\sum_i E_iL_l}{t_{total}}
 \end{equation}
-where $t_{total}=3\times10^4$ s is the total simulation time. To constrain $F_{AR}$ according to the observed total flux, we need to satisfy
+where $t_{total}$ s is the total simulation time. To constrain $F_{AR}$ according to the observed total flux, we need to satisfy
 \begin{equation}\label{eq:energy_constraint}
     \frac{| F_{AR}/N_{loops} - F_{\ast} |}{F_{\ast}} < \delta,
 \end{equation}
-where $\delta\ll1$ and $N_{loops}=5\times10^3$ is the total number of loops comprising the \AR{}. In order to satisfy \autoref{eq:energy_constraint}, we iteratively adjust the lower bound on the power-law distribution from which we choose $E_i$ (or equivalently $Q_i$) until we have met the above condition within some numerical tolerance. Additionally, for each loop, we fix the upper bound of the event power-law distribution to be $\bar{B}_l^2/8\pi$ where $\bar{B}_l$ is the spatially-averaged field strength along the loop $l$ as derived from the field extrapolation. This is the maximum amount of energy that the field could possibly make available to the loop. Note that while the derived potential field is already in its lowest energy state and thus has no energy to give up, our goal here is only to understand how the distribution of field strengths may be related to the properties of the heating. In this way, we use the potential field as a proxy for the non-potential component of the coronal field, with the understanding that we cannot make any qualitative conclusions regarding the amount of available energy or the stability of the field itself.
+where $\delta\ll1$ and $N_{loops}=5\times10^3$ is the total number of loops comprising the \AR{}. In order to satisfy \autoref{eq:energy_constraint}, we iteratively adjust the lower bound on the power-law distribution from which we choose $q_i$ until we have met the above condition within some numerical tolerance. Additionally, for each loop, we fix the upper bound of the event power-law distribution to be $\bar{B}_l^2/8\pi$ where $\bar{B}_l$ is the spatially-averaged field strength along the loop $l$ as derived from the field extrapolation. This is the maximum amount of energy that the field could possibly make available to the loop. Note that while the derived potential field is already in its lowest energy state and thus has no energy to give up, our goal here is only to understand how the distribution of field strengths may be related to the properties of the heating. In this way, we use the potential field as a proxy for the non-potential component of the coronal field, with the understanding that we cannot make any qualitative conclusions regarding the amount of available energy or the stability of the field itself.
 
 \begin{deluxetable}{lcc}
-    \tablecaption{Heating models\label{tab:heating}}
-    \tablehead{\colhead{Name} & \colhead{$\varepsilon$ (see \autoref{eq:heating_types})} & \colhead{Energy Constrained?}}
+    \tablecaption{All three heating models plus the two single-event control models. In the single-event models, the energy flux is not constrained by \autoref{eq:energy_constraint}.\label{tab:heating}}
+    \tablehead{\colhead{Name} & \colhead{$\varepsilon$ (see Eq.\ref{eq:heating_types})} & \colhead{Energy Constrained?}}
     \startdata
     high frequency & 0.1 & yes \\
     intermediate frequency & 1 & yes \\
@@ -224,7 +227,7 @@ where $\delta\ll1$ and $N_{loops}=5\times10^3$ is the total number of loops comp
     \enddata
 \end{deluxetable}
 
-In addition to these three multi-event heating models, we also run two single-event control models. In both control models every loop in the \AR{} is heated exactly once with an event of energy $\bar{B}_l^2/8\pi$. In our first control model, the start time of every event is $t=0$ s such that all loops are allowed cool uninterrupted for $t_{total}=10^4$ s. In the second control model, the start time of the event on each loop is chosen from a uniform distribution over the interval $(0, 3\times10^4)$ s, ensuring that the heating is out of phase across all loops and thus maximally decoherent. In these two models, the energy has not been constrained according to the method described above. From here on, we will refer to these two models as the ``cooling'' and ``random'' models, respectively.
+In addition to these three multi-event heating models, we also run two single-event control models. In both control models every loop in the \AR{} is heated exactly once with an event of energy $\bar{B}_l^2/8\pi$. In our first control model, the start time of every event is $t=0$ s such that all loops are allowed to cool uninterrupted for $t_{total}=10^4$ s. In the second control model, the start time of the event on each loop is chosen from a uniform distribution over the interval $(0, 3\times10^4)$ s, ensuring that the heating is out of phase across all loops and thus maximally decoherent. In these two models, the energy has not been constrained according to \autoref{eq:energy_constraint} and the total flux into the \AR{} is $(\sum_{l}\bar{B}_l^2L_l)/8\pi t_{total}$. From here on, we will refer to these two models as the ``cooling'' and ``random'' models, respectively. All five heating scenarios are summarized in \autoref{tab:heating}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Forward Modeling %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Forward Modeling}\label{forward}
@@ -233,127 +236,43 @@ In addition to these three multi-event heating models, we also run two single-ev
 
 \subsubsection{Atomic Physics}\label{atomic}
 
+For an optically thin, high-temperature, low-density plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
+\begin{equation}
+    \label{eq:ppuv}
+    P(\lambda_{ij}) = \frac{n_H}{n_e}\mathrm{Ab}(X)N_j(X,k)f_{X,k}A_{ji}\Delta E_{ji}n_e,\quad[\text{erg cm}^{-3}\text{ s}^{-1}]
+\end{equation}
+where $N_j$ is the fractional energy level population of excited state $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, $n_H/n_e\approx0.83$ is the ratio of hydrogen and electron number densities, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon \citep[see][]{mason_spectroscopic_1994,del_zanna_solar_2018}. To compute \autoref{eq:ppuv}, we use version v8.0.6 of the CHIANTI atomic database \citep{dere_chianti_1997,young_chianti_2016}. We use the abundances of \citet{feldman_potential_1992} as provided by CHIANTI. $A_{ji}$ and $E_{ji}$ for each transition can be looked up in the database. We selected elements from CHIANTI based on their contribution to the AIA passbands. 
+
+The ion population fractions, $f_{X,k}$, provided by CHIANTI assume \textit{ionization equilibrium} (i.e. the ionization and recombination rates are always in balance). However, in the rarefied solar corona, where the plasma is likely heated impulsively, it is not gauranteed that the ionization timescale is less than the heating timescale, meaning that the ionization state may not be representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. To properly account for this effect, we compute $f_{X,k}$ by solving the time-dependent level population equations for each element using the ionization and recombination rates provided by CHIANTI. The details of the calculation of non-equilibrium charge states are provided in \autoref{nei}.
+
+\subsubsection{Instrument Effects}\label{instrument}
+
 \begin{pycode}[manager_methods]
+import io
 from astropy.table import Table
 from astropy.io import ascii
 em = EmissionModel.restore(os.path.join(manager_methods.data_dir, 'base_emission_model.json'))
 data = {'Element': [], 'Number of Ions': [], 'Number of Transitions': [],}
 for i in em:
+    if not hasattr(i.transitions, 'wavelength'):
+        continue
     data['Element'].append(i.atomic_symbol)
     data['Number of Ions'].append(1)
-    data['Number of Transitions'].append(i.transitions.wavelength.shape[0] if hasattr(i.transitions, 'wavelength') else 0)
+    data['Number of Transitions'].append(i.transitions.wavelength.shape[0])
 df = pd.DataFrame(data=data).groupby('Element').sum().reset_index()
 z = df['Element'].map(plasmapy.atomic.atomic_number)
 df = df.assign(z = z).sort_values(by='z', axis=0).drop(columns='z')
-caption = r"Elements included in the calculation of \autoref{eq:intensity}. Ions and transitions are those included in the CHIANTI atomic database.\label{tab:elements}"
+caption = r"Elements included in the calculation of \autoref{eq:intensity}. For each element, we include all ions for which CHIANTI provides sufficient data for computing the emissivity.\label{tab:elements}"
+with io.StringIO() as f:
+    ascii.write(Table.from_pandas(df), format='aastex', caption=caption, output=f)
+    table = f.getvalue()
 \end{pycode}
-\py[manager_methods]|ascii.write(Table.from_pandas(df), format='aastex', caption=caption)|
+\py[manager_methods]|table|
 
-To calculate the forward modeled intensities, we account for the contributions of all transitions of all ions for a selected number of elements (see \autoref{tab:elements}). For an optically thin, high-temperature ($\sim10^6$ K), low-density ($\sim10^9$ cm$^{-3}$) plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
-
-\begin{equation}
-    \label{eq:ppuv}
-    P(\lambda_{ij}) = n_j(X_k)A_{ji}\Delta E_{ji},\quad[\text{erg cm}^{-3}\text{ s}^{-1}]
-\end{equation}
-
-where $n_j$ is the number density of ions $X_k$ in excited state $j$, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon  \citep[see][]{mason_spectroscopic_1994,bradshaw_collisional_2013,del_zanna_solar_2018}. \autoref{eq:ppuv} can be rewritten in the more useful form,
-
-\begin{eqnarray*}
-    P(\lambda_{ij}) &=& \frac{n_j(X_k)}{n(X_k)}\frac{n(X_k)}{n(X)}\frac{n(X)}{n(H)}\frac{n(H)}{n_e}n_eA_{ji}\Delta E_{ji}, \\
-    &=& N_j(X,k) f_{X,k} \mathrm{Ab}(X) 0.83 n_e A_{ji} \Delta E_{ji}, \\
-    &=& 0.83 \mathrm{Ab}(X) f_{X,k} N_j(X,k) A_{ji} \Delta E_{ji} n_e,
-\end{eqnarray*}
-
-where, $N_j$ is the fractional energy level population of level $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, and the ratio of hydrogen and electron number densities is $\approx0.83$. Note that $N_j A_{ji} \Delta E_{ji}$ is also sometimes referred to as the emissivity.
-
-To compute \autoref{eq:ppuv}, we use the CHIANTI atomic database \citep{dere_chianti_1997,young_chianti_2016}. We use the abundances of \citet{feldman_potential_1992} as provided by CHIANTI. $A_{ji}$ and $E_{ji}$ for each transition can be looked up in the database. We selected elements from CHIANTI based on their contribution to the AIA passbands. CHIANTI also provides $f_{X,k}$ as a function of temperature though this calculation assumes \textit{ionization equilibrium}, i.e. the ionization and recombination are always in balance. In the rarefied solar corona, where the plasma is likely heated impulsively, it is not gauranteed that the ionization timescale is less than the heating timescale, meaning that the ionization state may not be representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. In order to account for this possible non-equilibrium, we compute $f_{X,k}$ by solving the time-dependent level population equations for each ion in each element. The details of the calculation of non-equilibrium charge states are provided in \autoref{nei}.
-
-\subsubsection{Instrument Effects}\label{instrument}
-
-To compute the observed \textit{intensity} along the line of sight, we need to know how much of the emission the instrument would actually detect. In this case, we want to model intensities from AIA. Thus, we convolve \autoref{eq:ppuv} with the instrument response,
+To model the intensity as it would be observed by AIA, we combine \autoref{eq:ppuv} with the wavelength response function of the instrument and integrate along the line of sight (LOS),
 \begin{equation}\label{eq:intensity}
     I_c = \frac{1}{4\pi}\sum_{\{ij\}}\int_{\text{LOS}}\mathrm{d}hP(\lambda_{ij})R_c(\lambda_{ij})
 \end{equation}
-where $I_c$ is the intensity for a given pixel in channel $c$, $R_c$ is the wavelength response function of the instrument for channel $c$, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the line-of-sight (LOS). Further details regarding the AIA wavelength response functions, $R_c$, can be found in \citet{boerner_initial_2012}.
+where $I_c$ is the intensity for a given pixel in channel $c$, $P(\lambda_{ij})$ is the emissivity as given by \autoref{eq:ppuv}, $R_c$ is the wavelength response function of the instrument for channel $c$ \citep[see][]{boerner_initial_2012}, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the LOS. Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions computed by SolarSoft and instead use the wavelength response functions directly. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume both ionization equilibrium and constant pressure. \autoref{effective_response_functions} provides further details on our motivation to not use the precomputed temperature response functions.
 
-\begin{pycode}[manager_methods]
-from synthesizAR.instruments import InstrumentSDOAIA
-from scipy.interpolate import splev
-aia = InstrumentSDOAIA([0,1]*u.s, observer_coordinate=None)
-em = EmissionModel.restore(os.path.join(manager_methods.data_dir, 'base_emission_model.json'))
-fig,axes = plt.subplots(2, 3, sharex=True, sharey=True,
-                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=2/3,       
-                                                    figure_width_context='textwidth'))
-T = np.logspace(5,8,100)
-p = 10**(15)*u.K/(u.cm**3)
-const_p_indices = np.array([(i,np.argmin(np.fabs(em.density.value-d.value))) 
-                            for i,d in enumerate(p/em.temperature)])
-with h5py.File(os.path.join(manager_methods.data_dir, 'effective_aia_response.h5'), 'r') as hf:
-    colors = qualitative_palette(len([k for k in hf['94']])-1)
-    for i, (ax, channel) in enumerate(zip(axes.flatten(), aia.channels)):
-        grp = hf[channel['name']]
-        real_response = splev(T, channel['temperature_response_spline'])
-        ax.plot(T, real_response, ls='-',color='k',)
-        ax.plot(em.temperature, 
-                np.array(grp['response'])[const_p_indices[:,0],const_p_indices[:,1]],
-                color='k',ls='--',)
-        elements = sorted([e for e in grp if e != 'response'],
-                            key=lambda x: plasmapy.atomic.atomic_number(x))
-        for j,element in enumerate(elements):
-            ax.plot(em.temperature, 
-                    np.array(grp[element])[const_p_indices[:,0],const_p_indices[:,1]],
-                    color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element),)
-        if i==0:
-            ax.legend(ncol=len(elements), loc="lower left", bbox_to_anchor=(0.25,1.02),
-                        frameon=False)
-        ax.text(1e7,3e-25,'{} $\mathrm{{\AA}}$'.format(channel['name']),
-                fontsize=plt.rcParams['axes.labelsize'])
-ax.set_xscale('log')
-ax.set_yscale('log')
-ax.set_ylim([2e-30,2e-24])
-ax.set_xlim([1e5,8e7])
-ax.set_yticks([1e-29, 1e-27, 1e-25])
-axes[1,0].set_ylabel(r'$K_c$ [DN cm$^5$ s$^{-1}$ pixel$^{-1}$]')
-axes[1,0].set_xlabel(r'$T$ [K]')
-plt.subplots_adjust(wspace=0.,hspace=0.)
-fig_aia_response = manager_methods.save_figure('aia-response')
-fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization. \authorcomment3{Possibly move this to an appendix}'
-fig_aia_response.figure_env_name = 'figure*'
-fig_aia_response.figure_width = r'\textwidth'
-\end{pycode}
-\py[manager_methods]|fig_aia_response|
-
-\autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared against those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database, we recover nearly all of the response from each channel. The high-temperature contribution in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
-
-Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions in SolarSoft. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume both ionization equilibrium and constant pressure. As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the default pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density. \authorcomment3{Cut or move this paragraph to an appendix?}
-
-\begin{pycode}[manager_methods]
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0, 
-                                           figure_width_context='columnwidth'))
-ax = fig.gca()
-min_T = 1e300*u.K
-max_T = 0*u.K
-colors = heating_palette()
-for i,h in enumerate(heating):
-    loop.parameters_savefile = os.path.join(manager_methods.data_dir, f'{h}', 'loop_parameters.h5')
-    ax.plot(loop.electron_temperature[:,0], loop.density[:,0], color=colors[i], alpha=0.75,
-            label=h.split('_')[0].capitalize())
-    min_T = min(min_T, loop.electron_temperature.min())
-    max_T = max(max_T, loop.electron_temperature.max())
-p = 1e15*u.K/(u.cm**3)
-T = np.linspace(min_T,max_T,1000)
-ax.plot(T, p/T, color='k')
-ax.set_xscale('log')
-ax.set_yscale('log')
-ax.set_ylabel(r'$n$ [cm$^{-3}$]')
-ax.set_xlabel(r'$T$ [K]')
-ax.legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02),frameon=False,)
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-fig_hydro_phase_space = manager_methods.save_figure('hydro-phase-space')
-fig_hydro_phase_space.caption = r'$n-T$ phase-space orbits for a single loop for the three heating scenarios as defined by the legend. The black line indicates a constant pressure of $10^{15}$ K cm$^{-3}$. \authorcomment3{Possibly move this to an appendix}'
-fig_hydro_phase_space.figure_width = r'\columnwidth'
-\end{pycode}
-\py[manager_methods]|fig_hydro_phase_space|
-
-Once we have computed the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} and for all the loops in our \AR{}, we compute the LOS integral in \autoref{eq:intensity} by first converting all of the loop coordinates to a Helioprojective coordinate frame defined by the position of the SDO spacecraft. We then compute a weighted two-dimensional histogram of these transformed coordinates, using the emissivity values at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument, i.e. in the case of AIA, a single bin, representing a single pixel, has a width of 0.6 arcseconds. Finally, we simulate the point spread function of the instrument by applying a gaussian filter to the resulting histogram. We do this for each timestep, as defined by the cadence of the instrument, and for each channel. For each heating scenario, this gives us approximately $1.8\times10^4$ separate images.
+Once we have computed the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} and for all the loops in our \AR{}, we compute the LOS integral in \autoref{eq:intensity} by first converting all of the loop coordinates to a Helioprojective coordinate frame defined by the position of the SDO spacecraft at 12 February 2011 15:33 UTC (i.e. the time of the HMI observation of NOAA 1158 shown in \autoref{fig:magnetogram}). We then compute a weighted two-dimensional histogram of these transformed coordinates, using the emissivity values at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument (i.e. in the case of AIA, a single bin, representing a single pixel, has a width of 0.6 arcseconds). Finally, we simulate the point spread function of the instrument by applying a gaussian filter to the resulting histogram. We do this for each timestep, as defined by the cadence of the instrument, and for each channel. For each heating scenario, this gives us approximately $1.8\times10^4$ separate images.

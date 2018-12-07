@@ -1,44 +1,148 @@
+\begin{pycode}[manager_appendix]
+manager_appendix = texfigure.Manager(
+    pytex, './',
+    number=3,
+    python_dir='python',
+    fig_dir='figures',
+    data_dir='data',
+)
+from formatting import qualitative_palette, heating_palette
+\end{pycode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                   Appendix 1: NEI                           %
+%                                   Appendix 1                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Non-equilibrium Ion Populations}\label{nei}
 
-In order to account for ionization non-equilibrium, we compute $f_{X,k}$ by solving the time-dependent level population equations for each ion in each element,
+In order to account for ionization non-equilibrium, we compute $f_{X,k}$ as a function of time $t$ by solving the time-dependent level population equations for each ion $k$ in each element $X$,
 \begin{equation}\label{eq:nei}
     \frac{\partial f_k}{\partial t} = n_e(R_{k+1}f_{k+1} + I_{k-1}f_{k-1} - I_kf_k - R_kf_k)
 \end{equation}
-where $R_k$ and $I_k$ are the temperature-dependent recombination and ionization rates, respectively, of level $k$. Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Setting the left hand side of \autoref{eq:nei} to zero gives the equation of ionization equilibrium. Casting \autoref{eq:nei} in matrix form,
+where $n_e$ is the electron density and $R_k$ and $I_k$ are the temperature-dependent recombination and ionization rates of ion $k$, respectively. The temperature-dependent ionization and recombination rates are computed using the data provided in CHIANTI. The ionization rates include both direct ionization and excitation autoionization and the recombination rates include both radiative and dielectronic recombination \citep[see section 6 of][]{young_chianti_2016}.
+
+Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Setting the left hand side of \autoref{eq:nei} to zero gives the equation of ionization equilibrium. Casting \autoref{eq:nei} in matrix form,
 \begin{equation}\label{eq:nei_mat}
     \dot{\mathbf{F}} = \mathbf{A}\mathbf{F},
 \end{equation}
 where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z+1\times Z+1}$ tridiagonal matrix containing the ionization and recombination rates, multiplied by the electron density,
 
-\begin{equation}
+\begin{equation*}
     \mathbf{A} = n_e
         \begin{pmatrix}
             -(I_0 + R_0) & R_1 & 0 & \dots & 0 \\
             I_0 & -(I_1 + R_1) & R_2 & \dots & 0 \\
-            \vdots & \ddots & \ddots & & \vdots \\
+             & \ddots & \ddots & &  \\
             \vdots & I_{i-1} & -(I_i + R_i) & R_{i+1} & \vdots \\
-            \vdots & & \ddots & \ddots & \vdots \\
+             & & \ddots & \ddots & \\
             0 & \dots & I_{Z-2} & -(I_{Z-1} + R_{Z-1}) & R_Z \\
             0 & \dots & 0 & I_{Z-1} & -(I_Z + R_Z) 
         \end{pmatrix}.
-\end{equation}
+\end{equation*}
 
-Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff'', making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
-\begin{equation}
+Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
+\begin{equation*}
     \mathbf{F}_{j+1} = \mathbf{F}_j + \frac{\Delta t}{2}(\dot{\mathbf{F}}_{j+1} + \dot{\mathbf{F}}_j) + \mathrm{h.o.t.}
-\end{equation}
-where the $j$ index represents time. Rearranging the above expression and using \autoref{eq:nei_mat}, we can find an expression for $\mathbf{F}_{j+1}$,
-\begin{equation}
+\end{equation*}
+where the index $j$ represents time. Rearranging the above expression and using \autoref{eq:nei_mat} yields an expression for $\mathbf{F}_{j+1}$,
+\begin{equation}\label{eq:nei_iterative}
     \mathbf{F}_{j+1} \approx \left(\mathbb{I} - \frac{\Delta t}{2}\mathbf{A}_{j+1}\right)^{-1}\left(\mathbb{I} + \frac{\Delta t}{2}\mathbf{A}_{j}\right)\mathbf{F}_j
 \end{equation}
-where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we need only compute $\mathbf{A}_j$ for each $T(t_j)$ and set $\mathbf{F}_0$ to the equilibrium ion populations. We solve \autoref{eq:nei_mat} for all elements in \autoref{tab:elements} and for each loop in the \AR{}.
-
+where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we need only compute $\mathbf{A}_j$ for each $T(t_j)$, set $\mathbf{F}_0$ to the equilibrium ion populations, and iteratively compute \autoref{eq:nei_iterative} for all $j$. We solve \autoref{eq:nei_mat} for all elements in \autoref{tab:elements} and for each loop in the \AR{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                   Appendix 2: Timelags                      %
+%                                   Appendix 2                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Effective AIA Response Functions}\label{effective_response_functions}
+
+\begin{pycode}[manager_appendix]
+from synthesizAR.instruments import InstrumentSDOAIA
+from scipy.interpolate import splev
+aia = InstrumentSDOAIA([0,1]*u.s, observer_coordinate=None)
+em = EmissionModel.restore(os.path.join(manager_appendix.data_dir, 'base_emission_model.json'))
+fig,axes = plt.subplots(2, 3, sharex=True, sharey=True,
+                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=2/3,       
+                                                  figure_width_context='textwidth'))
+T = np.logspace(5,8,100)
+p = 10**(15)*u.K/(u.cm**3)
+const_p_indices = np.array([(i,np.argmin(np.fabs(em.density.value-d.value))) 
+                            for i,d in enumerate(p/em.temperature)])
+with h5py.File(os.path.join(manager_appendix.data_dir, 'effective_aia_response.h5'), 'r') as hf:
+    colors = qualitative_palette(len([k for k in hf['94']])-1)
+    for i, (ax, channel) in enumerate(zip(axes.flatten(), aia.channels)):
+        grp = hf[channel['name']]
+        real_response = splev(T, channel['temperature_response_spline'])
+        ax.plot(T, real_response, ls='-',color='k',)
+        ax.plot(em.temperature, 
+                np.array(grp['response'])[const_p_indices[:,0],const_p_indices[:,1]],
+                color='k',ls='--',)
+        elements = sorted([e for e in grp if e != 'response'],
+                            key=lambda x: plasmapy.atomic.atomic_number(x))
+        for j,element in enumerate(elements):
+            ax.plot(em.temperature, 
+                    np.array(grp[element])[const_p_indices[:,0],const_p_indices[:,1]],
+                    color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element),)
+        if i==0:
+            ax.legend(ncol=len(elements), loc="lower left", bbox_to_anchor=(0.25,1.02),
+                        frameon=False)
+        ax.text(1e7,3e-25,'{} $\mathrm{{\AA}}$'.format(channel['name']),
+                fontsize=plt.rcParams['axes.labelsize'])
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_ylim([2e-30,2e-24])
+ax.set_xlim([1e5,8e7])
+ax.set_yticks([1e-29, 1e-27, 1e-25])
+axes[1,0].set_ylabel(r'$K_c$ [DN cm$^5$ s$^{-1}$ pixel$^{-1}$]')
+axes[1,0].set_xlabel(r'$T$ [K]')
+plt.subplots_adjust(wspace=0.,hspace=0.)
+fig_aia_response = manager_appendix.save_figure('aia-response')
+fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization. \authorcomment3{Possibly move this to an appendix}'
+fig_aia_response.figure_env_name = 'figure*'
+fig_aia_response.figure_width = r'\textwidth'
+fig_aia_response.placement = ''
+\end{pycode}
+\py[manager_appendix]|fig_aia_response|
+
+\autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared to those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database (see \autoref{tab:elements}), we recover nearly all of the response from each channel. The high-temperature contributions in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
+
+\begin{pycode}[manager_appendix]
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=0.5, height_ratio=1.0, 
+                                           figure_width_context='columnwidth'))
+ax = fig.gca()
+min_T = 1e300*u.K
+max_T = 0*u.K
+colors = heating_palette()
+ar = synthesizAR.Field.restore(os.path.join(manager_appendix.data_dir, 'base_noaa1158'), lazy=True)
+i_loop=680
+loop = ar.loops[i_loop]
+for i,h in enumerate(heating):
+    loop.parameters_savefile = os.path.join(manager_appendix.data_dir, f'{h}', 'loop_parameters.h5')
+    ax.plot(loop.electron_temperature[:,0], loop.density[:,0], color=colors[i], alpha=0.75,
+            label=h.split('_')[0].capitalize())
+    min_T = min(min_T, loop.electron_temperature.min())
+    max_T = max(max_T, loop.electron_temperature.max())
+p = 1e15*u.K/(u.cm**3)
+T = np.linspace(min_T,max_T,1000)
+ax.plot(T, p/T, color='k')
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlim(1.75e5,1e7)
+ax.set_ylim(1.01e7,6e9)
+ax.legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02), frameon=False,)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['bottom'].set_bounds(2e5,1e7)
+ax.spines['left'].set_bounds(2e7,6e9)
+ax.set_ylabel(r'$n$ [cm$^{-3}$]')
+ax.set_xlabel(r'$T$ [K]')
+fig_hydro_phase_space = manager_appendix.save_figure('hydro-phase-space')
+fig_hydro_phase_space.caption = r'$n-T$ phase-space orbits for a single loop for the three heating scenarios as defined by the legend. The black line indicates a constant pressure of $10^{15}$ K cm$^{-3}$.'
+fig_hydro_phase_space.figure_width = r'0.5\columnwidth'
+\end{pycode}
+\py[manager_appendix]|fig_hydro_phase_space|
+
+As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the default pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Appendix 3                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Computing Timelags}\label{timelag_details}
 
@@ -55,7 +159,7 @@ is the mean-subtracted and scaled intensity of channel $c$ as a function of time
     \mathcal{F}\{\mathcal{C}_{AB}(\tau)\} &= \mathcal{F}\{\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)\},\\
     &= \mathcal{F}\{\mathcal{I}_A(-t)\}\mathcal{F}\{\mathcal{I}_B(t)\}.
 \end{align*}
-Taking the inverse Fourier transform, $\mathcal{F}^{-1}$, of both sides of the above expression gives,
+Taking the inverse Fourier transform, $\mathcal{F}^{-1}$, of both sides gives,
 \begin{align}\label{eq:cc}
     \mathcal{C}_{AB}(\tau) &= \mathcal{F}^{-1}\{\mathcal{F}\{\mathcal{I}_A(-t)\}\mathcal{F}\{\mathcal{I}_B(t)\}\}.
 \end{align}
@@ -64,4 +168,60 @@ Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields 
     \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau).
 \end{equation}
 
-By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy Python library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we are able to compute timelags for all 15 channel pairs in every pixel of the \AR{} in approximately twenty minutes.
+By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy Python library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we are able to compute timelags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take approximately fourteen hours for all 15 channel pairs.
+
+\begin{pycode}[manager_appendix]
+fig,axes = plt.subplots(
+    2, 1, figsize=texfigure.figsize(pytex, scale=1.0,
+                                    figure_width_context='columnwidth'))
+plt.subplots_adjust(hspace=0.35)
+colors = qualitative_palette(len(channels))
+filename = os.path.join(manager_appendix.data_dir, 'cooling', 'timelag_1d_example.h5')
+### Timeseries ###
+with h5py.File(filename, 'r') as h5:
+    grp = h5['timeseries']
+    time = u.Quantity(grp['time'], grp['time'].attrs['unit'])
+    for i,c in enumerate(channels):
+        ts = u.Quantity(grp[f'{c}'], grp[f'{c}'].attrs['unit'])
+        ts = ts/ts.max()
+        axes[0].plot(time, ts, label='{} $\mathrm{{\AA}}$'.format(c),
+                        color=colors[i])
+axes[0].legend(frameon=False,ncol=1,loc=1)
+axes[0].set_ylim(-0.05,1.01)
+axes[0].set_xlim(-500,time[-1].to(u.s).value*1.001)
+axes[0].set_yticks(np.linspace(0,1,3))
+axes[0].set_xlabel(r'$t$ [s]')
+axes[0].set_ylabel(r'$I_{c}/I_{c,max}$')
+axes[0].spines['top'].set_visible(False)
+axes[0].spines['right'].set_visible(False)
+axes[0].spines['bottom'].set_bounds(axes[0].get_xticks()[1], axes[0].get_xticks()[-1])
+axes[0].spines['left'].set_bounds(axes[0].get_yticks()[0], axes[0].get_yticks()[-1])
+### Cross-correlations ###
+with h5py.File(filename, 'r') as h5:
+    grp = h5['cross_correlations']
+    timelags = u.Quantity(grp['timelags'], grp['timelags'].attrs['unit'])
+    for i,(ca,cb) in enumerate(selected_channel_pairs):
+        cc = u.Quantity(grp[f'{ca}_{cb}'], grp[f'{ca}_{cb}'].attrs['unit'])
+        axes[1].plot(timelags, cc, label='{}-{} $\mathrm{{\AA}}$'.format(ca,cb),
+                        color=colors[i])
+        axes[1].plot(timelags[cc.argmax()], cc.max(), marker='o', markersize=5,
+                        color=colors[i], ls='')
+axes[1].axvline(x=0,ls=':',color='k')
+axes[1].set_xlim(-1.2*(5e3*u.s).value, 1.2*(5e3*u.s).value)
+axes[1].set_ylim(-0.3, 1.01)
+axes[1].set_yticks(np.linspace(-0.2,1,4))
+axes[1].set_xticks(np.linspace(-5e3,5e3,6))
+axes[1].legend(frameon=False,ncol=1,loc=2)
+axes[1].set_ylabel(r'$\mathcal{C}_{AB}$')
+axes[1].set_xlabel(r'$\tau$ [s]')
+axes[1].spines['top'].set_visible(False)
+axes[1].spines['right'].set_visible(False)
+axes[1].spines['bottom'].set_bounds(axes[1].get_xticks()[0], axes[1].get_xticks()[-1])
+axes[1].spines['left'].set_bounds(axes[1].get_yticks()[0], axes[1].get_yticks()[-1])
+fig_timelag_example = manager_appendix.save_figure('timelag-example',)
+fig_timelag_example.caption = r'Normalized pixel-averaged intensity timeseries for all six AIA EUV channels (top) and cross-correlation curves for selected channel pairs (bottom) for the ``cooling'' case. The dots indicate the peak in the cross-correlation curve.'
+fig_timelag_example.figure_width = r'\columnwidth'
+\end{pycode}
+\py[manager_appendix]|fig_timelag_example|
+    
+\autoref{fig:timelag-example} shows an example calculation of \autoref{eq:cc} for a pixel-averaged timeseries from the ``cooling'' case described in \autoref{heating}. At each timestep, the intensity was averaged over a $5\arcsec\times5\arcsec$ patch centered on $(\theta_x,\theta_y)=(312.5\arcsec,332.5\arcsec)$. The top panel shows the intensity, normalized to the peak value, of each AIA channel while the bottom panel shows the cross-correlation curve, as a function of the offset, $\tau$, for three sample channel pairs. Note that the intensities peak in successively cooler channels as the loop plasma cools following the single heating event at $t=0$ s. The cross-correlation curves in the lower panel have peaks (denoted by dots) at lags ($\tau$) approximately equal to the separation of the intensity peaks in time. Note that all of the timelags are positive for these channel pairs though the $\mathcal{C}_{94-335}$ curve does show a weaker peak at a negative timelag due to the doubly-peaked nature of the 94 \AA{} response curve, with the cooler peak at a lower temperature than the 335 \AA{} channel (see \autoref{fig:aia-response}).
