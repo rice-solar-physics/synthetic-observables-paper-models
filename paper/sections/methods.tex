@@ -19,32 +19,41 @@ from formatting import qualitative_palette, heating_palette
 We choose \AR{} NOAA 1158, as observed by the HMI instrument \citep{hoeksema_helioseismic_2014} on 12 February 2011, from the list of active regions studied by \citet{warren_systematic_2012}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk center.
 
 \begin{pycode}[manager_methods]
-# Load AR
-ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), )
-# Import maps
-aia_map = Map(manager_methods.data_file('aia_171_cutout.fits'))
+from sunpy.instr.aia import aiaprep
+from sunpy.physics.differential_rotation import diffrot_map
+####################################################
+#                     Data Prep                    #
+####################################################
+aia_map = Map(manager_methods.data_file('aia_171_observed.fits'))
 hmi_map = Map(manager_methods.data_file('hmi_magnetogram.fits'))
-# Prep HMI map
-hmi_map = hmi_map.rotate(order=3).submap(
+# AIA
+aia_map = diffrot_map(aiaprep(aia_map), time=hmi_map.date, rot_type='snodgrass')
+aia_map = aia_map.submap(
+    SkyCoord(-440, -375, unit=u.arcsec, frame=aia_map.coordinate_frame),
+    SkyCoord(-140, -75, unit=u.arcsec, frame=aia_map.coordinate_frame),
+)
+# HMI
+hmi_map = hmi_map.rotate(order=3)
+hmi_map = aiaprep(hmi_map).submap(
     aia_map.bottom_left_coord, aia_map.top_right_coord)
-# Plot
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=0.5,       
-                                           figure_width_context='textwidth'))
-line_frequency = 20
-plt.subplots_adjust(wspace=0.03)
 ####################################################
-#                       HMI                        #
+#                       Plot                       #
 ####################################################
-ax = fig.add_subplot(1,2,1,projection=hmi_map,)
-hmi_map.plot(
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,       
+                                           figure_width_context='columnwidth'))
+ax = fig.add_subplot(111, projection=aia_map,)
+# Plot image
+aia_map.plot(
     title=False,annotate=False,
-    norm=matplotlib.colors.SymLogNorm(100,vmin=-1e3,vmax=1e3),
-    cmap='RdBu_r')
-for l in ar.loops[::line_frequency]:
-    c = l.coordinates.transform_to(
-            'heliographic_stonyhurst').transform_to(hmi_map.coordinate_frame)
-    ax.plot_coord(c, '-', color='k', lw=1, alpha=0.35)
+    norm=ImageNormalize(vmin=0,vmax=5e3,stretch=AsinhStretch(0.1)))
+# Plot fieldlines
+ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), lazy=True)
+for l in ar.loops[::10]:
+    c = l.coordinates.transform_to(aia_map.coordinate_frame)
+    ax.plot_coord(c, '-', color='w', lw=0.5, alpha=0.25)
 ax.grid(alpha=0)
+# HMI Contours
+hmi_map.draw_contours(u.Quantity([-5,5], '%'), axes=ax, colors=['C0', 'C3'], linewidths=0.75)
 # HPC Axes
 lon,lat = ax.coords[0],ax.coords[1]
 lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
@@ -52,72 +61,33 @@ lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
 lon.set_axislabel(r'Helioprojective Longitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
 lat.set_axislabel(r'Helioprojective Latitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
 # HGS Axes
-hgs_lon,hgs_lat = hmi_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.75,color='k')
+hgs_lon,hgs_lat = aia_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.5,color='w')
+hgs_lat.set_axislabel_visibility_rule('labels')
+hgs_lon.set_axislabel_visibility_rule('labels')
 hgs_lat.set_ticklabel_visible(False)
 hgs_lon.set_ticklabel_visible(False)
-hgs_lon.set_axislabel('')
-hgs_lat.set_axislabel('')
 hgs_lat.set_ticks_visible(False)
 hgs_lon.set_ticks_visible(False)
-hgs_lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
-hgs_lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
-# Label
-xtext,ytext = hmi_map.world_to_pixel(
-    SkyCoord(Tx=-425*u.arcsec,Ty=-95*u.arcsec,frame=hmi_map.coordinate_frame))
-ax.text(xtext.value, ytext.value, 'HMI LOS Magnetogram', color='k')
-####################################################
-#                       AIA                        #
-####################################################
-ax = fig.add_subplot(1,2,2,projection=aia_map,)
-aia_map.plot(
-    title=False,annotate=False,
-    norm=ImageNormalize(vmin=0,vmax=5e3,stretch=AsinhStretch(0.1)))
-for l in ar.loops[::line_frequency]:
-    c = l.coordinates.transform_to(
-            'heliographic_stonyhurst').transform_to(aia_map.coordinate_frame)
-    ax.plot_coord(c, '-', color='w', lw=1, alpha=0.35)
-ax.grid(alpha=0)
-# HPC Axes
-lon,lat = ax.coords[0],ax.coords[1]
-lon.set_ticks(color='w')
-lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
-lat.set_ticks(color='w')
-lat.set_ticklabel_visible(False)
-# HGS Axes
-hgs_lon,hgs_lat = aia_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.75,color='w')
-hgs_lat.set_axislabel('Heliographic Latitude [arcsec]',
-                      fontsize=plt.rcParams['axes.labelsize'])
-hgs_lon.set_axislabel('Heliographic Longitude [arcsec]',
-                      fontsize=plt.rcParams['axes.labelsize'])
-hgs_lat.set_ticklabel_visible(True)
-hgs_lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
-hgs_lon.set_ticklabel_visible(True)
-hgs_lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
-hgs_lat.set_ticks_visible(False)
-hgs_lon.set_ticks_visible(False)
-# Label
-xtext,ytext = aia_map.world_to_pixel(
-    SkyCoord(Tx=-425*u.arcsec,Ty=-95*u.arcsec,frame=aia_map.coordinate_frame))
-ax.text(xtext.value, ytext.value, r'AIA 171 $\mathrm{\AA}$', color='w')
 ####################################################
 #                  Save figure                     #
 ####################################################
 fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
-fig_aia_hmi_lines.caption = r'HMI (left) and AIA 171 \AA{} (right) observations of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 250 out of the total 5000 fieldlines overlaid.'
+fig_aia_hmi_lines.caption = r'AIA 171 \AA{} observation of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 500 out of the total 5000 fieldlines overlaid. The red and blue contours show the line-of-sight magnetic field strength as observed by HMI. The contours are drawn at the $+5\%$ (red) and $-5\%$ (blue) levels.'
 fig_aia_hmi_lines.figure_env_name = 'figure*'
-fig_aia_hmi_lines.figure_width = r'\textwidth'
+fig_aia_hmi_lines.figure_width = r'\columnwidth'
 fig_aia_hmi_lines.placement = ''
+fig_aia_hmi_lines.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_aia_hmi_lines|
 
-After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed HMI magnetogram and a concurrent AIA 171 \AA{} image of NOAA 1158. A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops. Note that a large portion of the loops are short loops located near the center of the \AR{}.
+After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are overlaid in red(positive) and blue (negative). A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops. Note that a large portion of the loops are short loops located near the center of the \AR{}.
 
 \begin{pycode}[manager_methods]
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
                                            figure_width_context='columnwidth'))
 ax = fig.gca()
 vals,bins,_ = ax.hist(
-    [l.full_length.to(u.Mm).value for l in ar.loops],
+    [l.full_length.to(u.Mm).value for l in ar.loops[::10]],
     bins='scott', color='k', histtype='step', lw=plt.rcParams['lines.linewidth'])
 ax.set_xlabel(r'$L$ [Mm]');
 ax.set_ylabel(r'Number of Loops');
@@ -131,6 +101,8 @@ ax.spines['bottom'].set_bounds(ax.get_xticks()[1], ax.get_xticks()[-2])
 fig_loop_dist = manager_methods.save_figure('loops',)
 fig_loop_dist.caption = r'Distribution of loop lengths (in Mm) traced from field extrapolation of magnetogram of NOAA 1158. A total of 5000 fieldlines were traced through the extrapolated volume.'
 fig_loop_dist.figure_width = r'\columnwidth'
+fig_loop_dist.placement = ''
+fig_loop_dist.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_loop_dist|
 
@@ -139,7 +111,7 @@ fig_loop_dist.figure_width = r'\columnwidth'
 
 Due to the low-$\beta$ nature of the corona, we can treat each loop traced from our field extrapolation as an isolated atmosphere. We use the enthalpy-based thermal evolution of loops (EBTEL) model \citep{klimchuk_highly_2008,cargill_enthalpy-based_2012}, specifically the two-fluid version of the EBTEL model \citep{barnes_inference_2016} to model the dynamics in each loop. The two-fluid EBTEL code solves the time-dependent, two-fluid hydrodynamic equations spatially-integrated over the coronal part of the loop for the electron pressure and temperature, ion pressure and temperature, and density. The two-fluid EBTEL model accounts for radiative losses in both the transition region and corona, thermal conduction (including flux limiting), and binary Coulomb collisions between electrons and ions. The time-dependent heating input is configurable and can be deposited in the electrons and/or ions. A detailed description of the model and a complete derivation of the two-fluid EBTEL equations can be found in Appendix B of \citet{barnes_inference_2016}.
 
-For each of our $5\times10^3$ loops, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the heating into the electrons. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in a few minutes. 
+For each of the $5\times10^3$ loops, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time to model the time-dependent, spatially-averaged coronal temperature and density. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the heating into the electrons. Though EBTEL only computes spatially-averaged quantities in the coronal portion of the loop, its efficiency allows us to calculate time-dependent solutions for many thousands of loops in a few minutes. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Heating %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Heating Model}\label{heating}
@@ -181,9 +153,9 @@ axes[0].legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02),frameon=False,)
 axes[0].set_xlim(0,3e4)
 axes[0].set_yticks([0.005,0.015,0.025])
 axes[1].set_ylim(0.1,8)
-axes[1].set_yticks(axes[1].get_yticks()[::2])
+axes[1].set_yticks(axes[1].get_yticks()[1:])
 axes[2].set_ylim(0,1.8)
-axes[2].set_yticks(axes[2].get_yticks()[::2])
+#axes[2].set_yticks(axes[2].get_yticks()[::2])
 axes[0].set_ylabel(r'$Q$ [erg$/$cm$^{3}$$/$s]')
 axes[1].set_ylabel(r'$T$ [MK]')
 axes[2].set_ylabel(r'$n$ [10$^9$ cm$^{-3}$]')
@@ -202,6 +174,8 @@ axes[2].spines['right'].set_visible(False)
 fig_hydro_profiles = manager_methods.save_figure('hydro-profiles')
 fig_hydro_profiles.caption = r'Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single loop. The colors denote the heating frequency as defined in the legend. The corresponding loop has a half length of $L/2\approx40$ Mm and a mean field strength of $\bar{B}\approx30$ G.'
 fig_hydro_profiles.figure_width = r'\columnwidth'
+fig_hydro_profiles.placement = ''
+fig_hydro_profiles.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_hydro_profiles|
 
@@ -232,18 +206,16 @@ In addition to these three multi-event heating models, we also run two single-ev
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Forward Modeling %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Forward Modeling}\label{forward}
 
-\authorcomment1{Do we need a note here about why we are using forward modeling? i.e. as opposed to comparing $T,n$ from simulations to temperature and density diagnostics from observations.}
-
 \subsubsection{Atomic Physics}\label{atomic}
 
 For an optically thin, high-temperature, low-density plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
 \begin{equation}
     \label{eq:ppuv}
-    P(\lambda_{ij}) = \frac{n_H}{n_e}\mathrm{Ab}(X)N_j(X,k)f_{X,k}A_{ji}\Delta E_{ji}n_e,\quad[\text{erg cm}^{-3}\text{ s}^{-1}]
+    P(\lambda_{ij}) = \frac{n_H}{n_e}\mathrm{Ab}(X)N_j(X,k)f_{X,k}A_{ji}\Delta E_{ji}n_e,
 \end{equation}
-where $N_j$ is the fractional energy level population of excited state $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, $n_H/n_e\approx0.83$ is the ratio of hydrogen and electron number densities, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon \citep[see][]{mason_spectroscopic_1994,del_zanna_solar_2018}. To compute \autoref{eq:ppuv}, we use version v8.0.6 of the CHIANTI atomic database \citep{dere_chianti_1997,young_chianti_2016}. We use the abundances of \citet{feldman_potential_1992} as provided by CHIANTI. $A_{ji}$ and $E_{ji}$ for each transition can be looked up in the database. We selected elements from CHIANTI based on their contribution to the AIA passbands. 
+where $N_j$ is the fractional energy level population of excited state $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, $n_H/n_e\approx0.83$ is the ratio of hydrogen and electron number densities, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon \citep[see][]{mason_spectroscopic_1994,del_zanna_solar_2018}. To compute \autoref{eq:ppuv}, we use version 8.0.6 of the CHIANTI atomic database \citep{dere_chianti_1997,young_chianti_2016}. We use the abundances of \citet{feldman_potential_1992} as provided by CHIANTI. For each atomic transition, $A_{ji}$ and $\lambda_{ji}$ can be looked up in the database. To find $N_j$, we solve the level-balance equations for ion $k$, including the relevant excitation and de-excitation processes as provided by CHIANTI \citep[see section 3.3 of][]{del_zanna_solar_2018}.
 
-The ion population fractions, $f_{X,k}$, provided by CHIANTI assume \textit{ionization equilibrium} (i.e. the ionization and recombination rates are always in balance). However, in the rarefied solar corona, where the plasma is likely heated impulsively, it is not gauranteed that the ionization timescale is less than the heating timescale, meaning that the ionization state may not be representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. To properly account for this effect, we compute $f_{X,k}$ by solving the time-dependent level population equations for each element using the ionization and recombination rates provided by CHIANTI. The details of the calculation of non-equilibrium charge states are provided in \autoref{nei}.
+The ion population fractions, $f_{X,k}$, provided by CHIANTI assume \textit{ionization equilibrium} (i.e. the ionization and recombination rates are always in balance). However, in the rarefied solar corona, where the plasma is likely heated impulsively, it is not gauranteed that the ionization timescale is less than the heating timescale, meaning that the ionization state may not be representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. To properly account for this effect, we compute $f_{X,k}$ by solving the time-dependent level population equations for each element using the ionization and recombination rates provided by CHIANTI. The details of this calculation are provided in \autoref{nei}.
 
 \subsubsection{Instrument Effects}\label{instrument}
 
@@ -275,4 +247,6 @@ To model the intensity as it would be observed by AIA, we combine \autoref{eq:pp
 \end{equation}
 where $I_c$ is the intensity for a given pixel in channel $c$, $P(\lambda_{ij})$ is the emissivity as given by \autoref{eq:ppuv}, $R_c$ is the wavelength response function of the instrument for channel $c$ \citep[see][]{boerner_initial_2012}, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the LOS. Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions computed by SolarSoft and instead use the wavelength response functions directly. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume both ionization equilibrium and constant pressure. \autoref{effective_response_functions} provides further details on our motivation to not use the precomputed temperature response functions.
 
-Once we have computed the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} and for all the loops in our \AR{}, we compute the LOS integral in \autoref{eq:intensity} by first converting all of the loop coordinates to a Helioprojective coordinate frame defined by the position of the SDO spacecraft at 12 February 2011 15:33 UTC (i.e. the time of the HMI observation of NOAA 1158 shown in \autoref{fig:magnetogram}). We then compute a weighted two-dimensional histogram of these transformed coordinates, using the emissivity values at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument (i.e. in the case of AIA, a single bin, representing a single pixel, has a width of 0.6 arcseconds). Finally, we simulate the point spread function of the instrument by applying a gaussian filter to the resulting histogram. We do this for each timestep, as defined by the cadence of the instrument, and for each channel. For each heating scenario, this gives us approximately $1.8\times10^4$ separate images.
+Once we have computed the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} and for all the loops in our \AR{}, we compute the LOS integral in \autoref{eq:intensity} by first converting all of the loop coordinates to a Helioprojective (HPC) coordinate frame \citep[see][]{thompson_coordinate_2006}. To do this, we use the coordinate transformation functionality in Astropy \citep{the_astropy_collaboration_astropy_2018} combined with the solar coordinate frames provided by SunPy \citep{sunpy_community_sunpypython_2015}. This enables us to easily project our synthetic image along any arbitrary LOS simply by changing the location of the observer that defines the HPC frame. Here, our HPC frame is defined by an observer at the position of the SDO spacecraft at 12 February 2011 15:33 UTC (i.e. the time of the HMI observation of NOAA 1158 shown in \autoref{fig:magnetogram}).
+
+We then compute a weighted two-dimensional histogram of these transformed coordinates, using the emissivity values at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument. For AIA, a single bin, representing a single pixel, has a width of 0.6 arcseconds. Finally, we  apply a gaussian filter to the resulting histogram to simulate the point spread function of the instrument. We do this for each timestep, as defined by the cadence of the instrument, and for each channel. For each heating scenario, this gives us approximately $1.8\times10^4$ separate images.
