@@ -108,6 +108,15 @@ channel_pairs = [(94,335), (94,171), (94,193),(94,131),(94,211),(335,131),(335,1
                  (335,211),(335,171),(211,131),(211,171),(211,193),(193,171),(193,131),
                  (171,131),]
 selected_channel_pairs = [channel_pairs[i] for i in (0, 9, 12)]
+# Reset LaTeX repr for figures
+fig_str = r"""
+\begin{{{figure_env_name}}}
+    \centering
+    {myfig}
+    \caption{{{caption}}}
+    \label{{{label}}}
+\end{{{figure_env_name}}}
+"""
 \end{pythontexcustomcode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Title and Authors                         %
