@@ -3,6 +3,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Modeling}\label{modeling}
 
+In order to understand how signatures of the heating frequency are manifested in the emission measure slope and timelag, we produce synthetic images for a range of nanoflare heating frequencies. To do this, we have constructed an advanced forward modeling pipeline for producing synthetic \AR{} emission from a combination of field extrapolations, hydrodynamic simulations, and atomic data. In the following section, we discuss each step of our pipeline in detail.
+
 \begin{pycode}[manager_methods]
 manager_methods = texfigure.Manager(
     pytex, './',
@@ -15,8 +17,6 @@ from formatting import qualitative_palette, heating_palette
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Field Extrapolation %%%%%%%%%%%%%%%%%%%%
 \subsection{Magnetic Field Extrapolation}\label{field}
-
-We choose \AR{} NOAA 1158, as observed by the HMI instrument \citep{hoeksema_helioseismic_2014} on 12 February 2011, from the list of active regions studied by \citet{warren_systematic_2012}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk center.
 
 \begin{pycode}[manager_methods]
 from sunpy.instr.aia import aiaprep
@@ -39,9 +39,33 @@ hmi_map = aiaprep(hmi_map).submap(
 ####################################################
 #                       Plot                       #
 ####################################################
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,       
-                                           figure_width_context='columnwidth'))
-ax = fig.add_subplot(111, projection=aia_map,)
+fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=0.5,       
+                                            figure_width_context='textwidth'))
+plt.subplots_adjust(wspace=0.03)
+### HMI ###
+ax = fig.add_subplot(121, projection=hmi_map)
+hmi_map.plot(
+    title=False,annotate=False,
+    norm=matplotlib.colors.SymLogNorm(50, vmin=-7.5e2, vmax=7.5e2),
+    cmap=matplotlib.colors.LinearSegmentedColormap.from_list('', ['C0','w','C3'])
+)
+ax.grid(alpha=0)
+# HPC Axes
+lon,lat = ax.coords[0],ax.coords[1]
+lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
+lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
+lon.set_axislabel(r'Helioprojective Longitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
+lat.set_axislabel(r'Helioprojective Latitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
+# HGS Axes
+hgs_lon,hgs_lat = aia_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.5,color='k')
+hgs_lat.set_axislabel_visibility_rule('labels')
+hgs_lon.set_axislabel_visibility_rule('labels')
+hgs_lat.set_ticklabel_visible(False)
+hgs_lon.set_ticklabel_visible(False)
+hgs_lat.set_ticks_visible(False)
+hgs_lon.set_ticks_visible(False)
+### AIA ###
+ax = fig.add_subplot(122, projection=aia_map,)
 # Plot image
 aia_map.plot(
     title=False,annotate=False,
@@ -56,10 +80,12 @@ ax.grid(alpha=0)
 hmi_map.draw_contours(u.Quantity([-5,5], '%'), axes=ax, colors=['C0', 'C3'], linewidths=0.75)
 # HPC Axes
 lon,lat = ax.coords[0],ax.coords[1]
-lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
+lon.set_ticks(color='w')
+lat.set_ticks(color='w')
 lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
-lon.set_axislabel(r'Helioprojective Longitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
-lat.set_axislabel(r'Helioprojective Latitude [arcsec]', fontsize=plt.rcParams['axes.labelsize'])
+lat.set_ticklabel_visible(False)
+lon.set_axislabel('')
+lat.set_axislabel_visibility_rule('labels')
 # HGS Axes
 hgs_lon,hgs_lat = aia_map.draw_grid(axes=ax,grid_spacing=10*u.deg,alpha=0.5,color='w')
 hgs_lat.set_axislabel_visibility_rule('labels')
@@ -72,19 +98,19 @@ hgs_lon.set_ticks_visible(False)
 #                  Save figure                     #
 ####################################################
 fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
-fig_aia_hmi_lines.caption = r'AIA 171 \AA{} observation of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC, with 500 out of the total 5000 fieldlines overlaid. The red and blue contours show the line-of-sight magnetic field strength as observed by HMI. The contours are drawn at the $+5\%$ (red) and $-5\%$ (blue) levels.'
+fig_aia_hmi_lines.caption = r'Line-of-sight magnetic field strength as observed by HMI (left) and AIA 171 \AA{} observation (right) of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC. The gridlines show the heliographic longitude and latitude. In the right panel, 500 out of the total 5000 fieldlines are overlaid and the red and blue contours show the HMI observation at the $+5\%$ (red) and $-5\%$ (blue) levels.'
 fig_aia_hmi_lines.figure_env_name = 'figure*'
-fig_aia_hmi_lines.figure_width = r'\columnwidth'
+fig_aia_hmi_lines.figure_width = r'\textwidth'
 fig_aia_hmi_lines.placement = ''
 fig_aia_hmi_lines.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_aia_hmi_lines|
 
-After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are overlaid in red(positive) and blue (negative). A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops. Note that a large portion of the loops are short loops located near the center of the \AR{}.
+We choose \AR{} NOAA 1158, as observed by the Helioseismic Magnetic Imager \citep[HMI,][]{hoeksema_helioseismic_2014} on 12 February 2011 15:33 UTC, from the list of active regions studied by \citet{warren_systematic_2012}. The line-of-sight magnetogram is shown in the left panel of \autoref{fig:magnetogram}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk center.
 
 \begin{pycode}[manager_methods]
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
-                                           figure_width_context='columnwidth'))
+                                            figure_width_context='columnwidth'))
 ax = fig.gca()
 vals,bins,_ = ax.hist(
     [l.full_length.to(u.Mm).value for l in ar.loops[::10]],
@@ -106,6 +132,8 @@ fig_loop_dist.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_loop_dist|
 
+After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the loop. The right panel of \autoref{fig:magnetogram} shows a subset of the traced loops overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are overlaid in red(positive) and blue (negative). A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately captures the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of full lengths for the traced loops. Note that a large portion of the loops are short loops located near the center of the \AR{}.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Loop Hydrodynamics %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Loop Hydrodynamics}\label{loops}
 
@@ -116,16 +144,16 @@ For each of the $5\times10^3$ loops, we run a separate instance of the two-fluid
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Heating %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Heating Model}\label{heating}
 
-We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of duration $\tau_{event}=200$ s. For each event $i$, there are two parameters: the peak heating rate $q_i$ and the waiting time prior to the event $t_{wait,i}$. We choose $Q_i$ from a power-law distribution with slope $-2.5$ and we define the waiting time such that $t_{wait,i}$ is the amount of time between when event $i-1$ ends and event $i$ begins. Following the approach of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $t_{wait,i}\propto Q_i$. The physical motivation for this scaling is as follows. In the nanoflare model of \citet{parker_nanoflares_1988}, random convective motions continually stress loops rooted in the photosphere, leading to the buildup and and eventual release of energy. If the field is stressed for a long amount of time without relaxation, large discontinuities will have time to develop in the field, leading to a dramatic release of energy. Conversely, if the field relaxes quickly, there is not enough time for the field to become sufficiently stressed and the resulting energy release will be relatively small. 
+We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of duration $\tau_{event}=200$ s. For each event $i$, there are two parameters: the peak heating rate $q_i$ and the waiting time prior to the event $t_{wait,i}$. We choose $q_i$ from a power-law distribution with slope $-2.5$ and we define the waiting time such that $t_{wait,i}$ is the amount of time between when event $i-1$ ends and event $i$ begins. Following the approach of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $t_{wait,i}\propto q_i$. The physical motivation for this scaling is as follows. In the nanoflare model of \citet{parker_nanoflares_1988}, random convective motions continually stress loops rooted in the photosphere, leading to the buildup and and eventual release of energy. If the field is stressed for a long amount of time without relaxation, large discontinuities will have time to develop in the field, leading to a dramatic release of energy. Conversely, if the field relaxes quickly, there is not enough time for the field to become sufficiently stressed and the resulting energy release will be relatively small. 
 
 In this work we explore three different heating scenarios: low-, intermediate-, and high-frequency nanoflares. We define the \textit{heating frequency} in terms of the ratio between the loop cooling time, $\tau_{cool}$, and the average waiting time of all events on a given strand, $\langle t_{wait}\rangle$,
 
 \begin{equation}\label{eq:heating_types}
     \varepsilon = \frac{\langle t_{wait}\rangle}{\tau_{cool}}
     \begin{cases} 
-        < 1 &  \text{high frequency},\\
-        \sim1 & \text{intermediate frequency}, \\
-        > 1 & \text{low frequency}.
+        < 1, &  \text{high frequency},\\
+        \sim1, & \text{intermediate frequency}, \\
+        > 1, & \text{low frequency}.
      \end{cases}
 \end{equation}
 
