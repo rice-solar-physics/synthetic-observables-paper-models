@@ -94,7 +94,7 @@ axes[1,0].set_ylabel(r'$K_c$ [DN cm$^5$ s$^{-1}$ pixel$^{-1}$]')
 axes[1,0].set_xlabel(r'$T$ [K]')
 plt.subplots_adjust(wspace=0.,hspace=0.)
 fig_aia_response = manager_appendix.save_figure('aia-response')
-fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization. \authorcomment3{Possibly move this to an appendix}'
+fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization.'
 fig_aia_response.figure_env_name = 'figure*'
 fig_aia_response.figure_width = r'\textwidth'
 fig_aia_response.placement = ''
@@ -102,7 +102,7 @@ fig_aia_response.fig_str = fig_str
 \end{pycode}
 \py[manager_appendix]|fig_aia_response|
 
-\autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared to those calculated from \texttt{aia\_get\_response.pro} in SolarSoft \citep{freeland_data_1998}. Even though we include a limited number of transitions from the CHIANTI database (see \autoref{tab:elements}), we recover nearly all of the response from each channel. The high-temperature contributions in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
+As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion to the total channel response, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. \autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared to those calculated from \texttt{aia\_get\_response.pro} in SolarSoft. Even though we include a limited number of transitions from the CHIANTI database (see \autoref{tab:elements}), we recover nearly all of the response from each channel. The high-temperature contributions in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
 
 \begin{pycode}[manager_appendix]
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=0.5, height_ratio=1.0, 
@@ -141,7 +141,7 @@ fig_hydro_phase_space.fig_str = fig_str
 \end{pycode}
 \py[manager_appendix]|fig_hydro_phase_space|
 
-As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion, using the result of \autoref{eq:nei_mat} in place of the equilibrium ionization fractions. Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the default pressure at which the SolarSoft AIA response functions are evaluated. By recomputing and interpolating the emissivity, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density.
+Furthermore, during the evolution of a loop, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the default pressure at which the SolarSoft AIA response functions are evaluated. The other lines show the temperature-density phase space evolution for the high-, intermediate-, and low-frequency cases for a single loop, none of which is well described by the assumption of constant pressure. By recomputing and interpolating the emissivity to the temperatures and densities as defined by our hydrodynamic simulation, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Appendix 3                                %
