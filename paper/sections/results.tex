@@ -15,7 +15,7 @@ manager_results = texfigure.Manager(
 from formatting import qualitative_palette, heating_palette
 \end{pycode}
 
-We forward-model time-dependent AIA intensities using the method outlined in \autoref{forward} for the heating scenarios discussed in \autoref{heating}. We discuss the synthetic intensities in \autoref{intensities}. We then compute the emission measure slopes (\autoref{em_slopes}) and timelags (\autoref{timelags}) from our synthetic data. In \citetalias{barnes_understanding_2018-1}, we use these simulated observables to train a machine learning classification model to understand with which heating scenario the real data are most consistent..
+We forward model time-dependent AIA intensities using the method outlined in \autoref{forward} for the heating scenarios discussed in \autoref{heating}. We discuss the synthetic intensities in \autoref{intensities}. We then compute the emission measure slopes (\autoref{em_slopes}) and timelags (\autoref{timelags}) from our synthetic data. In \citetalias{barnes_understanding_2018-1}, we use these simulated observables to train a machine learning classification model to understand with which heating scenario the real data are most consistent..
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Intensities %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Intensities}\label{intensities}
@@ -66,7 +66,7 @@ for i,f in enumerate(heating):
 fig_intensity_maps = manager_results.save_figure('intensity-map',)
 fig_intensity_maps.caption = r'Snapshots of intensity across the whole \AR{} at $t=15\times10^3$ s. The rows correspond to the three different heating frequencies and the columns are the six EUV channels of AIA. In each column, the colarbar is on a square root scale and is normalized between zero and the maximum intensity in the low-frequency case. The color tables are the standard AIA color tables as implemented in SunPy \citep{sunpy_community_sunpypython_2015}.'
 fig_intensity_maps.figure_env_name = 'figure*'
-fig_intensity_maps.figure_width = r'\textwidth'
+fig_intensity_maps.figure_width = r'2\columnwidth'
 fig_intensity_maps.placement = ''
 fig_intensity_maps.fig_str = fig_str
 \end{pycode}
@@ -119,7 +119,7 @@ cbar.set_ticks([2,3,4,5])
 fig_slope_maps = manager_results.save_figure('em-slope-maps',)
 fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high- (left), intermediate- (center), and low-frequency (right) cases. The \dem{} is computed using time-averaged intensities from the 6 AIA EUV channels using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $5.8<\log{T}<6.4$. The maps have been cropped in order to focus on the part of the \AR{} where $a$ is defined. Any pixels with $r^2<0.9$ are masked and colored white.'
 fig_slope_maps.figure_env_name = 'figure*'
-fig_slope_maps.figure_width = r'\textwidth'
+fig_slope_maps.figure_width = r'2\columnwidth'
 fig_slope_maps.placement = ''
 fig_slope_maps.fig_str = fig_str
 \end{pycode}
@@ -127,7 +127,7 @@ fig_slope_maps.fig_str = fig_str
 
 \autoref{fig:em-slope-maps} shows the resulting \dem{} slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit the \dem{} over bins in the temperature range $5.8\le\log T\le6.4$ in order to avoid fitting across the peak of the \dem{} and underestimating the slope. To assess the ``goodness-of-fit'' of our first-order polynomial fit, we use $r^2$, the correlation coefficient, and mask pixels with $r^2<0.9$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low frequency map (right panel) shows many values close to 2. This result is consistent with past analytical results. Below $T(\mathrm{EM}_{max})$, \citet{cargill_implications_1994} noted that the \dem{} could be described by $\mathrm{EM}(T)\sim n^2\tau_{rad}$, where $\tau_{rad}\sim T^{1-\alpha}n^{-1}$ is the radiative cooling time. Additionally, \citet{bradshaw_cooling_2010} found that $T\sim n^{\ell}$, with $\ell\approx1$ for long loops and $\ell\approx2$ for short loops. Combining these expressions and assuming $\alpha=-1/2$ \citep[i.e. using the radiative losses of][]{rosner_dynamics_1978} gives $a\approx2$ for short loops and $a\approx2.5$ for long loops in the case of single nanoflares. 
 
-As the heating frequency increases, the slopes become larger, indicating a narrowing \dem{} distribution. The intermediate frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2\lesssim a \lesssim 3$. The high frequency map (left panel) shows many slopes in the range $4\lesssim a\lesssim5$, indicating an even more isothermal distribution. Note that largest slopes in the high frequency case occur towards the center of the \AR{} while the distribution is more spatially uniform in the intermediate- and low-frequency cases.
+As the heating frequency increases, the slopes become larger, indicating an increasingly isothermal \dem{} distribution. The intermediate-frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2\lesssim a \lesssim 3$ while the high-frequency map (left panel) shows many slopes in the range $4\lesssim a\lesssim5$. Note that the largest slopes in the high frequency case occur towards the center of the \AR{} while the distribution is more spatially uniform in the intermediate- and low-frequency cases.
 
 \begin{pycode}[manager_results]
 fig = plt.figure(
@@ -143,7 +143,7 @@ for i,h in enumerate(heating):
     d = d[~np.isnan(d)]
     hist, b, _ = ax.hist(d, **params, color=heating_palette()[i],
                          label=h.split('_')[0].capitalize())
-    ax.axvline(x=d.mean(), ls='--', color=heating_palette()[i])
+    ax.axvline(x=d.mean(), ls='--', color=heating_palette()[i], lw=1)
     peaks[h] = f'{bin_centers[np.argmax(hist)]:.1f}'
 ax.set_xlim(1.5, 5.5);
 ax.set_xticks([2, 3, 4, 5])
@@ -156,7 +156,7 @@ ax.spines['bottom'].set_bounds(ax.get_xticks()[0],ax.get_xticks()[-1])
 ax.set_xlabel(r'$a$')
 ax.set_ylabel(r'Number of Pixels')
 fig_slope_histograms = manager_results.save_figure('em-slope-histograms')
-fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 1 and 6 with bin widths of 0.05. The dotted lines denote the mean of each distribution.'
+fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 1 and 6 with bin widths of 0.05. The dashed lines denote the mean of each distribution.'
 fig_slope_histograms.figure_width = r'\columnwidth'
 fig_slope_histograms.placement = ''
 fig_slope_histograms.fig_str = fig_str
@@ -170,20 +170,23 @@ While this quantity retains information about the frequency of energy deposition
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Timelags %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Timelags}\label{timelags}
 
-In addition to the emission measure analysis discussed in \autoref{em_slopes}, we apply the timelag method of \citet{viall_evidence_2012} to our simulated intensities for all of the heating scenarios discussed in \autoref{heating}. For each pixel in the active region, we compute the cross-correlation for every possible channel pair (15 in total) and find the temporal offset which maximizes the correlation. This offset, or \textit{timelag}, given by \autoref{eq:timelag}, indicates how much the first light curve must be shifted in time compared to the second in order to maximize the cross-correlation between the two light curves. We consider all possible offsets over the interval $\pm6$ hours. By convention, we order the channel pairs such that the hot channel is listed first, meaning that a positive timelag corresponds to variability in the hotter channel followed by variability in the cooler channel. In other words, \textit{a positive timelag indicates cooling plasma.} The details of the cross-correlation and timelag calculation are given in \autoref{timelag_details}.
+Next, we apply the timelag method of \citet{viall_evidence_2012} to our synthetic intensities for all of the heating scenarios discussed in \autoref{heating}. As the plasma cools, we expect to see the intensity peak in successively cooler passbands of AIA according to the sensitivity of each channel in temperature space (see \autoref{fig:aia-response}). For each pixel in the active region, we compute the cross-correlation (\autoref{eq:cc}) for all pairs of the EUV channels of AIA (15 in total) and find the temporal offset which maximizes the correlation according to \autoref{eq:timelag}. We consider all possible offsets over the interval $\pm6$ hours. By convention, we order the channel pairs such that the hot channel is listed first, meaning that a positive timelag corresponds to variability in the hotter channel followed by variability in the cooler channel. In other words, \textit{a positive timelag indicates cooling plasma.} The details of the cross-correlation and timelag calculation are given in \autoref{timelag_details}.
 
 %%
 \subsubsection{Maps}\label{timelag_maps}
 
 \begin{pycode}[manager_results]
+from synthesizAR.visualize import bgry_004_idl_cmap
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=3/5,
                                            figure_width_context='textwidth'))
 cax = fig.add_axes([0.125, -0.01, 0.775, 0.02])
 heating += ['random', 'cooling']
 file_format = os.path.join(manager_results.data_dir, '{}', '{}_{}_{}.fits')
 correlation_threshold = 0.1
-plot_params = {'title': False, 'annotate': False, 'vmin': -(5e3*u.s).to(u.s).value,
-               'vmax': (5e3*u.s).to(u.s).value, 'cmap': 'RdYlBu_r',}
+norm = matplotlib.colors.Normalize(vmin=-(5e3*u.s).to(u.s).value,
+                                   vmax=(5e3*u.s).to(u.s).value)
+cmap = 'RdYlBu_r'#bgry_004_idl_cmap
+plot_params = {'title': False, 'annotate': False, 'norm': norm, 'cmap': cmap,}
 selected_channel_pairs = [(94,335), (211,131), (193,171)]
 for j,h in enumerate(heating):
     for i,cp in enumerate(selected_channel_pairs):
@@ -221,23 +224,23 @@ cbar = fig.colorbar(im, cax=cax,orientation='horizontal')
 fig_timelag_maps = manager_results.save_figure('timelag-maps',)
 fig_timelag_maps.caption = r'Timelag maps for three different channel pairs for all five of the heating models described in \autoref{heating}. The value of each pixel indicates the temporal offset which maximizes the cross-correlation (see \autoref{eq:timelag}). The columns indicate the different channel pairs and the rows indicate the three heating scenarios plus our two control cases. The colorbar ranges from -5000 s to +5000 s.'
 fig_timelag_maps.figure_env_name = 'figure*'
-fig_timelag_maps.figure_width = r'\textwidth'
+fig_timelag_maps.figure_width = r'2\columnwidth'
 fig_timelag_maps.placement = ''
 fig_timelag_maps.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_timelag_maps|
 
-\autoref{fig:timelag-maps} shows $\tau_{AB}$ (see \autoref{eq:timelag}) in each pixel of our simulated \AR{} for all heating scenarios listed in \autoref{tab:heating} and three selected channel pairs: 94-335 \AA{}, 211-131 \AA{}, and 193-1171 \AA{}. Blues correspond to negative timelags, reds correspond to positive timelags and pale yellow indicates zero timelag. The range of the colorbar is $\pm5000$ s. Note that the frequency decreases as we move left to right across each row. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), we mask that pixel and color it white. 
+\autoref{fig:timelag-maps} shows $\tau_{AB}$ (see \autoref{eq:timelag}) in each pixel of our simulated \AR{} for all heating scenarios listed in \autoref{tab:heating} and three selected channel pairs: 94-335 \AA{}, 211-131 \AA{}, and 193-1171 \AA{}. Blues correspond to negative timelags, reds correspond to positive timelags and pale yellow indicates zero timelag. The range of the colorbar is $\pm5000$ s. Note that the frequency decreases as we move left to right across each row. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), we mask that pixel and color it white.
 
-We look first at the 94-335 \AA{} channel pair. For every heating scenario, a similar pattern emerges: near zero timelags in the inner core of the \AR{}, short positive timelags ($\approx2000$ s) in the outer core, and negative timelags on the outer edge of the \AR{}. Note that a positive timelag in this channel means that variability in the 335 channel follows variability in the 94 channel, implying that plasma is cooling through $\approx8$ MK down to $\approx2$ MK (see \autoref{fig:aia-response}). The increasing magnitude of the positive timelags as we move away from the center of the \AR{} is due to the distribution of loop lengths. Shorter loops are concentrated in the center of the \AR{} (see \autoref{fig:magnetogram}) and because $\tau_{cool}\propto L$ \citep[see Appendix of][]{cargill_active_2014}, longer loops take more time to cool through the same temperature interval. The negative timelags far from the center of the \AR{} are rooted in areas of weaker magnetic field and are not heated into the temperature range of the ``hot'' part of the 94 \AA{} channel. Thus, the cooling from 335 \AA{} to the cooler part of 94 \AA{} dominates the cross-correlation curve, producing a negative timelag. These negative timelags occur closer to the core as the heating frequency increases (from right to left in \autoref{fig:timelag-maps}) because the more often a loop is heated, the weaker the individual events will be. 
+Looking at all three channel pairs, we make several observations. As the heating frequency decreases, the timelag maps become increasingly coherent. Consistent with \citet{viall_signatures_2016}, who showed that steadily-heated loops have no preferred timelag, we find that the timelags in high frequency loops are determined primarily by the heating phase and are thus broadly distributed. However, if a loop is allowed to cool uninterrupted, the timelag will be determined solely by the loop cooling time such that spatial distribution of timelags becomes primarily a function of the loop length $L$ because $\tau_{cool}\propto L$ \citep[see Appendix of][]{cargill_active_2014}. Additionally, for infrequently heated loops, we find that, with some exceptions (see discussion below), the timelag increases as a function of distance from the center of the \AR{}. This is again due to the dependence of the cooling time on the loop length as magnetic field strength tends to decrease as a function of distance from the core (see \autoref{fig:magnetogram}) and longer loops tend to be rooted in weaker field.
 
-\authorcomment1{Observations of negative 131 timelags consistent with results of \citet{cadavid_heating_2014}}
+Though the spatial dependence of positive timelags is similar for each channel pair, the positive timelags in the 211-131 \AA{} channel pair are significantly longer than those in the 94-335 \AA{}. In the temperature range $2.5<T<7.3$ MK (94-335 \AA{}), the dominant loop cooling mechanism is thermal conduction while radiative cooling dominates in the range $0.6<T<2.5$ MK (211-131 \AA{}). Because thermal conduction is far more efficient at high temperatures, a loop spends less time in the $[T_{335},T_{94}]$ temperature range than in $[T_{131},T_{211}]$. The 193-171 \AA{} timelags for the cooling case fall in the middle as radiative cooling also tends to dominate over this temperature interval ($0.9<T<1.5$ MK), but the separation in temperature space is smaller than the 211-131 \AA{} pair. In all cases, these differences in the magnitude of the positive timelags become more apparent at lower heating frequencies.
 
-In the 211-131 \AA{} channel pair, we see that as the frequency decreases, long positive timelags tend to dominate at the outer edge of the \AR{}, with the length of the timelag decreasing as we move toward the center of the \AR{}. As discussed above, this is due to the dependence of the loop cooling time on the loop length. This pattern is most apparent in the low frequency, random, and cooling cases (the last three columns of \autoref{fig:timelag-maps}) while the high and intermediate frequency cases show a mix of positive and negative timelags across the whole \AR{} with few areas of spatially coherent positive timelags. At high and intermediate frequencies, the majority of the loops are reheated often enough that they are not allowed fully cool through the 131 \AA{}, meaning that the cooling behavior from 211 \AA{} to 131 \AA{} does not dominate the cross-correlation curve. Note that the positive timelags in the 211-131 \AA{} channel pair are significantly longer than those in the 94-335 \AA{} despite the temperature separation in first pair being significantly larger than the second pair, $\Delta T_{94-335}>\Delta T_{211-131}$. In the temperature range $2.5<T<7.3$ MK, the dominant loop cooling mechanism is thermal conduction while radiative cooling dominates in the range $0.6<T<2.5$ MK. Because thermal conduction is far more efficient, a loop spends less time in the $[T_{335},T_{94}]$ temperature range than in $[T_{131},T_{211}]$ despite the former being a wider interval.
+For channel pairs where the ``hot'' channel precedes the ``cool'' channel, a positive timelag is due to plasma cooling by radiation and thermal conduction. What about negative timelags? In the 94-335 \AA{} pair, we find negative timelags in the long loops near the edge of the \AR{}, inconsistent with our previous assertion that longer loops lead to longer, positive timelags. These loops are rooted in areas of weaker magnetic field (compared to the center) and thus do not have sufficient energy to be heated far into the temperature range of the ``hot'' part of the 94 \AA{} channel (see \autoref{heating}). Thus, cooling from 335 \AA{} to the cooler part of 94 \AA{} dominates the cross-correlation, resulting in relatively short ($\lesssim2000$ s even for the longest loops), negative timelags. Our results in the cooling case are consistent with the negative 94-335 \AA{} timelags of similar magnitude observed by \citet{viall_survey_2017} in this same \AR{}.
 
-Additionally, we note the presence of negative 211-131 \AA{} timelags in the center of the \AR{} in the low, intermediate, and high frequency cases. These negative timelags correspond to plasma cooling from the hot part of the 131 \AA{} channel through the 211 \AA{} channel and thus indicate  $\ge10$ MK plasma. Notably, these negative timelags are independent of heating frequency. Because these inner core loops are rooted in areas of strong field, enough energy is made available by the field (see discussion in \autoref{heating}) to heat them well into the hot part of the 131 \AA{} passband. Furthermore, because these are relatively short loops, the density increases rapidly enough for this hot plasma to be visible before it is washed out by thermal conduction. Though we have not shown them here, similar negative timelag signatures are present in nearly all of the other 131 \AA{} channel pairs as well. \authorcomment1{Why not in the random and cooling cases?}.
+We also find negative 211-131 \AA{} timelags in the center of the \AR{} for the low-, intermediate-, and high-frequency cases, indicative of plasma cooling from the hot part of the 131 \AA{} through 211 \AA{}. Negative timelags in this channel pair provide a possible signature of $\ge10$ MK plasma. Because these inner core loops are rooted in areas of strong field, enough energy is made available by the field (see discussion in \autoref{heating}) to heat them well into the hot part of the 131 \AA{} passband and because these core loops are relatively short, the density increases rapidly enough for this hot plasma to be visible before it is washed out by thermal conduction. Though we have not shown them here, similar negative timelag signatures are present in nearly all of the other 131 \AA{} channel pairs as well. In the two control cases, we do not find any negative timelags as the cross-correlations in the core are dominated by uninterrupted cooling from 211 \AA{} to 131. Our esults in the high-, intermediate-, and low-frequency cases are consistent with work by \citet{cadavid_heating_2014} who found that in inter-moss regions of \AR{} NOAA 11250, intensity variations in 131 \AA{} preceded brightenings in all other EUV channels. For the 193-171 \AA{} channel pair, we find very few negative timelags and only in the high- and intermediate-frequency cases where the cross-correlation is less likely to have a ``preferred'' timelag. This is because, unlike the 94 and 131 \AA{} channels, the 193 and 171 \AA{} channels are strongly peaked about a single temperature.
 
-Lastly, we look at results from the 193-171 \AA{} channel pair as shown in the last row of \autoref{fig:timelag-maps}. Note that in all five heating scenarios, zero timelag dominates the inner core of the \AR{}. This underscores the point that zero timelags do not correspond to steady heating \citep[see][]{viall_transition_2015,viall_signatures_2016}. As in the other two channel pairs, we find positive timelags which decrease in duration as we move towards the center of the \AR{} and this pattern becomes more apparent as the frequency decreases. Furthermore, we find very few negative timelags other than in the high frequency case where the cross-correlation is less likely to have a ``preferred'' timelag. This is because, unlike the 94 \AA{} and 131 \AA{} channels, the 193 \AA{} and 171 \AA{} channels are strongly peaked about a single temperature. Thus, persistent, spatially-coherent negative timelags could only be caused by a heating signature from 0.9 MK up to 1.5 MK. 
+We note that our simulated timelags show far fewer zero timelags than the observations of \citet{viall_evidence_2012,viall_survey_2017} and the modeling work of \citet{bradshaw_patterns_2016}. This is due to the lack of transition region emission in our model as we have only incorporated coronal temperatures and densities from EBTEL. As shown by \citet{viall_transition_2015}, transition region emission shows near-zero timelags because every layer (or temperature) of the transition region responds in unison. However, for both the 94-335 \AA{} and 193-171 \AA{} channel pairs, we find that near-zero timelags dominate the inner core of the \AR{} for all five heating scenarios. This underscores the point that zero timelags do not imply steady heating \citep[see][]{viall_transition_2015,viall_signatures_2016}.
 
 \begin{pycode}[manager_results]
 fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=3/5,
@@ -280,25 +283,27 @@ cbar = fig.colorbar(im, cax=cax,orientation='horizontal')
 fig_correlation_maps = manager_results.save_figure('correlation-maps',)
 fig_correlation_maps.caption = r'Same as \autoref{fig:timelag-maps} except here we show the maximum value of $\mathcal{C}_{AB}$ in each pixel.'
 fig_correlation_maps.figure_env_name = 'figure*'
-fig_correlation_maps.figure_width = r'\textwidth'
+fig_correlation_maps.figure_width = r'2\columnwidth'
 fig_correlation_maps.placement = ''
 fig_correlation_maps.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_correlation_maps|
 
-\autoref{fig:correlation-maps} shows the peak cross-correlation value, $\max\mathcal{C}_{AB}$, for each selected channel pair. Looking first at all three channel pairs, we see that, on average, the cross-correlation increases as the heating frequency decreases. Additionally, we find that the highest cross-correlations tend to be in the center of the \AR{} while the lowest tend to be on the outer edge. Furthermore, other than the ``cooling'' scenario, we find that there are large variations from one loop to the next for all heating frequencies such that the spatial coherence of these peak cross-correlation values is low. In \citetalias{barnes_understanding_2018-1}, we will use the peak cross-correlation value, in addition to the timelag, to classify the heating frequency in each observed pixel. \authorcomment2{Do we need some more discussion here?}
+\autoref{fig:correlation-maps} shows the peak cross-correlation value, $\max\mathcal{C}_{AB}$, for each selected channel pair. Looking first at all three channel pairs, we see that, on average, the cross-correlation increases as the heating frequency decreases. Additionally, we find that the highest cross-correlations tend to be in the center of the \AR{} while the lowest tend to be on the outer edge. Comparing \autoref{fig:correlation-maps} with the timelags in \autoref{fig:timelag-maps} also reveals that negative timelags are correlated with lower peak cross-correlation values. Furthermore, other than the ``cooling'' scenario, we find that there are large variations from one loop to the next for all heating frequencies such that the spatial coherence of these peak cross-correlation values is low. In \citetalias{barnes_understanding_2018-1}, we will use the peak cross-correlation value, in addition to the timelag, to classify the heating frequency in each observed pixel.
 
 %%
 \subsubsection{Histograms}\label{timelag_histograms}
+
+\autoref{fig:timelag-histograms} shows histograms of timelags for every possible channel pair and all five heating scenarios. Each histogram is colored according the corresponding heating function. The timelags are binned between $-10^4$ s and $+10^4$ s in 60 s bins. The columns are arranged such that heating frequency decreases from left to right. We show each channel pair for all heating models to demonstrate how the distribution of timelags evolves as the heating frequency varies.
 
 \begin{pycode}[manager_results]
 fig,axes = plt.subplots(
     len(channel_pairs), len(heating),
     figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
-                              figure_width_context='textwidth'))
+                                figure_width_context='textwidth'))
 bins = np.arange((-10e3*u.s).value, (10e3*u.s).value, (60*u.s).value)
 plot_params = {'histtype':'step', 'bins':bins,'log':True,
-               'lw': 1}
+                'lw': 1}
 from formatting import heating_palette
 colors = heating_palette(n_colors=len(heating))
 for i,cp in enumerate(channel_pairs):
@@ -341,17 +346,14 @@ for i,cp in enumerate(channel_pairs):
 axes[len(channel_pairs)-1,0].set_xlabel(r'$\tau_{AB}$ [s]')
 plt.subplots_adjust(hspace=0,wspace=0)
 fig_timelag_histograms = manager_results.save_figure('timelag-histograms',)
-fig_timelag_histograms.caption = r'Histograms of timelag values across the whole \AR{}. The rows indicate the different channel pairs and the columns indicate the different heating models. Colors are used to denote the various heating models. The bin range is $\pm10^4$ s and the bin width is 60 s. As with the timelag maps, we do not include timelags corresponding to $\mathcal{C}_{AB}<0.1$.'
+fig_timelag_histograms.caption = r'Histograms of timelag values across the whole \AR{}. The rows indicate the different channel pairs and the columns indicate the different heating models. Colors are used to denote the various heating models. The black dashed line denotes zero timelag. The bin range is $\pm10^4$ s and the bin width is 60 s. As with the timelag maps, we do not include timelags corresponding to $\mathcal{C}_{AB}<0.1$.'
 fig_timelag_histograms.figure_env_name = 'figure*'
-fig_timelag_histograms.figure_width = r'\textwidth'
+fig_timelag_histograms.figure_width = r'2\columnwidth'
 fig_timelag_histograms.placement = ''
 fig_timelag_histograms.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_timelag_histograms|
 
-\autoref{fig:timelag-histograms} shows histograms of timelags for every possible channel pair and all five heating scenarios. Each histogram is colored according the corresponding heating function. The timelags are binned between -10000 s and +10000 s in 60 s bins. The columns are arranged such that heating frequency decreases from left to right. We show each channel pair for all heating models to demonstrate how the distribution of timelags evolves as the heating frequency varies.
+Note that as the frequency decreases (from left to right), the number of negative timelags decreases. In the ``cooling'' case, there are very few negative timelags except for channel pairs which include one or both of the double-peaked channels (94 \AA{} and 131 \AA{}). For those channel pairs which include 94 \AA{} and/or 131 \AA{}, we expect to find negative timelags, even in the single-nanoflare cooling case as our convention of ordering the ``hot'' channel first has been violated such that cooling plasma can lead to negative timelags. For the remaining channel pairs, negative timelags are associated with the loop heating and cooling cycle being interrupted by repeated events on a given strand. 
 
-Note that as the frequency decreases (from left to right), the number of negative timelags decreases. In the ``cooling'' case, there are very few negative timelags except for channel pairs which include one or both of the double-peaked channels, 94 \AA{} and 131 \AA{}. In the case of those channel pairs, we expect to find negative timelags, even in our single-nanoflare cooling case, because our convention of ordering the ``hot'' channel first has been violated such that cooling plasma can lead to negative timelags. For the remaining channel pairs, negative timelags are associated with the loop heating and cooling cycle being interrupted by repeated events on a given strand. In the ``cooling'' case, these channel pairs have none or very few negative timelags as we expect. 
-
-Additionally, in every channel pair, the distribution of positive timelags narrows as the heating frequency decreases. For a single loop, the maximum allowed timelag for given channel pair $AB$ is just the amount of time the loop takes to cool from $T_A$ to $T_B$ by thermal conduction and radiation. Given that all loops were heated only once at $t=0$ s, we may regard our ``cooling'' case as our baseline timelag distribution. Two effects are likely to alter this baseline timelag distribution: multiple out-of-phase structures along a given LOS (the ``random'' heating scenario) and multiple reheatings on a given loop before the end of the loop cooling cycle. \authorcomment2{Say something more here about the high-frequency distribution being flat and how steady heating is the limiting case of high-frequency heating} This is consistent with the results of \citet{viall_signatures_2016} who found that steadily-heated loops have no preferred timelag and thus result in a flat distribution of timelags. 
-
+For a single loop, the maximum allowed timelag for given channel pair $AB$ is the amount of time the loop takes to cool from $T_A$ to $T_B$ by thermal conduction and radiation. Given that all loops were heated only once at $t=0$ s, we may regard our ``cooling'' case as our baseline timelag distribution. Two effects are likely to alter this baseline timelag distribution: multiple structures evolving out-of-phase along a given LOS (the ``random'' heating scenario) and multiple reheatings on a given loop before the end of the loop cooling cycle. We note that multiple polluting structures along the LOS seem to primarily add negative timelags to the distribution while increasing the frequency of events on a given strand extends the distribution to longer positive timelags such that the distribution of positive timelags broadens with increasing frequency. Since steady heating can be thought of as nanoflare heating in the high-frequency limit, we expect the distribution of timelags to approach a uniform distribution as the heating frequency increases. This is again consistent with the results of \citet{viall_signatures_2016} who found that steadily-heated loops have no preferred timelag.
