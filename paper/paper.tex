@@ -20,7 +20,7 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[twocolumn,linenumbers]{aastex62}
+\documentclass[preprint2,linenumbers]{aastex62}
 %% Include packages
 \usepackage{amsmath}
 \usepackage{calc}
@@ -133,7 +133,7 @@ fig_str = r"""
 %                                   Abstract                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-A key question surrounding the coronal heating problem is the frequency at which the coronal plasma is reheated. In the context of active regions, there is a longstanding debate regarding whether individual loops are heated steadily or impulsively. To properly address this question detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamics loop models. We use this pipeline to model time-dependent active region intensities as observed by SDO/AIA for a range of nanoflare heating frequencies. From our synthetic EUV data, we compute the emission measure slope and timelag and find that signatures of the heating frequency persist in both of these parameters. In a follow up paper, we will use these synthetic observables to train a machine learning classification model in order to classify real AIA data in terms of the heating frequency.
+There is a long-standing debate regarding whether coronal loops in active region cores are heated steadily or impulsively. Elucidating properties of the underlying energy deposition, such as the  frequency of heating events on a given coronal loop, from observations is made difficult by several factors, including the optically-thin nature of the coronal plasma, the efficiency of cooling by thermal conduction, and uncertainties in the atomic data. To adequately constrain the heating frequency in \AR{} cores, detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamic loop models. We use this pipeline to model time-dependent, synthetic AIA emission for a range of nanoflare heating frequencies. We compute the emission measure slope and timelag from our simulated data and find that signatures of the heating frequency persist in both of these observables. In particular, we find that the distribution of emission measure slopes is shifted towards 2, the expected theoretical result, as the heating frequency decreases. Additionally, we find that the distribution of timelags for all channel pairs tends to broaden with increasing heating frequency. In a follow up paper, we will use these synthetic observables to train a machine learning classification model in order to classify real AIA data in terms of the heating frequency.
 \end{abstract}
 %% Keywords
 \keywords{Sun,corona,nanoflares,active regions}
