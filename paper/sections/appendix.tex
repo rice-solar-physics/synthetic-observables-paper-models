@@ -48,9 +48,9 @@ where $\Delta t$ is the timestep and $j$ indexes time. Dropping higher order ter
 \end{equation}
 where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we need only compute $\mathbf{A}_j$ for each $T(t_j)$, set $\mathbf{F}_0$ to the equilibrium ion populations, and iteratively compute \autoref{eq:nei_iterative} for all $j$. We solve \autoref{eq:nei_mat} for all elements in \autoref{tab:elements} and for each loop in the \AR{}.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                                   Appendix 2                                %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                   Appendix 2                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Effective AIA Response Functions}\label{effective_response_functions}
 
 \begin{pycode}[manager_appendix]
@@ -60,7 +60,7 @@ aia = InstrumentSDOAIA([0,1]*u.s, observer_coordinate=None)
 em = EmissionModel.restore(os.path.join(manager_appendix.data_dir, 'base_emission_model.json'))
 fig,axes = plt.subplots(2, 3, sharex=True, sharey=True,
                         figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=2/3,       
-                                                  figure_width_context='textwidth'))
+                                                  figure_width_context='columnwidth'))
 T = np.logspace(5,8,100)
 p = 10**(15)*u.K/(u.cm**3)
 const_p_indices = np.array([(i,np.argmin(np.fabs(em.density.value-d.value))) 
@@ -96,7 +96,7 @@ plt.subplots_adjust(wspace=0.,hspace=0.)
 fig_aia_response = manager_appendix.save_figure('aia-response')
 fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization.'
 fig_aia_response.figure_env_name = 'figure*'
-fig_aia_response.figure_width = r'\textwidth'
+fig_aia_response.figure_width = r'\columnwidth'
 fig_aia_response.placement = ''
 fig_aia_response.fig_str = fig_str
 \end{pycode}

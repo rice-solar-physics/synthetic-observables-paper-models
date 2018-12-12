@@ -71,7 +71,7 @@ aia_map.plot(
     title=False,annotate=False,
     norm=ImageNormalize(vmin=0,vmax=5e3,stretch=AsinhStretch(0.1)))
 # Plot fieldlines
-ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), lazy=True)
+ar = synthesizAR.Field.restore(os.path.join(manager_methods.data_dir, 'base_noaa1158'), lazy=False)
 for l in ar.loops[::10]:
     c = l.coordinates.transform_to(aia_map.coordinate_frame)
     ax.plot_coord(c, '-', color='w', lw=0.5, alpha=0.25)
@@ -100,7 +100,7 @@ hgs_lon.set_ticks_visible(False)
 fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
 fig_aia_hmi_lines.caption = r'Line-of-sight magnetic field strength as observed by HMI (left) and AIA 171 \AA{} observation (right) of \AR{} NOAA 1158 on 12 February 2011 15:33 UTC. The gridlines show the heliographic longitude and latitude. In the right panel, 500 out of the total 5000 fieldlines are overlaid and the red and blue contours show the HMI observation at the $+5\%$ (red) and $-5\%$ (blue) levels.'
 fig_aia_hmi_lines.figure_env_name = 'figure*'
-fig_aia_hmi_lines.figure_width = r'\textwidth'
+fig_aia_hmi_lines.figure_width = r'2\columnwidth'
 fig_aia_hmi_lines.placement = ''
 fig_aia_hmi_lines.fig_str = fig_str
 \end{pycode}
@@ -113,7 +113,7 @@ fig = plt.figure(figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=1.0,
                                             figure_width_context='columnwidth'))
 ax = fig.gca()
 vals,bins,_ = ax.hist(
-    [l.full_length.to(u.Mm).value for l in ar.loops[::10]],
+    [l.full_length.to(u.Mm).value for l in ar.loops[:]],
     bins='scott', color='k', histtype='step', lw=plt.rcParams['lines.linewidth'])
 ax.set_xlabel(r'$L$ [Mm]');
 ax.set_ylabel(r'Number of Loops');
@@ -182,7 +182,7 @@ axes[0].set_xlim(0,3e4)
 axes[0].set_yticks([0.005,0.015,0.025])
 axes[1].set_ylim(0.1,8)
 axes[1].set_yticks(axes[1].get_yticks()[1:])
-axes[2].set_ylim(0,1.8)
+axes[2].set_ylim(0,2)
 #axes[2].set_yticks(axes[2].get_yticks()[::2])
 axes[0].set_ylabel(r'$Q$ [erg$/$cm$^{3}$$/$s]')
 axes[1].set_ylabel(r'$T$ [MK]')
@@ -221,9 +221,9 @@ where $\delta\ll1$ and $N_{loops}=5\times10^3$ is the total number of loops comp
     \tablecaption{All three heating models plus the two single-event control models. In the single-event models, the energy flux is not constrained by \autoref{eq:energy_constraint}.\label{tab:heating}}
     \tablehead{\colhead{Name} & \colhead{$\varepsilon$ (see Eq.\ref{eq:heating_types})} & \colhead{Energy Constrained?}}
     \startdata
-    high frequency & 0.1 & yes \\
-    intermediate frequency & 1 & yes \\
-    low frequency & 5 & yes \\
+    high & 0.1 & yes \\
+    intermediate & 1 & yes \\
+    low & 5 & yes \\
     cooling & 1 event per loop & no \\
     random & 1 event per loop & no
     \enddata
@@ -273,7 +273,7 @@ To model the intensity as it would be observed by AIA, we combine \autoref{eq:pp
 \begin{equation}\label{eq:intensity}
     I_c = \frac{1}{4\pi}\sum_{\{ij\}}\int_{\text{LOS}}\mathrm{d}hP(\lambda_{ij})R_c(\lambda_{ij})
 \end{equation}
-where $I_c$ is the intensity for a given pixel in channel $c$, $P(\lambda_{ij})$ is the emissivity as given by \autoref{eq:ppuv}, $R_c$ is the wavelength response function of the instrument for channel $c$ \citep[see][]{boerner_initial_2012}, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the LOS. Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions computed by SolarSoft and instead use the wavelength response functions directly. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume both ionization equilibrium and constant pressure. \autoref{effective_response_functions} provides further details on our motivation to not use the precomputed temperature response functions.
+where $I_c$ is the intensity for a given pixel in channel $c$, $P(\lambda_{ij})$ is the emissivity as given by \autoref{eq:ppuv}, $R_c$ is the wavelength response function of the instrument for channel $c$ \citep[see][]{boerner_initial_2012}, $\{ij\}$ is the set of all atomic transitions listed in \autoref{tab:elements}, and the integration is along the LOS. Note that when computing the intensity in each channel of AIA, we do not rely on the temperature response functions computed by SolarSoft \citep{freeland_data_1998} and instead use the wavelength response functions directly. This is because the response functions returned by \texttt{aia\_get\_response.pro} assume both ionization equilibrium and constant pressure. \autoref{effective_response_functions} provides further details on our motivation to not use the precomputed temperature response functions.
 
 Once we have computed the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} and for all the loops in our \AR{}, we compute the LOS integral in \autoref{eq:intensity} by first converting all of the loop coordinates to a Helioprojective (HPC) coordinate frame \citep[see][]{thompson_coordinate_2006}. To do this, we use the coordinate transformation functionality in Astropy \citep{the_astropy_collaboration_astropy_2018} combined with the solar coordinate frames provided by SunPy \citep{sunpy_community_sunpypython_2015}. This enables us to easily project our synthetic image along any arbitrary LOS simply by changing the location of the observer that defines the HPC frame. Here, our HPC frame is defined by an observer at the position of the SDO spacecraft at 12 February 2011 15:33 UTC (i.e. the time of the HMI observation of NOAA 1158 shown in \autoref{fig:magnetogram}).
 
