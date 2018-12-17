@@ -106,12 +106,9 @@ for i,h in enumerate(heating):
     else:
         lat.set_ticks(number=3)
         lon.set_ticks(number=3)
-        lon.set_axislabel('Helioprojective Longitude [arcsec]',
-                          fontsize=plt.rcParams['axes.labelsize'])
-        lat.set_axislabel('Helioprojective Latitude [arcsec]',
-                          fontsize=plt.rcParams['axes.labelsize'])
-        lat.set_ticklabel(fontsize=plt.rcParams['ytick.labelsize'])
-        lon.set_ticklabel(fontsize=plt.rcParams['xtick.labelsize'])
+        lon.set_axislabel('Helioprojective Longitude [arcsec]',)
+        lat.set_axislabel('Helioprojective Latitude [arcsec]',)
+        lat.set_ticklabel(rotation='vertical')
     ax.set_title(h.split('_')[0].capitalize())
 plt.subplots_adjust(hspace=0.03,wspace=0.03)
 cbar = fig.colorbar(im, cax=cax, orientation='horizontal');

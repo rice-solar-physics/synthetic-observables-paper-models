@@ -71,6 +71,8 @@
 import os
 import texfigure
 pytex.formatter = texfigure.repr_latex_formatter
+import matplotlib
+matplotlib.use('pdf')
 import numpy as np
 import h5py
 import pandas as pd
