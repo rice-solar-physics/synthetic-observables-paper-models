@@ -61,7 +61,7 @@
 \renewcommand{\subsectionautorefname}{Section}
 \renewcommand{\subsubsectionautorefname}{Section}
 %% Paper Aliases
-\defcitealias{barnes_understanding_2018-1}{Paper II}
+\defcitealias{barnes_understanding_2019-1}{Paper II}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Body                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,13 +91,13 @@ plt.rcParams['font.serif'] = 'Computer Modern'
 plt.rcParams['text.usetex'] = True
 plt.rcParams['axes.titlesize'] = 10
 plt.rcParams['axes.labelsize'] = 10
-plt.rcParams['legend.fontsize'] = 8
+plt.rcParams['legend.fontsize'] = 7
 plt.rcParams['xtick.labelsize'] = 8
 plt.rcParams['ytick.labelsize'] = 8
-plt.rcParams['xtick.major.pad'] = 8
-plt.rcParams['xtick.minor.pad'] = 8
-plt.rcParams['ytick.major.pad'] = 8
-plt.rcParams['ytick.minor.pad'] = 8
+plt.rcParams['xtick.major.pad'] = 3
+plt.rcParams['xtick.minor.pad'] = 3
+plt.rcParams['ytick.major.pad'] = 3
+plt.rcParams['ytick.minor.pad'] = 3
 plt.rcParams['xtick.direction'] = 'in'
 plt.rcParams['ytick.direction'] = 'in'
 plt.rcParams['savefig.dpi'] = 200
@@ -119,11 +119,16 @@ fig_str = r"""
     \label{{{label}}}
 \end{{{figure_env_name}}}
 """
+# Flag for checking 2-column or 1-column format
+def is_onecolumn():
+	textwidth = float(pytex.context['textwidth'][:-2])
+	colwidth = float(pytex.context['columnwidth'][:-2])
+	return (2*colwidth) > textwidth
 \end{pythontexcustomcode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Title and Authors                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{Understanding Heating Frequency in Active Region Cores through Synthetic Observables I. Modeling}
+\title{Understanding Heating in Active Region Cores through Machine Learning I. Numerical Modeling and Predicted Observables}
 \author[0000-0001-9642-6089]{W. T. Barnes}
 \author{S. J. Bradshaw}
 \affiliation{Department of Physics \& Astronomy, Rice University, Houston, TX 77005-1827}
@@ -135,10 +140,10 @@ fig_str = r"""
 %                                   Abstract                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-There is a long-standing debate regarding whether coronal loops in active region cores are heated steadily or impulsively. Elucidating properties of the underlying energy deposition, such as the  frequency of heating events on a given coronal loop, from observations is made difficult by several factors, including the optically-thin nature of the coronal plasma, the efficiency of cooling by thermal conduction, and uncertainties in the atomic data. To adequately constrain the heating frequency in \AR{} cores, detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamic loop models. We use this pipeline to model time-dependent, synthetic AIA emission for a range of nanoflare heating frequencies. We compute the emission measure slope and timelag from our simulated data and find that signatures of the heating frequency persist in both of these observables. In particular, we find that the distribution of emission measure slopes is shifted towards 2, the expected theoretical result, as the heating frequency decreases. Additionally, we find that the distribution of timelags for all channel pairs tends to broaden with increasing heating frequency. In a follow up paper, we will use these synthetic observables to train a machine learning classification model in order to classify real AIA data in terms of the heating frequency.
+There is a long-standing debate regarding whether coronal loops in active region cores are heated steadily or impulsively. Elucidating properties of the underlying energy deposition, such as the  frequency of heating events on a given coronal loop, from observations is made difficult by several factors, including the optically-thin nature of the coronal plasma, the efficiency of cooling by thermal conduction, and uncertainties in the atomic data. To adequately constrain the heating frequency in \AR{} cores, detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamic loop models. We use this pipeline to model time-dependent emission as observed by SDO/AIA for a range of nanoflare heating frequencies. We compute emission measure slope and timelag maps from our simulated data and find that signatures of the heating frequency persist in both of these observables. In particular, we find that the distribution of emission measure slopes is shifted towards 2, the expected theoretical result, as the heating frequency decreases and that the distribution of timelags for all channel pairs tends to broaden with increasing heating frequency. In a follow up paper, we will use these synthetic observables to train a machine learning classification model in order to classify real AIA data in terms of the heating frequency.
 \end{abstract}
 %% Keywords
-\keywords{Sun,corona,nanoflares,active regions}
+\keywords{Sun:corona, Sun:UV radiation, methods:numerical, hydrodynamics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Sections                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -152,14 +157,20 @@ There is a long-standing debate regarding whether coronal loops in active region
 \acknowledgments
 CHIANTI is a collaborative project involving George Mason University, the University of Michigan (USA) and the University of Cambridge (UK).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Facilities                                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\facility{SDO(AIA,HMI)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Software                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \software{
     Astropy \citep{the_astropy_collaboration_astropy_2018},
     Dask\citep{dask_development_team_dask_2016},
-    Matplotlib\citep{hunter_matplotlib_2007},
+	Matplotlib\citep{hunter_matplotlib_2007},
+	Numba\citep{lam_numba_2015},
     NumPy\citep{oliphant_guide_2006},
-    seaborn\citep{waskom_seaborn_2018},
+	seaborn\citep{waskom_seaborn_2018},
+	scipy\citep{jones_scipy_2001},
     SunPy\citep{sunpy_community_sunpypython_2015},
     yt\citep{turk_yt_2011}
 }

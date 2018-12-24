@@ -19,13 +19,12 @@ In order to account for ionization non-equilibrium, we compute $f_{X,k}$ as a fu
 \end{equation}
 where $n_e$ is the electron density and $R_k$ and $I_k$ are the temperature-dependent recombination and ionization rates of ion $k$, respectively. The ionization and recombination rates are computed using the data provided in CHIANTI. The ionization rates include both direct ionization and excitation autoionization and the recombination rates include both radiative and dielectronic recombination \citep[see section 6 of][]{young_chianti_2016}. Setting the left hand side of \autoref{eq:nei} to zero gives the equation of ionization equilibrium.
 
-Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Writing \autoref{eq:nei} in matrix form gives,
+Note that for an element with atomic number $Z$, we must solve $Z+1$ coupled differential equations to find the non-equilibrium level populations. Following the approaches of \citet{masai_x-ray_1984,hughes_self-consistent_1985,shen_lagrangian_2015}, we can write \autoref{eq:nei} in matrix form,
 \begin{equation}\label{eq:nei_mat}
     \frac{\partial}{\partial t}\mathbf{F} = \mathbf{A}\mathbf{F},
 \end{equation}
 where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z+1\times Z+1}$ tridiagonal matrix containing the ionization and recombination rates, multiplied by the electron density,
-
-\begin{equation*}
+\begin{equation}\label{eq:rate_mat}
     \mathbf{A} = n_e
         \begin{pmatrix}
             -(I_0 + R_0) & R_1 & 0 & \dots & 0 \\
@@ -36,7 +35,7 @@ where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z
             0 & \dots & I_{Z-2} & -(I_{Z-1} + R_{Z-1}) & R_Z \\
             0 & \dots & 0 & I_{Z-1} & -(I_Z + R_Z) 
         \end{pmatrix}.
-\end{equation*}
+\end{equation}
 
 Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
 \begin{equation*}
@@ -48,6 +47,8 @@ where $\Delta t$ is the timestep and $j$ indexes time. Dropping higher order ter
 \end{equation}
 where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we need only compute $\mathbf{A}_j$ for each $T(t_j)$, set $\mathbf{F}_0$ to the equilibrium ion populations, and iteratively compute \autoref{eq:nei_iterative} for all $j$. We solve \autoref{eq:nei_mat} for all elements in \autoref{tab:elements} and for each loop in the \AR{}.
 
+Though this method is unconditionally stable, $\Delta t$ should still be chosen carefully as $\mathbf{F}$ will relax to the equilibrium charge states for very long time steps. In general, smaller timesteps should be chosen when the electron temperature varies rapidly and the electron density is high. In this paper, we exploit the adaptive timestep provided by the two-fluid EBTEL code which accounts for changes in the temperature and electron density. Additionally, \citet{shen_lagrangian_2015} provide an alternate scheme for choosing the timestep \textit{a priori} based on the input electron density and the eigenvalues of \autoref{eq:rate_mat}.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                   Appendix 2                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -58,9 +59,15 @@ from synthesizAR.instruments import InstrumentSDOAIA
 from scipy.interpolate import splev
 aia = InstrumentSDOAIA([0,1]*u.s, observer_coordinate=None)
 em = EmissionModel.restore(os.path.join(manager_appendix.data_dir, 'base_emission_model.json'))
-fig,axes = plt.subplots(2, 3, sharex=True, sharey=True,
-                        figsize=texfigure.figsize(pytex, scale=1.0, height_ratio=2/3,       
-                                                  figure_width_context='columnwidth'))
+fig,axes = plt.subplots(
+    2, 3, sharex=True, sharey=True,
+    figsize=texfigure.figsize(
+        pytex, 
+        scale=1,
+        height_ratio=2/3,       
+        figure_width_context='columnwidth'
+    )
+)
 T = np.logspace(5,8,100)
 p = 10**(15)*u.K/(u.cm**3)
 const_p_indices = np.array([(i,np.argmin(np.fabs(em.density.value-d.value))) 
@@ -84,7 +91,7 @@ with h5py.File(os.path.join(manager_appendix.data_dir, 'effective_aia_response.h
             ax.legend(ncol=len(elements), loc="lower left", bbox_to_anchor=(0.25,1.02),
                         frameon=False)
         ax.text(1e7,3e-25,'{} $\mathrm{{\AA}}$'.format(channel['name']),
-                fontsize=plt.rcParams['axes.labelsize'])
+                fontsize=plt.rcParams['legend.fontsize'])
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylim([2e-30,2e-24])
@@ -94,7 +101,7 @@ axes[1,0].set_ylabel(r'$K_c$ [DN cm$^5$ s$^{-1}$ pixel$^{-1}$]')
 axes[1,0].set_xlabel(r'$T$ [K]')
 plt.subplots_adjust(wspace=0.,hspace=0.)
 fig_aia_response = manager_appendix.save_figure('aia-response')
-fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization.'
+fig_aia_response.caption = r'SolarSoft temperature response functions (solid black) and effective temperature response functions for the elements in \autoref{tab:elements} (dashed black) for all six EUV AIA channels. The colored, dashed curves, as indicated in the legend, denote the contributions of the individual elements to the total response. For this calculation, we have assumed equilibrium ionization and constant pressure.'
 fig_aia_response.figure_env_name = 'figure*'
 fig_aia_response.figure_width = r'\columnwidth'
 fig_aia_response.placement = ''
@@ -105,8 +112,12 @@ fig_aia_response.fig_str = fig_str
 As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion to the total channel response, using the result of \autoref{eq:nei_mat} in place of the equilibrium ion population fractions. \autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared to those calculated from \texttt{aia\_get\_response.pro} in SolarSoft. Even though we include a limited number of transitions from the CHIANTI database (see \autoref{tab:elements}), we recover nearly all of the response from each channel. The high-temperature contributions in the SolarSoft functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response.
 
 \begin{pycode}[manager_appendix]
-fig = plt.figure(figsize=texfigure.figsize(pytex, scale=0.5, height_ratio=1.0, 
-                                           figure_width_context='columnwidth'))
+fig = plt.figure(figsize=texfigure.figsize(
+    pytex,
+    scale=0.5,
+    height_ratio=1.0, 
+    figure_width_context='columnwidth'
+))
 ax = fig.gca()
 min_T = 1e300*u.K
 max_T = 0*u.K
@@ -126,7 +137,7 @@ ax.plot(T, p/T, color='k')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_xlim(1.75e5,1e7)
-ax.set_ylim(1.01e7,6e9)
+ax.set_ylim(1.1e7,6e9)
 ax.legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02), frameon=False,)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
@@ -156,7 +167,7 @@ where $\star$ and $\ast$ represent the correlation and convolution operators, re
 \begin{equation*}
     \mathcal{I}_c(t)=\frac{I_c(t)-\bar{I}_c}{\sigma_{c}},
 \end{equation*}
-is the mean-subtracted and scaled intensity of channel $c$ as a function of time. Taking the fourier transform of both sides of \autoref{eq:cc_pre} and using the convolution theorem,
+is the mean-subtracted and scaled intensity of channel $c$ as a function of time. Taking the Fourier transform of both sides of \autoref{eq:cc_pre} and using the convolution theorem gives,
 \begin{align*}
     \mathcal{F}\{\mathcal{C}_{AB}(\tau)\} &= \mathcal{F}\{\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)\},\\
     &= \mathcal{F}\{\mathcal{I}_A(-t)\}\mathcal{F}\{\mathcal{I}_B(t)\}.
@@ -170,4 +181,4 @@ Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields 
     \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau).
 \end{equation}
 
-By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we are able to compute timelags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take approximately fourteen hours for all 15 channel pairs.
+By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute the $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we can compute timelags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take approximately fourteen hours for all 15 channel pairs.
