@@ -1,0 +1,94 @@
+% PythonTeX Configuration
+\usepackage{pythontex}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% PythonTeX Bug Fix % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% pytexbug fix for context in customcode.
+\makeatletter
+\renewenvironment{pythontexcustomcode}[2][begin]{%
+	\VerbatimEnvironment
+	\Depythontex{env:pythontexcustomcode:om:n}%
+	\ifstrequal{#1}{begin}{}{%
+		\ifstrequal{#1}{end}{}{\PackageError{\pytx@packagename}%
+			{Invalid optional argument for pythontexcustomcode}{}
+		}%
+	}%
+	\xdef\pytx@type{CC:#2:#1}%
+	\edef\pytx@cmd{code}%
+	% PATCH \def\pytx@context{}%
+	\pytx@SetContext
+	% END PATCH
+	\def\pytx@group{none}%
+	\pytx@BeginCodeEnv[none]}%
+{\end{VerbatimOut}%
+\setcounter{FancyVerbLine}{\value{pytx@FancyVerbLineTemp}}%
+\stepcounter{\pytx@counter}%
+}%
+\makeatother
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% TexFigure Setup
+\setpythontexcontext{textwidth=\the\textwidth,columnwidth=\the\columnwidth,figurewidth=\the\columnwidth}
+\begin{pythontexcustomcode}{py}
+# Package imports
+import os
+import texfigure
+pytex.formatter = texfigure.repr_latex_formatter
+import matplotlib
+matplotlib.use('pdf')
+import numpy as np
+import h5py
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.colors
+from sunpy.map import Map
+import astropy.units as u
+from astropy.coordinates import SkyCoord
+from astropy.visualization import ImageNormalize,AsinhStretch,SqrtStretch
+import plasmapy.atomic
+import synthesizAR
+from synthesizAR.atomic import EmissionModel
+
+# Plot styling
+plt.rcParams['font.family'] = 'serif'
+plt.rcParams['font.serif'] = 'Computer Modern'
+plt.rcParams['text.usetex'] = True
+plt.rcParams['axes.titlesize'] = 10
+plt.rcParams['axes.labelsize'] = 10
+plt.rcParams['legend.fontsize'] = 7
+plt.rcParams['xtick.labelsize'] = 8
+plt.rcParams['ytick.labelsize'] = 8
+plt.rcParams['xtick.major.pad'] = 3
+plt.rcParams['xtick.minor.pad'] = 3
+plt.rcParams['ytick.major.pad'] = 3
+plt.rcParams['ytick.minor.pad'] = 3
+plt.rcParams['xtick.direction'] = 'in'
+plt.rcParams['ytick.direction'] = 'in'
+plt.rcParams['savefig.dpi'] = 200
+plt.rcParams['savefig.format'] = 'pdf'
+plt.rcParams['savefig.bbox'] = 'tight'
+
+# Some useful quantities
+channels = [94,131,171,193,211,335]
+heating = ['high_frequency', 'intermediate_frequency','low_frequency']
+channel_pairs = [(94,335), (94,171), (94,193),(94,131),(94,211),(335,131),(335,193),
+					(335,211),(335,171),(211,131),(211,171),(211,193),(193,171),(193,131),
+					(171,131),]
+selected_channel_pairs = [channel_pairs[i] for i in (0, 9, 12)]
+
+# Reset LaTeX repr for figures
+fig_str = r"""
+\begin{{{figure_env_name}}}
+	\centering
+	{myfig}
+	\caption{{{caption}}}
+	\label{{{label}}}
+\end{{{figure_env_name}}}
+"""
+
+# Flag for checking 2-column or 1-column format
+def is_onecolumn():
+	textwidth = float(pytex.context['textwidth'][:-2])
+	colwidth = float(pytex.context['columnwidth'][:-2])
+	return (2*colwidth) > textwidth
+\end{pythontexcustomcode}
