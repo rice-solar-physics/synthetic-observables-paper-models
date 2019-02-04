@@ -20,7 +20,7 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[preprint2,linenumbers]{aastex62}
+\documentclass[preprint2,linenumbers,trackchanges]{aastex62}
 %% Include packages
 \usepackage{amsmath}
 \usepackage{mathrsfs}
@@ -58,7 +58,7 @@
 %                                   Abstract                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-There is a long-standing debate regarding whether coronal loops in active region cores are heated steadily or impulsively. Elucidating properties of the underlying energy deposition, such as the  frequency of heating events on a given coronal loop, from observations is made difficult by several factors, including the optically-thin nature of the coronal plasma, the efficiency of cooling by thermal conduction, and uncertainties in the atomic data. To adequately constrain the heating frequency in \AR{} cores, detailed models and systematic comparisons to the data are required. In this paper, we describe a pipeline for forward modeling emission from active regions using field extrapolations and hydrodynamic loop models. We use this pipeline to model time-dependent emission as observed by SDO/AIA for a range of nanoflare heating frequencies. We compute emission measure slope and timelag maps from our simulated data and find that signatures of the heating frequency persist in both of these observables. In particular, we find that the distribution of emission measure slopes is shifted towards 2, the expected theoretical result, as the heating frequency decreases and that the distribution of timelags for all channel pairs tends to broaden with increasing heating frequency. In a follow up paper, we will use these synthetic observables to train a machine learning classification model in order to classify real AIA data in terms of the heating frequency.
+To adequately constrain the frequency of energy deposition in \AR{} cores in the solar corona, systematic comparisons between detailed models and observational data are needed. In this paper, we describe a pipeline for forward modeling \AR{} emission using \added{magnetic} field extrapolations and \added{field-aligned} hydrodynamic \deleted{loop }models. We use this pipeline to predict time-dependent emission from \AR{} NOAA 1158 as observed by SDO/AIA for low-, intermediate-, and high-frequency nanoflares, small-scale impulsive heating events. In each pixel of our predicted multi-wavelength, time-dependent images, we compute two commonly-used diagnostics: the emission measure slope and the timelag. We find that signatures of the heating frequency persist in both of these diagnostics. In particular, our results show that the distribution of emission measure slopes narrows and the mean decreases with decreasing heating frequency and that the range of emission measure slopes is consistent with past observational and modeling work. Furthermore, we find that the timelag becomes increasingly spatially coherent with decreasing heating frequency while the distribution of timelags across the whole \AR{} becomes more broad with increasing heating frequency. In a follow up paper, we train a random forest classifier on these \replaced{synthetic}{predicted} diagnostics and use this model classify real AIA data in terms of the underlying heating frequency.
 \end{abstract}
 %% Keywords
 \keywords{Sun:corona, Sun:UV radiation, methods:numerical, hydrodynamics}
@@ -102,4 +102,8 @@ CHIANTI is a collaborative project involving George Mason University, the Univer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{aasjournal.bst}
 \bibliography{references.bib}
+
+% List all tracked changes
+\listofchanges
+
 \end{document}
