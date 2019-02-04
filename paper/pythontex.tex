@@ -32,8 +32,11 @@
 \begin{pythontexcustomcode}{py}
 # Package imports
 import os
+import io
+
 import texfigure
 pytex.formatter = texfigure.repr_latex_formatter
+
 import matplotlib
 matplotlib.use('pdf')
 import numpy as np
@@ -45,7 +48,10 @@ from sunpy.map import Map
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.visualization import ImageNormalize,AsinhStretch,SqrtStretch
+from astropy.table import Table
+from astropy.io import ascii
 import plasmapy.atomic
+
 import synthesizAR
 from synthesizAR.atomic import EmissionModel
 
