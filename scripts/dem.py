@@ -43,7 +43,7 @@ class IDLModel(GenericModel):
         input_args = self.input_args
         input_args.update(kwargs)
         return self.ssw.run(self._template, args=input_args, save_vars=self.save_vars,
-                            verbose=True,)
+                            verbose=kwargs.get('verbose',True),)
     
     def to_emcube(self, em):
         header = self.maps[0].meta.copy()
@@ -81,6 +81,12 @@ class HannahKontarModel(IDLModel):
             'maps': self.mapcube.T.tolist(),
             'response_matrix': self.response_matrix.tolist(),
             'normalized': True,
+            'max_iterations': 10,
+            'alpha': 1.0,
+            'increase_alpha': 1.5,
+            'use_em_loci': False,
+            'em_loci_indices': None,
+            'initial_guess': None,
         }
 
     @property
@@ -146,4 +152,7 @@ class HannahKontarModel(IDLModel):
             data[*,*,i] = data[*,*,i]/exptimes[i]
         endfor
         {% endif %}
-        dn2dem_pos_nb,data,data_errors,response_matrix,response_logt,temperature,dem,dem_errors,logt_errors,chi_squared,dn_regularized"""
+        dn2dem_pos_nb,data,data_errors,response_matrix,response_logt,temperature,$
+        dem,dem_errors,logt_errors,chi_squared,dn_regularized,{% if use_em_loci %}/gloci,{% endif %}$
+        reg_tweak={{alpha}}, rgt_fact={{increase_alpha}}, max_iter={{max_iterations}}
+        """
