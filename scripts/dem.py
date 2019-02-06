@@ -7,6 +7,7 @@ import os
 import numpy as np
 import matplotlib.colors
 import astropy.units as u
+from sunpy.map import Map
 import hissw
 
 from synthesizAR.analysis.dem import EMCube
@@ -135,7 +136,7 @@ class HannahKontarModel(IDLModel):
             norm_factor=1
             {% if normalized %}norm_factor = exptimes[i]{% endif %}
             data_errors[*,*,i]=aia_bp_estimate_error(reform(data[*,*,i])*norm_factor,replicate(channels[i],nx,ny),n_sample={{ n_sample }})
-            data_errors[*,*,i]=data_errors[*,*,i]/exptimes[i] ;Is this the right thing to do?
+            data_errors[*,*,i]=data_errors[*,*,i]/exptimes[i]
         endfor
         {% endif %}
 
@@ -156,3 +157,55 @@ class HannahKontarModel(IDLModel):
         dem,dem_errors,logt_errors,chi_squared,dn_regularized,{% if use_em_loci %}/gloci,{% endif %}$
         reg_tweak={{alpha}}, rgt_fact={{increase_alpha}}, max_iter={{max_iterations}}
         """
+
+
+@u.quantity_input
+def make_slope_map_tpeak(emcube, Tmin=1e6*u.K, rsquared_tolerance=0.9, safety=10**(0.4)):
+    """
+    Fit emission measure slope using the temperature at which the emission
+    measure peaks as the upper bound.
+    
+    Parameters
+    ----------
+    emcube {[type]} -- [description]
+    Tmin {[type]} -- [description] (default: {1e6*u.K})
+    rsquared_tolerance {float} -- [description] (default: {0.9})
+    safety {[type]} -- [description] (default: {10**(0.4)})
+    
+    Returns:
+        [type] -- [description]
+    """
+    # Choose Tmax just below Tpeak to avoid fitting across the peak
+    index = emcube.as_array().argmax(axis=2) - 1
+    Tpeak = emcube.temperature_bin_centers[np.where(index < 0, 0, index)]  # No negative indices
+    # Fit slopes for multiple Tmax values
+    slopes, rsquared, Tmax = [], [], []
+    for tp in np.unique(Tpeak):
+        if tp < Tmin*safety:
+            continue
+        slope_map, _, r2 = emcube.make_slope_map(
+            temperature_bounds=u.Quantity((Tmin, tp)),
+            em_threshold=1*u.cm**(-5),
+            rsquared_tolerance=0.0,
+            full=True,
+        )
+        slopes.append(slope_map.data)
+        rsquared.append(r2.reshape(slope_map.data.shape))
+        Tmax.append(tp.value)
+    Tmax = u.Quantity(Tmax, tp.unit)
+    # Stack
+    rsquared = np.stack(rsquared, axis=2)
+    rsquared[np.isnan(rsquared)] = -np.inf  # Give NaNs a very small r^2
+    slopes = np.stack(slopes, axis=2)
+    # Find index of peak temperature
+    i_peak = np.argmin(np.stack([np.fabs(Tpeak - tm) for tm in Tmax], axis=2), axis=2)
+    i_row, i_col = np.indices(i_peak.shape)
+    # Select slope and rsquared for correct peak temperature
+    slopes = slopes[(i_row.flatten(), i_col.flatten(), i_peak.flatten())].reshape(i_peak.shape)
+    rsquared = rsquared[(i_row.flatten(), i_col.flatten(), i_peak.flatten())].reshape(i_peak.shape)
+
+    return Map(
+        slopes,
+        {**slope_map.meta, 'temp_b': 'temperature at peak of EM'},
+        mask=rsquared < rsquared_tolerance,
+        plot_settings=slope_map.plot_settings)
