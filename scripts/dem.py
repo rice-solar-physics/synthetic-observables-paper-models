@@ -12,7 +12,7 @@ import hissw
 
 from synthesizAR.analysis.dem import EMCube
 
-__all__ = ['GenericModel', 'IDLModel', 'HannahKontarModel']
+__all__ = ['GenericModel', 'IDLModel', 'HannahKontarModel', 'make_slope_map_tpeak']
 
 
 class GenericModel(object):
