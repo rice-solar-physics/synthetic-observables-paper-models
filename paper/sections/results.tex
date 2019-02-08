@@ -107,7 +107,7 @@ While there are clear differences in the AIA intensities between all three heati
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Emission Measure Slopes %%%%%%%%%%%%%%%%
 \subsection{Emission Measure Slopes}\label{em_slopes}
 
-As discussed in \autoref{introduction}, the emission measure slope is a useful quantity for understanding how frequently strands are reenergized. We compute emission measure distributions from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.5}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing \dem{} at each timestep, we compute the time-averaged intensity in each pixel of each channel and compute \dem{} only once. We assume uncertainties of 20\% on the forward-modeled intensity data in every pixel and every channel. After computing \dem{} in each pixel, we do a first-order polynomial fit to the log-transformed emission measure and temperature bin centers, $\log_{10}\mathrm{EM}\sim a\log_{10}T$, to calculate the emission measure slope, $a$. In \citetalias{barnes_understanding_2019-1}, we compare our modeled emission measure slopes to those derived from real AIA observations of NOAA 1158 using this same method.
+As discussed in \autoref{introduction}, the emission measure slope is a useful quantity for understanding how frequently strands are reenergized. We compute emission measure distributions from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.2}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing \dem{} at each timestep, we compute the time-averaged intensity in each pixel of each channel and compute \dem{} only once. We compute the uncertainties on the intensities in each channel using the \textit{aia\_bp\_estimate\_error.pro} procedure in SSW which incorporates uncertainties due to shot noise, read noise, dark subtraction, quantization, photometric calibration, and onboard compression. After computing \dem{} in each pixel using the regularized inversion procedure, we do a first-order polynomial fit to the log-transformed emission measure and temperature bin centers, $\log_{10}\mathrm{EM}\sim a\log_{10}T$, to calculate the emission measure slope, $a$. In \citetalias{barnes_understanding_2019-1}, we compare our modeled emission measure slopes to those derived from real AIA observations of NOAA 1158 using this same method.
 
 \begin{pycode}[manager_results]
 fig = plt.figure(figsize=texfigure.figsize(
@@ -117,16 +117,16 @@ fig = plt.figure(figsize=texfigure.figsize(
     figure_width_context='columnwidth'
 ))
 cax = fig.add_axes([0.125, 0.9, 0.775, 0.04])
-params = {'cmap': 'viridis', 'vmin': 2, 'vmax': 5, 'title': False, 'annotate': False}
+params = {'cmap': 'viridis', 'vmin': 1.5, 'vmax': 7.5, 'title': False, 'annotate': False}
 for i,h in enumerate(heating):
     m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
-    m = m.submap(SkyCoord(Tx=-405*u.arcsec,Ty=-330*u.arcsec,frame=m.coordinate_frame),
-                 SkyCoord(Tx=-210*u.arcsec,Ty=-135*u.arcsec,frame=m.coordinate_frame))
+    m = m.submap(SkyCoord(Tx=-390*u.arcsec,Ty=-315*u.arcsec,frame=m.coordinate_frame),
+                 SkyCoord(Tx=-225*u.arcsec,Ty=-150*u.arcsec,frame=m.coordinate_frame))
     ax = fig.add_subplot(1, len(heating), i+1, projection=m)
     im = m.plot(axes=ax, **params)
     ax.grid(alpha=0)
     lon,lat = ax.coords
-    lat.set_ticks(number=3)
+    lat.set_ticks(number=2)
     lon.set_ticks(number=4)
     if i > 0:
         lon.set_ticklabel_visible(False)
@@ -135,15 +135,15 @@ for i,h in enumerate(heating):
         lon.set_axislabel('Helioprojective Longitude',)
         lat.set_axislabel('Helioprojective Latitude',)
         lat.set_ticklabel(rotation='vertical')
-    xtext,ytext = m.world_to_pixel(SkyCoord(-395*u.arcsec, -150*u.arcsec, frame=m.coordinate_frame))
+    xtext,ytext = m.world_to_pixel(SkyCoord(-385*u.arcsec, -160*u.arcsec, frame=m.coordinate_frame))
     ax.text(xtext.value, ytext.value, h.split('_')[0].capitalize(),
-            color='k',fontsize=plt.rcParams['legend.fontsize'])
+            color='w',fontsize=plt.rcParams['legend.fontsize'])
 plt.subplots_adjust(hspace=0.03,wspace=0.03)
 cbar = fig.colorbar(im, cax=cax, orientation='horizontal');
 cbar.ax.xaxis.set_ticks_position('top')
-cbar.set_ticks([2,3,4,5])
+cbar.set_ticks([2,3,4,5,6,7])
 fig_slope_maps = manager_results.save_figure('em-slope-maps',)
-fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high- (left), intermediate- (center), and low-frequency (right) cases. The \dem{} is computed using time-averaged intensities from the six AIA EUV channels using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $5.8<\log{T}<6.4$. Any pixels with $r^2<0.9$ are masked and colored white.'
+fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high- (left), intermediate- (center), and low-frequency (right) cases. The \dem{} is computed using time-averaged intensities from the six AIA EUV channels using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $10^6\le T\le T_{peak}$. Any pixels with $r^2<0.9$ are masked and colored white.'
 fig_slope_maps.figure_env_name = 'figure*'
 fig_slope_maps.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_slope_maps.placement = ''
@@ -151,11 +151,11 @@ fig_slope_maps.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_slope_maps|
 
-\autoref{fig:em-slope-maps} shows the resulting emission measure slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit \dem{} over bins in the temperature range $10^{5.8}\le T\le10^{6.4}$ in order to avoid fitting across the peak of \dem{} and underestimating the slope. To assess the ``goodness-of-fit'' we use $r^2$, the correlation coefficient, and mask pixels with $r^2<0.9$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low frequency map (right panel) shows many values close to 2.
+\autoref{fig:em-slope-maps} shows the resulting emission measure slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit \dem{} over bins in the temperature range $10^{6}\le T\le T_{peak}$, where $T_{peak}=\argmax_T\,\mathrm{EM}(T)$ is the temperature at which the emission measure distribution peaks. To assess the ``goodness-of-fit'' we use $r^2$, the correlation coefficient for the linear fit, and mask pixels with $r^2<0.9$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low frequency map (right panel) shows many values close to 2.
 
-As the heating frequency increases, the slopes become larger, indicating an increasingly isothermal emission measure distribution. The intermediate-frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2.5\lesssim a \lesssim 3$ while the high-frequency map (left panel) shows many slopes in the range $4\lesssim a\lesssim5$. Note that in the high frequency case, the largest slopes are found in loops rooted in the strongest magnetic flux concentrations (see \autoref{fig:magnetogram}) while the distribution of $a$ appears more spatially uniform in the intermediate- and low-frequency cases.
+As the heating frequency increases, the slopes become larger, indicating an increasingly isothermal emission measure distribution. The intermediate-frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2.5\lesssim a \lesssim 3.5$ while the high-frequency map (left panel) shows much steeper slopes, most $a\ge4$, and a much broader range of slopes, $3\lesssim a \lesssim 8$. Note that in the high frequency case, the steepest slopes are found mostly in loops rooted in the strongest magnetic flux concentrations (see \autoref{fig:magnetogram}) while the distribution of $a$ appears more spatially uniform in the intermediate- and low-frequency cases.
 
-Below $T(\mathrm{EM}_{max})$, \citet{cargill_implications_1994} noted that the \dem{} could be described by $\mathrm{EM}(T)\sim n^2\tau_{rad}$, where $\tau_{rad}\sim T^{1-\alpha}n^{-1}$ is the radiative cooling time. Additionally, \citet{bradshaw_cooling_2010} found that $T\sim n^{\ell}$, with $\ell\approx1$ for long loops and $\ell\approx2$ for short loops. Combining these expressions and assuming $\alpha=-1/2$ \citep[i.e. using the radiative losses of][]{rosner_dynamics_1978} gives $a\approx2$ for short loops and $a\approx2.5$ for long loops in the case of single nanoflares. We find that emission measure slopes produced by low-frequency nanoflares as shown in the right panel of \autoref{fig:em-slope-maps} are consistent with analytical results for single nanoflares
+Below $T(\mathrm{EM}_{max})$, \citet{cargill_implications_1994} noted that the \dem{} could be described by $\mathrm{EM}(T)\sim n^2\tau_{rad}$, where $\tau_{rad}\sim T^{1-\alpha}n^{-1}$ is the radiative cooling time. Additionally, \citet{bradshaw_cooling_2010} found that $T\sim n^{\ell}$, with $\ell\approx1$ for long loops and $\ell\approx2$ for short loops. Combining these expressions and assuming $\alpha=-1/2$ \citep[i.e. using the radiative losses of][]{rosner_dynamics_1978} gives $a\approx2$ for short loops and $a\approx2.5$ for long loops in the case of single nanoflares. We find that emission measure slopes produced by low-frequency nanoflares as shown in the right panel of \autoref{fig:em-slope-maps} are consistent with analytical results for single nanoflares.
 
 \begin{pycode}[manager_results]
 fig = plt.figure(figsize=texfigure.figsize(
@@ -165,41 +165,38 @@ fig = plt.figure(figsize=texfigure.figsize(
     figure_width_context='columnwidth',
 ))
 ax = fig.gca()
-bins = np.arange(1, 6, 0.05)
+bins = np.arange(1, 8, 0.05)
 bin_centers = (bins[:-1] + bins[1:])/2
 params = {'bins': bins, 'histtype': 'step','density': False, 
           'lw': plt.rcParams['lines.linewidth']}
 peaks = {}
-means = {}
 for i,h in enumerate(heating):
     d = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits')).data.flatten()
     d = d[~np.isnan(d)]
     hist, b, _ = ax.hist(d, **params, color=heating_palette()[i],
                          label=h.split('_')[0].capitalize())
-    ax.axvline(x=d.mean(), ls='--', color=heating_palette()[i], lw=1)
     peaks[h] = f'{bin_centers[np.argmax(hist)]:.1f}'
-    means[h] = f'{d.mean():.1f}'
-ax.set_xlim(1.5, 5.5);
-ax.set_xticks([2, 3, 4, 5])
+ax.set_xlim(1, 8);
+ax.xaxis.set_major_locator(FixedLocator([2, 3, 4, 5, 6, 7]))
+ax.yaxis.set_major_locator(FixedLocator(range(500,3000,500)))
 ax.legend(frameon=False, loc=1)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.set_yticks(ax.get_yticks()[1:-1])
 ax.spines['left'].set_bounds(ax.get_yticks()[0],ax.get_yticks()[-1])
 ax.spines['bottom'].set_bounds(ax.get_xticks()[0],ax.get_xticks()[-1])
 ax.set_xlabel(r'$a$')
 ax.set_ylabel(r'Number of Pixels')
 fig_slope_histograms = manager_results.save_figure('em-slope-histograms')
-fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 1 and 6 with bin widths of 0.05. The dashed lines denote the mean of each distribution.'
+fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 1 and 8 with bin widths of 0.05.'
 fig_slope_histograms.figure_width = r'\columnwidth'
 fig_slope_histograms.placement = ''
 fig_slope_histograms.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_slope_histograms|
 
-\autoref{fig:em-slope-histograms} shows histograms of the emission measure slopes for the high-, intermediate-, and low-frequency cases. We find that the low-frequency distribution peaks at $a\approx\py[manager_results]|peaks['low_frequency']|$, inside the range expected from analytical results (see above) with a mean of $\py[manager_results]|means['low_frequency']|$. The intermediate- and high-frequency distributions peak at successively higher values, $\approx\py[manager_results]|peaks['intermediate_frequency']|$ and $\approx\py[manager_results]|peaks['high_frequency']|$ with means $\approx\py[manager_results]|means['intermediate_frequency']|$ and $\approx\py[manager_results]|means['high_frequency']|$, respectively. While the low- and intermediate-frequency distributions are more narrowly distributed around their peak values, the high-frequency distribution has a positive skew towards higher values of $a$ and the mean of the distribution is significantly greater than the value at which the distribution peaks.
+\autoref{fig:em-slope-histograms} shows histograms of the emission measure slopes for the high-, intermediate-, and low-frequency cases. We find that the low-frequency distribution peaks at $a\approx\py[manager_results]|peaks['low_frequency']|$, inside the range expected from analytical results (see above). The intermediate- and high-frequency distributions peak at successively higher values, $\approx\py[manager_results]|peaks['intermediate_frequency']|$ and $\approx\py[manager_results]|peaks['high_frequency']|$, respectively. While the low- and intermediate-frequency distributions are more narrowly distributed around their peak values, the distribution of slopes in the high-frequency case is very broad. 
 
-Looking at the distribution of slopes across the entire \AR{} in \autoref{fig:em-slope-histograms}, we find that when the strands are heated infrequently (low frequency) such that each strand is allowed to cool fully prior to the next event, the distribution of slopes ``saturates'' in the range expected for single nanoflares, $2<a<2.5$. However, when the strands are reheated often (high frequency), the value of the slope becomes unsaturated and is subject to a range of infrequent cooling times due to the dependence of each waiting time on the power-law heating rate (see \autoref{heating}). These results are consistent with \citet{cargill_active_2014} who computed $\mathrm{EM}(T)=n^2L$ for a single strand for a range of heating frequencies and found $a$ converged to $\approx2$ for low frequency nanoflares and increased slowly with increasing heating frequency.
+Looking at the distribution of slopes across the entire \AR{} in \autoref{fig:em-slope-histograms}, we find that when the strands are heated infrequently (low frequency) such that each strand is allowed to cool fully prior to the next event, the distribution of slopes ``saturates'' in the range expected for single nanoflares. However, when the strands are reheated often (high frequency), the value of the slope becomes unsaturated and is subject to a range of infrequent cooling times due to the dependence of each waiting time on the power-law heating rate (see \autoref{heating}). These results are consistent with \citet{cargill_active_2014} who computed $\mathrm{EM}(T)=n^2L$ for a single strand for a range of heating frequencies and found $a$ converged to $\approx2$ for low frequency nanoflares and increased slowly with increasing heating frequency.
 
 Our modeled emission measure slopes show that, even when accounting for the LOS integration, atomic physics, and information lost in the \dem{} inversion, signatures of the heating frequency still persist in the emission measure slope. However, while this quantity retains information about the frequency of energy deposition, drawing conclusions about the heating based solely on the observed emission measure slope, particularly for a small number of pixels may be misleading. As shown here and in \citet{del_zanna_evolution_2015}, the slope may vary significantly across a given \AR{}. Additionally, calculating \dem{} from observations is non-trivial due to several factors, including lack of unique solution to the inversion problem \citep[e.g.][]{aschwanden_benchmark_2015}, uncertainties in the atomic data, and insufficient constraints from spectroscopic observations \citep[e.g.][]{landi_isothermality_2010,winebarger_defining_2012}, among others.
 
