@@ -152,12 +152,12 @@ For each of the $5\times10^3$ strands, we run a separate instance of the two-flu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Heating %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Heating Model}\label{heating}
 
-We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of duration $\tau_{event}=200$ s. For each event $i$, there are two parameters: the peak heating rate $q_i$ and the waiting time prior to the event $t_{wait,i}$. We define the waiting time such that $t_{wait,i}$ is the amount of time between when event $i-1$ ends and event $i$ begins. Following the approach of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $t_{wait,i}\propto q_i$. The physical motivation for this scaling is as follows. In the nanoflare model of \citet{parker_nanoflares_1988}, random convective motions continually stress the magnetic field rooted in the photosphere, leading to the buildup and eventual release of energy. If the field is stressed for a long amount of time without relaxation, large discontinuities will have time to develop in the field, leading to a dramatic release of energy. Conversely, if the field relaxes quickly, there is not enough time for the field to become sufficiently stressed and the resulting energy release will be relatively small. 
+We parameterize the heating input in terms of discrete heating pulses on a single strand with triangular profiles of duration $\tau_{\textup{event}}=200$ s. For each event $i$, there are two parameters: the peak heating rate $q_i$ and the waiting time prior to the event $\twait[,i]$. We define the waiting time such that $\twait[,i]$ is the amount of time between when event $i-1$ ends and event $i$ begins. Following the approach of \citet{cargill_active_2014}, we relate the waiting time and the event energy such that $\twait[,i]\propto q_i$. The physical motivation for this scaling is as follows. In the nanoflare model of \citet{parker_nanoflares_1988}, random convective motions continually stress the magnetic field rooted in the photosphere, leading to the buildup and eventual release of energy. If the field is stressed for a long amount of time without relaxation, large discontinuities will have time to develop in the field, leading to a dramatic release of energy. Conversely, if the field relaxes quickly, there is not enough time for the field to become sufficiently stressed and the resulting energy release will be relatively small. 
 
-In this work we explore three different heating scenarios: low-, intermediate-, and high-frequency nanoflares. We define the heating frequency in terms of the ratio between the fundamental cooling timescale due to thermal conduction and radiation, $\tau_{cool}$, and the average waiting time of all events on a given strand, $\langle t_{wait}\rangle$,
+In this work we explore three different heating scenarios: low-, intermediate-, and high-frequency nanoflares. We define the heating frequency in terms of the ratio between the fundamental cooling timescale due to thermal conduction and radiation, $\tau_{\textup{cool}}$, and the average waiting time of all events on a given strand, $\langle \twait\rangle$,
 
 \begin{equation}\label{eq:heating_types}
-    \varepsilon = \frac{\langle t_{wait}\rangle}{\tau_{cool}}
+    \varepsilon = \frac{\langle \twait\rangle}{\tau_{\textup{cool}}}
     \begin{cases} 
         < 1, &  \text{high frequency},\\
         \sim1, & \text{intermediate frequency}, \\
@@ -165,7 +165,7 @@ In this work we explore three different heating scenarios: low-, intermediate-, 
      \end{cases}
 \end{equation}
 
-We choose to parameterize the heating in terms of the cooling time rather than an absolute waiting time as $\tau_{cool}\sim L$ \citep[see appendix of][]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low-frequency heating for a 20 Mm strand, it would correspond to high-frequency heating in the case of a 150 Mm strand. By parameterizing the heating in this way, we ensure that all strands in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single strand, for the three heating scenarios listed above. 
+We choose to parameterize the heating in terms of the cooling time rather than an absolute waiting time as $\tau_{\textup{cool}}\sim L$ \citep[see appendix of][]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low-frequency heating for a 20 Mm strand, it would correspond to high-frequency heating in the case of a 150 Mm strand. By parameterizing the heating in this way, we ensure that all strands in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single strand, for the three heating scenarios listed above. 
 
 \begin{pycode}[manager_methods]
 fig,axes = plt.subplots(
@@ -221,15 +221,15 @@ fig_hydro_profiles.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_hydro_profiles|
 
-For a single impulsive event $i$ with a triangular temporal profile of duration $\tau_{event}$, the energy density is $E_i=\tau_{event} q_i/2$. Summing over all events on all strands that comprise the \AR{} gives the total energy flux injected into the \AR{},
+For a single impulsive event $i$ with a triangular temporal profile of duration $\tau_{\textup{event}}$, the energy density is $E_i=\tau_{\textup{event}}q_i/2$. Summing over all events on all strands that comprise the \AR{} gives the total energy flux injected into the \AR{},
 \begin{equation}
-    F_{AR} = \frac{\tau_{event}}{2}\frac{\sum_l^{N_{strands}}\sum_i^{N_l} q_iL_l}{t_{total}}
+    F_{AR} = \frac{\tau_{\textup{event}}}{2}\frac{\sum_l^{N_{\textup{strands}}}\sum_i^{N_l} q_iL_l}{t_\textup{total}}
 \end{equation}
-where $t_{total}$ is the total simulation time, $N_{strands}$ is the total number of strands comprising the \AR{}, and $N_l=(t_{total} + \langle t_{wait}\rangle)/(\tau + \langle t_{wait}\rangle)$ is the total number of events occurring on each strand over the whole simulation. Note that the number of events per strand is a function of both $\varepsilon$ and $\tau_{cool}$.
+where $t_\textup{total}$ is the total simulation time, $N_\textup{strands}$ is the total number of strands comprising the \AR{}, and $N_l=(t_\textup{total} + \langle\twait\rangle)/(\tau + \langle\twait\rangle)$ is the total number of events occurring on each strand over the whole simulation. Note that the number of events per strand is a function of both $\varepsilon$ and $\tau_{\textup{cool}}$.
 
 For each heating frequency, we constrain the total flux into the \AR{} to be $F_{\ast}=10^7$ erg cm$^{-2}$ s$^{-1}$ \citep{withbroe_mass_1977} such that $F_{AR}$ must satisfy the condition,
 \begin{equation}\label{eq:energy_constraint}
-    \frac{| F_{AR}/N_{strands} - F_{\ast} |}{F_{\ast}} < \delta,
+    \frac{| F_{AR}/N_\textup{strands} - F_{\ast} |}{F_{\ast}} < \delta,
 \end{equation}
 where $\delta\ll1$. For each strand, we choose $N_l$ events each with energy $E_i$ from a power-law distribution with slope $-2.5$ and fix the upper bound of the distribution to be $\bar{B}_l^2/8\pi$, where $\bar{B}_l$ is the spatially-averaged field strength along the strand $l$ as derived from the field extrapolation. This is the maximum amount of energy made available by the field to heat the strand. We then iteratively adjust the lower bound on the power-law distribution for $E_i$ until we have satisfied \autoref{eq:energy_constraint} within some numerical tolerance. We note that the set of $E_i$ we choose for each strand may not uniquely satisfy \autoref{eq:energy_constraint}.
 
@@ -247,7 +247,7 @@ We use the field strength derived from the potential field extrapolation to cons
     \enddata
 \end{deluxetable}
 
-In addition to these three multi-event heating models, we also run two single-event control models. In both control models every strand in the \AR{} is heated exactly once by an event with energy $\bar{B}_l^2/8\pi$. In our first control model, the start time of every event is $t=0$ s such that all strands are allowed to cool uninterrupted for $t_{total}=10^4$ s. In the second control model, the start time of the event on each strand is chosen from a uniform distribution over the interval $(0, 3\times10^4)$ s, such that the heating is likely to be out of phase across all strands. In these two models, the energy has not been constrained according to \autoref{eq:energy_constraint} and the total flux into the \AR{} is $(\sum_{l}\bar{B}_l^2L_l)/8\pi t_{total}$. From here on, we will refer to these two models as the ``cooling'' and ``random'' models, respectively. All five heating scenarios are summarized in \autoref{tab:heating}.
+In addition to these three multi-event heating models, we also run two single-event control models. In both control models every strand in the \AR{} is heated exactly once by an event with energy $\bar{B}_l^2/8\pi$. In our first control model, the start time of every event is $t=0$ s such that all strands are allowed to cool uninterrupted for $t_\textup{total}=10^4$ s. In the second control model, the start time of the event on each strand is chosen from a uniform distribution over the interval $(0, 3\times10^4)$ s, such that the heating is likely to be out of phase across all strands. In these two models, the energy has not been constrained according to \autoref{eq:energy_constraint} and the total flux into the \AR{} is $(\sum_{l}\bar{B}_l^2L_l)/8\pi t_\textup{total}$. From here on, we will refer to these two models as the ``cooling'' and ``random'' models, respectively. All five heating scenarios are summarized in \autoref{tab:heating}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Forward Modeling %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Forward Modeling}\label{forward}
