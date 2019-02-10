@@ -86,11 +86,12 @@ with h5py.File(os.path.join(manager_appendix.data_dir, 'effective_aia_response.h
             ax.plot(em.temperature, 
                     np.array(grp[element])[const_p_indices[:,0],const_p_indices[:,1]],
                     color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element),)
-        if i==0:
-            ax.legend(ncol=len(elements), loc="lower left", bbox_to_anchor=(0.25,1.02),
+        if i==1:
+            ax.legend(ncol=len(elements), loc="lower center", bbox_to_anchor=(0.5,1.02),
                         frameon=False)
-        ax.text(1e7,3e-25,'{} $\mathrm{{\AA}}$'.format(channel['name']),
-                fontsize=plt.rcParams['legend.fontsize'])
+        ax.text(6e7,1e-24,'{} $\mathrm{{\AA}}$'.format(channel['name']),
+                fontsize=plt.rcParams['legend.fontsize'],
+                horizontalalignment='right', verticalalignment='top')
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_ylim([2e-30,2e-24])

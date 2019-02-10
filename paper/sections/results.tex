@@ -130,8 +130,8 @@ fig = plt.figure(figsize=texfigure.figsize(
     height_ratio=1/3,
     figure_width_context='columnwidth'
 ))
-cax = fig.add_axes([0.125, 0.9, 0.775, 0.04])
 params = {'cmap': 'viridis', 'vmin': 1.5, 'vmax': 7.5, 'title': False, 'annotate': False}
+axes = []
 for i,h in enumerate(heating):
     m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
     m_r2 = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope_rsquared.fits'))
@@ -139,6 +139,7 @@ for i,h in enumerate(heating):
     m = m.submap(SkyCoord(Tx=-405*u.arcsec,Ty=-335*u.arcsec,frame=m.coordinate_frame),
                  SkyCoord(Tx=-210*u.arcsec,Ty=-140*u.arcsec,frame=m.coordinate_frame))
     ax = fig.add_subplot(1, len(heating), i+1, projection=m)
+    axes.append(ax)
     im = m.plot(axes=ax, **params)
     ax.grid(alpha=0)
     lon,lat = ax.coords
@@ -155,6 +156,12 @@ for i,h in enumerate(heating):
     ax.text(xtext.value, ytext.value, h.split('_')[0].capitalize(),
             color='k',fontsize=plt.rcParams['legend.fontsize'])
 plt.subplots_adjust(hspace=0.03,wspace=0.03)
+cax = fig.add_axes([
+    axes[0].get_position().get_points()[0,0],
+    axes[-1].get_position().get_points()[1,1]+0.02,
+    axes[-1].get_position().get_points()[1,0] - axes[0].get_position().get_points()[0,0],
+    0.04
+])
 cbar = fig.colorbar(im, cax=cax, orientation='horizontal');
 cbar.ax.xaxis.set_ticks_position('top')
 cbar.set_ticks([2,3,4,5,6,7])
@@ -188,9 +195,9 @@ params = {'bins': bins, 'histtype': 'step','density': False,
 peaks = {}
 for i,h in enumerate(heating):
     m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
-    m_r2 = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope_rsquared.fits'))
-    d = m.data[m_r2.data >= rsquared_threshold].flatten()
-    hist, _, _ = ax.hist(d, **params, color=heating_palette()[i],
+    m_rsquared = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope_rsquared.fits'))
+    m = Map(m.data, m.meta, mask=m_rsquared.data < rsquared_threshold)
+    hist, _, _ = ax.hist(m.data[~m.mask], **params, color=heating_palette()[i],
                          label=h.split('_')[0].capitalize())
     peaks[h] = f'{bin_centers[np.argmax(hist)]:.1f}'
 ax.set_xlim(1, 8);
@@ -274,7 +281,7 @@ for j,h in enumerate(heating):
                 color='k', fontsize=plt.rcParams['legend.fontsize'])
         if i==0 and j==0:
             pos = ax.get_position().get_points()
-            cax = fig.add_axes([pos[0,0], 0.89, len(heating)*(pos[1,0]-pos[0,0] + 0.0215), 0.02])
+            cax = fig.add_axes([pos[0,0], pos[1,1]+0.01, len(heating)*(pos[1,0]-pos[0,0] + 0.0215), 0.02])
             cbar = fig.colorbar(im, cax=cax, orientation='horizontal')
             cbar.ax.xaxis.set_ticks_position('top')
 plt.subplots_adjust(wspace=0.03,hspace=0.03)
@@ -343,7 +350,7 @@ for j,h in enumerate(heating):
                 color='w', fontsize=plt.rcParams['legend.fontsize'])
         if i==0 and j==0:
             pos = ax.get_position().get_points()
-            cax = fig.add_axes([pos[0,0], 0.89, len(heating)*(pos[1,0]-pos[0,0] + 0.0215), 0.02])
+            cax = fig.add_axes([pos[0,0], pos[1,1]+0.01, len(heating)*(pos[1,0]-pos[0,0] + 0.0215), 0.02])
             cbar = fig.colorbar(im, cax=cax, orientation='horizontal')
             cbar.ax.xaxis.set_ticks_position('top')
 plt.subplots_adjust(wspace=0.03, hspace=0.03)
