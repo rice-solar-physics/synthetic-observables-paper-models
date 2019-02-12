@@ -121,7 +121,7 @@ While there are clear differences in the AIA intensities between all three heati
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Emission Measure Slopes %%%%%%%%%%%%%%%%
 \subsection{Emission Measure Slopes}\label{em_slopes}
 
-As discussed in \autoref{introduction}, the emission measure slope is a useful quantity for understanding how frequently strands are reenergized. We compute emission measure distributions from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.2}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing \dem{} at each timestep, we compute the time-averaged intensity in each pixel of each channel and compute \dem{} only once. We compute the uncertainties on the intensities in each channel using the \texttt{aia\_bp\_estimate\_error.pro} procedure in SSW which incorporates uncertainties due to shot noise, read noise, dark subtraction, quantization, photometric calibration, and onboard compression. After computing \dem{} in each pixel using the regularized inversion procedure, we do a first-order polynomial fit to the log-transformed emission measure and temperature bin centers, $\log_{10}\mathrm{EM}\sim a\log_{10}T$, to calculate the emission measure slope, $a$. In \citetalias{barnes_understanding_2019-1}, we compare our modeled emission measure slopes to those derived from real AIA observations of NOAA 1158 using this same method.
+As discussed in \autoref{introduction}, the emission measure slope is a useful quantity for understanding how frequently strands are reenergized. We compute emission measure distributions from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.2}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing \dem{} at each timestep, we compute the time-averaged intensity in each pixel of each channel and compute \dem{} only once. We compute the uncertainties on the intensities in each channel using the \texttt{aia\_bp\_estimate\_error.pro} procedure in SSW which incorporates uncertainties due to shot noise, read noise, dark subtraction, quantization, photometric calibration, and onboard compression. After computing \dem{} in each pixel using the regularized inversion procedure, we fit a first-order polynomial to the log-transformed emission measure and temperature bin centers, $\log_{10}\mathrm{EM}\sim a\log_{10}T$, to calculate the emission measure slope, $a$. In \citetalias{barnes_understanding_2019-1}, we compare our modeled emission measure slopes to those derived from real AIA observations of NOAA 1158 using this same method.
 
 \begin{pycode}[manager_results]
 fig = plt.figure(figsize=texfigure.figsize(
@@ -188,31 +188,29 @@ fig = plt.figure(figsize=texfigure.figsize(
     figure_width_context='columnwidth',
 ))
 ax = fig.gca()
-bins = np.arange(0, 8, 0.05)
-bin_centers = (bins[:-1] + bins[1:])/2
-params = {'bins': bins, 'histtype': 'step','density': False, 
+params = {'bins': 'fd', 'histtype': 'step','density': True, 
           'lw': plt.rcParams['lines.linewidth']}
 peaks = {}
 for i,h in enumerate(heating):
     m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
     m_rsquared = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope_rsquared.fits'))
     m = Map(m.data, m.meta, mask=m_rsquared.data < rsquared_threshold)
-    hist, _, _ = ax.hist(m.data[~m.mask], **params, color=heating_palette()[i],
+    hist, bins, _ = ax.hist(m.data[~m.mask], **params, color=heating_palette()[i],
                          label=h.split('_')[0].capitalize())
+    bin_centers = (bins[:-1] + bins[1:])/2
     peaks[h] = f'{bin_centers[np.argmax(hist)]:.1f}'
 ax.set_xlim(1, 8);
-ax.set_ylim(0,4100);
 ax.xaxis.set_major_locator(FixedLocator([2, 3, 4, 5, 6, 7]))
-ax.yaxis.set_major_locator(FixedLocator(range(500,4000,500)))
+ax.yaxis.set_major_locator(MaxNLocator(nbins=7, prune='both'))
 ax.legend(frameon=False, loc=1)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['left'].set_bounds(ax.get_yticks()[0],ax.get_yticks()[-1])
 ax.spines['bottom'].set_bounds(ax.get_xticks()[0],ax.get_xticks()[-1])
 ax.set_xlabel(r'$a$')
-ax.set_ylabel(r'Number of Pixels')
+ax.set_ylabel(r'Number of Pixels (Normalized)')
 fig_slope_histograms = manager_results.save_figure('em-slope-histograms')
-fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The values of $a$ are binned between 0 and 8 with bin widths of 0.05.'
+fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The histogram bins are determined using the Freedman Diaconis estimator \citep{freedman_histogram_1981} as implemented in the Numpy package for array computation in Python \citep{oliphant_guide_2006} and each histogram is normalized such that the area under the histogram is equal to 1.'
 fig_slope_histograms.figure_width = r'\columnwidth'
 fig_slope_histograms.placement = ''
 fig_slope_histograms.fig_str = fig_str
@@ -294,7 +292,7 @@ fig_timelag_maps.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_timelag_maps|
 
-\autoref{fig:timelag-maps} shows $\tau_{AB}$ (\autoref{eq:timelag}) in each pixel of our simulated \AR{} for all heating scenarios listed in \autoref{tab:heating} and three selected channel pairs: 94-335 \AA{}, 211-131 \AA{}, and 193-1171 \AA{}. Blacks, blues, and greens correspond to negative timelags; reds, oranges, and yellows correspond to positive timelags; and olive green indicates zero timelag. The range of the colorbar is $\pm5000$ s. Note that the heating frequency decreases from left to right across each row. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), the pixel is masked and colored white.
+\autoref{fig:timelag-maps} shows $\tau_{AB}$ (\autoref{eq:timelag}) in each pixel of our simulated \AR{} for all heating scenarios listed in \autoref{tab:heating} and three selected channel pairs: 94-335 \AA{}, 211-131 \AA{}, and 193-171 \AA{}. Blacks, blues, and greens correspond to negative timelags; reds, oranges, and yellows correspond to positive timelags; and olive green indicates zero timelag. The range of the colorbar is $\pm5000$ s. Note that the heating frequency decreases from left to right across each row. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), the pixel is masked and colored white.
 
 Looking at the first two rows of \autoref{fig:timelag-maps}, we find that the positive timelags in the 211-131 \AA{} channel pair are significantly longer than those in the 94-335 \AA{} pair. In the temperature range $2.5<T<7.3$ MK (94-335 \AA{}), the dominant cooling mechanism is field-aligned thermal conduction while radiative cooling dominates in the range $0.6<T<2.5$ MK (211-131 \AA{}). Because thermal conduction is far more efficient at high temperatures, the plasma spends less time in the $[T_{335},T_{94}]$ temperature range than in $[T_{131},T_{211}]$. The 193-171 \AA{} timelags for the cooling case fall in the middle as radiative cooling also tends to dominate in this temperature interval ($0.9<T<1.5$ MK), but the separation in temperature space is smaller than the 211-131 \AA{} pair. In all cases, these differences in the magnitude of the positive timelags become more apparent at lower heating frequencies.
 
