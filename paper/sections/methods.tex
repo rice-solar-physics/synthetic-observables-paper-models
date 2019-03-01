@@ -190,7 +190,7 @@ for i,h in enumerate(heating):
     axes[1].plot(loop.time, loop.electron_temperature[:,0].to(u.MK), color=colors[i],)
     axes[2].plot(loop.time, loop.density[:,0]/1e9, color=colors[i],)
 # Legend
-axes[0].legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02),frameon=False,)
+axes[0].legend(ncol=3,loc="lower center", bbox_to_anchor=(0.5,1.02),frameon=False,)
 # Labels and limits
 axes[0].set_xlim(0,3e4)
 axes[0].set_yticks([5,15,25])
