@@ -6,7 +6,6 @@ manager_appendix = texfigure.Manager(
     fig_dir='figures',
     data_dir='data',
 )
-from formatting import qualitative_palette, heating_palette
 \end{pycode}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Appendix 1                                %
@@ -36,11 +35,11 @@ where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z
         \end{pmatrix}.
 \end{equation}
 
-Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_national_physical_laboratory_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
+Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
 \begin{equation*}
     \mathbf{F}_{j+1} = \mathbf{F}_j + \frac{\Delta t}{2}\left(\frac{\partial}{\partial t}\mathbf{F}_{j+1} + \frac{\partial}{\partial t}\mathbf{F}_j\right) + \mathcal{O}(\Delta t^2),
 \end{equation*}
-where $\Delta t$ is the timestep, $j$ indexes time, and $\mathcal{O}(\Delta t^2)$ denotes terms of second order or higher in $\Delta t$. Dropping the higher order terms and using \autoref{eq:nei_mat} yields an expression for $\mathbf{F}_{j+1}$,
+where $\Delta t$ is the timestep, $j$ indexes time, and $\mathcal{O}(\Delta t^2)$ denotes terms of second order or higher in $\Delta t$. Dropping the higher-order terms and using \autoref{eq:nei_mat} yields an expression for $\mathbf{F}_{j+1}$,
 \begin{equation}\label{eq:nei_iterative}
     \mathbf{F}_{j+1} \approx \left(\mathbb{I} - \frac{\Delta t}{2}\mathbf{A}_{j+1}\right)^{-1}\left(\mathbb{I} + \frac{\Delta t}{2}\mathbf{A}_{j}\right)\mathbf{F}_j,
 \end{equation}
@@ -167,15 +166,15 @@ where $\star$ and $\ast$ represent the correlation and convolution operators, re
 \begin{equation*}
     \mathcal{I}_c(t)=\frac{I_c(t)-\bar{I}_c}{\sigma_{c}},
 \end{equation*}
-is intensity of channel $c$ as a function of time scaled to zero mean and unit standard deviation. Taking the Fourier transform, $\mathscr{F}$, of both sides of \autoref{eq:cc_pre}, using the convolution theorem, and then taking the inverse Fourier transform, $\mathscr{F}^{-1}$, gives,
+is the intensity of channel $c$ as a function of time, $I(t)$, centered to zero mean and scaled to unit standard deviation. Taking the Fourier transform, $\mathscr{F}$, of both sides of \autoref{eq:cc_pre}, using the convolution theorem, and then taking the inverse Fourier transform, $\mathscr{F}^{-1}$, gives,
 \begin{align}\label{eq:cc}
     \fourier{\mathcal{C}_{AB}(\tau)} &= \fourier{\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)}, \nonumber\\
     &= \fourier{\mathcal{I}_A(-t)}\fourier{\mathcal{I}_B(t)}, \nonumber\\
     \mathcal{C}_{AB}(\tau) &= \inversefourier{\fourier{\mathcal{I}_A(-t)}\fourier{\mathcal{I}_B(t)}}.
 \end{align}
-Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields the same result as that of the correlation defined in section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{time lag} between channels $A$ and $B$ is defined as,
+Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields the same result as that of the correlation defined in Section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{time lag} between channels $A$ and $B$ is defined as,
 \begin{equation}\label{eq:timelag}
     \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau).
 \end{equation}
 
-By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{rocklin_dask_2015-1}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we can compute time lags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take approximately fourteen hours for all 15 channel pairs.
+By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{rocklin_dask_2015-1}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we can compute time lags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take $\approx14$ hours for all 15 channel pairs.

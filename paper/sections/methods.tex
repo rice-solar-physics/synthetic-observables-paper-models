@@ -12,7 +12,6 @@ manager_methods = texfigure.Manager(
     fig_dir='figures',
     data_dir='data'
 )
-from formatting import qualitative_palette, heating_palette
 \end{pycode}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Field Extrapolation %%%%%%%%%%%%%%%%%%%%
@@ -51,7 +50,7 @@ ax = fig.add_subplot(121, projection=hmi_map)
 hmi_map.plot(
     title=False,annotate=False,
     norm=matplotlib.colors.SymLogNorm(50, vmin=-7.5e2, vmax=7.5e2),
-    cmap=matplotlib.colors.LinearSegmentedColormap.from_list('', ['C0','w','C3'])
+    cmap='better_RdBu_r',
 )
 ax.grid(alpha=0)
 # HPC Axes
@@ -80,7 +79,12 @@ for l in ar.loops[::10]:
     ax.plot_coord(c, '-', color='w', lw=0.5, alpha=0.25)
 ax.grid(alpha=0)
 # HMI Contours
-hmi_map.draw_contours(u.Quantity([-5,5], '%'), axes=ax, colors=['C0', 'C3'], linewidths=0.75)
+hmi_map.draw_contours(
+    u.Quantity([-5,5], '%'),
+    axes=ax,
+    colors=[seaborn_deep[0], seaborn_deep[3]],
+    linewidths=0.75
+)
 # HPC Axes
 lon,lat = ax.coords[0],ax.coords[1]
 lon.set_ticks(color='w')
@@ -100,7 +104,7 @@ hgs_lon.set_ticks_visible(False)
 #                  Save figure                     #
 ####################################################
 fig_aia_hmi_lines = manager_methods.save_figure('magnetogram',)
-fig_aia_hmi_lines.caption = r'Active region NOAA 1158 on 12 February 2011 15:32:42 UTC as observed by HMI (left) and the 171 \AA{} channel of AIA (right). The gridlines show the heliographic longitude and latitude. The left panel shows the LOS magnetogram and the colorbar range is $\pm750$ G on a symmetrical log scale. In the right panel, 500 out of the total 5000 fieldlines are overlaid in white and the red and blue contours show the HMI LOS magnetogram at the $+5\%$ (red) and $-5\%$ (blue) levels.'
+fig_aia_hmi_lines.caption = r'Active region NOAA 1158 on 12 February 2011 15:32:42 UTC as observed by HMI (left) and the 171 \AA{} channel of AIA (right). The gridlines show the heliographic longitude and latitude. The left panel shows the LOS magnetogram and the colorbar range is $\pm750$ G on a symmetrical log scale. In the right panel, 500 out of the total 5000 field lines are overlaid in white and the red and blue contours show the HMI LOS magnetogram at the $+5\%$ (red) and $-5\%$ (blue) levels.'
 fig_aia_hmi_lines.figure_env_name = 'figure*'
 fig_aia_hmi_lines.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_aia_hmi_lines.placement = ''
@@ -108,7 +112,7 @@ fig_aia_hmi_lines.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_aia_hmi_lines|
 
-We choose \AR{} NOAA 1158, as observed by the Helioseismic Magnetic Imager \citep[HMI,][]{hoeksema_helioseismic_2014} on 12 February 2011 15:32:42 UTC, from the list of active regions studied by \citet{warren_systematic_2012}. The line-of-sight (LOS) magnetogram is shown in the left panel of \autoref{fig:magnetogram}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk center. 
+We choose \AR{} NOAA 1158, as observed by the Helioseismic Magnetic Imager \citep[HMI,][]{hoeksema_helioseismic_2014} on 12 February 2011 15:32:42 UTC, from the list of active regions studied by \citet{warren_systematic_2012}. The line-of-sight (LOS) magnetogram is shown in the left panel of \autoref{fig:magnetogram}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk-center.
 
 The HMI LOS magnetogram provides the lower boundary condition of the vector magnetic field (i.e. $B_z(x,y,z=0)$) for our field extrapolation. We crop the magnetogram to an area of 300\arcsec-by-300\arcsec centered on $(\py[manager_methods]|f'{ar.magnetogram.center.Tx.value:.2f}'|\arcsec,\py[manager_methods]|f'{ar.magnetogram.center.Ty.value:.2f}'|\arcsec)$ and resample the image to 100-by-100 pixels to reduce the computational cost of the field extrapolation. Additionally, we define our extrapolated field to have a dimension of 100 pixels and spatial extent of $0.3R_{\sun}$ in the $z-$direction such that each component of our extrapolated vector magnetic field $\vec{B}$ has dimensions $(100,100,100)$.
 
@@ -133,21 +137,21 @@ ax.spines['right'].set_visible(False)
 ax.spines['left'].set_bounds(ax.get_yticks()[1], ax.get_yticks()[-2])
 ax.spines['bottom'].set_bounds(ax.get_xticks()[1], ax.get_xticks()[-2])
 fig_loop_dist = manager_methods.save_figure('loops',)
-fig_loop_dist.caption = r'Distribution of footpoint-to-footpoint lengths (in Mm) of the 5000 fieldlines traced from the field extrapolation computed from the magnetogram of NOAA 1158.'
+fig_loop_dist.caption = r'Distribution of footpoint-to-footpoint lengths (in Mm) of the 5000 field lines traced from the field extrapolation computed from the magnetogram of NOAA 1158.'
 fig_loop_dist.figure_width = r'\columnwidth'
 fig_loop_dist.placement = ''
 fig_loop_dist.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_loop_dist|
 
-After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ fieldlines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed fieldlines in the range $20<L<300$ Mm, where $L$ is the full length of the fieldline. The right panel of \autoref{fig:magnetogram} shows a subset of the traced fieldlines overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are shown in red (positive) and blue (negative). A qualitative comparison between the extrapolated fieldlines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately capture the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of footpoint-to-footpoint lengths for all of the traced fieldlines.
+After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ field lines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed field lines in the range $20<L<300$ Mm, where $L$ is the full length of the fieldline. The right panel of \autoref{fig:magnetogram} shows a subset of the traced field lines overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are shown in red (positive polarity) and blue (negative polarity). A qualitative comparison between the extrapolated field lines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately capture the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of footpoint-to-footpoint lengths for all of the traced field lines.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Loop Hydrodynamics %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hydrodynamic Modeling}\label{loops}
 
 Due to the low-$\beta$ nature of the corona, we can treat each fieldline traced from the field extrapolation as a thermally-isolated strand. We use the Enthalpy-based Thermal Evolution of Loops model \citep[EBTEL,][]{klimchuk_highly_2008,cargill_enthalpy-based_2012,cargill_enthalpy-based_2012-1}, specifically the two-fluid version of EBTEL \citep{barnes_inference_2016}, to model the thermodynamic response of each strand. The two-fluid EBTEL code solves the time-dependent, two-fluid hydrodynamic equations spatially-integrated over the corona for the electron pressure and temperature, ion pressure and temperature, and density. The two-fluid EBTEL model accounts for radiative losses in both the transition region and corona, thermal conduction (including flux limiting), and binary Coulomb collisions between electrons and ions. The time-dependent heating input is configurable and can be deposited in the electrons and/or ions. A detailed description of the model and a complete derivation of the two-fluid EBTEL equations can be found in Appendix B of \citet{barnes_inference_2016}.
 
-For each of the $5\times10^3$ strands, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time to model the time-dependent, spatially-averaged coronal temperature and density. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the energy into the electrons. To map the results back to the extrapolated fieldlines, we assign a single temperature and density to every point along the strand at each timestep. Though EBTEL only computes spatially-averaged quantities in the corona, its efficiency allows us to calculate time-dependent solutions for many thousands of strands in a few minutes.
+For each of the $5\times10^3$ strands, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time to model the time-dependent, spatially-averaged coronal temperature and density. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the energy into the electrons. To map the results back to the extrapolated field lines, we assign a single temperature and density to every point along the strand at each timestep. Though EBTEL only computes spatially-averaged quantities in the corona, its efficiency allows us to calculate time-dependent solutions for many thousands of strands in a few minutes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Heating %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Heating Model}\label{heating}
@@ -254,7 +258,7 @@ In addition to these three multi-event heating models, we also run two single-ev
 
 \subsubsection{Atomic Physics}\label{atomic}
 
-For an optically thin, high-temperature, low-density plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
+For an optically-thin, high-temperature, low-density plasma, the radiated power per unit volume, or \textit{emissivity}, of a transition $\lambda_{ij}$ of an electron in ion $k$ of element $X$ is given by,
 \begin{equation}
     \label{eq:ppuv}
     P(\lambda_{ij}) = \frac{n_H}{n_e}\mathrm{Ab}(X)N_j(X,k)f_{X,k}A_{ji}\Delta E_{ji}n_e,
@@ -292,4 +296,4 @@ where $I_c$ is the intensity for a given pixel in channel $c$, $P(\lambda_{ij})$
 
 We compute the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} using the temperatures and densities from from our hydrodynamic models for all $5\times10^3$ strands. We then compute the LOS integral in \autoref{eq:intensity} by first converting the coordinates of each strand to a helioprojective (HPC) coordinate frame \citep[see][]{thompson_coordinate_2006} using the coordinate transformation functionality in Astropy \citep{the_astropy_collaboration_astropy_2018} combined with the solar coordinate frames provided by SunPy \citep{sunpy_community_sunpypython_2015}. This enables us to easily project our simulated \AR{} along any arbitrary LOS simply by changing the location of the observer that defines the HPC frame. Here, our HPC frame is defined by an observer at the position of the SDO spacecraft on 12 February 2011 15:32:42 UTC (i.e. the time of the HMI observation of NOAA 1158 shown in \autoref{fig:magnetogram}).
 
-Next, we use these transformed coordinates to compute a weighted two-dimensional histogram, using the integrand of \autoref{eq:intensity} at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument. For AIA, a single bin, representing a single pixel, has a width of 0.6\arcsec per pixel. Finally, we  apply a gaussian filter to the resulting histogram to emulate the point spread function of the instrument. We do this for each timestep, using a cadence of 10 s, and for each channel. For every heating scenario, this produces approximately $6(3\times10^4)/10\approx2\times10^4$ separate images.
+Next, we use these transformed coordinates to compute a weighted two-dimensional histogram, using the integrand of \autoref{eq:intensity} at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument. For AIA, a single bin, representing a single pixel, has a width of 0.6\arcsec-per-pixel. Finally, we  apply a gaussian filter to the resulting histogram to emulate the point spread function of the instrument. We do this for each timestep, using a cadence of 10 s, and for each channel. For every heating scenario, this produces approximately $6(3\times10^4)/10\approx2\times10^4$ separate images.

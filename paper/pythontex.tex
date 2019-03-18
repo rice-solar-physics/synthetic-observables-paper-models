@@ -33,6 +33,10 @@
 # Package imports
 import os
 import io
+import sys
+
+# Add Python dir to path
+sys.path.append('./python')
 
 import texfigure
 pytex.formatter = texfigure.repr_latex_formatter
@@ -55,6 +59,10 @@ import plasmapy.atomic
 
 import synthesizAR
 from synthesizAR.atomic import EmissionModel
+
+# Color palettes and maps
+from formatting import heating_palette, qualitative_palette
+from colormaps import *
 
 # Plot styling
 plt.rcParams['font.family'] = 'serif'

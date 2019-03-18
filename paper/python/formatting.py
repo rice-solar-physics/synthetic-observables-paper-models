@@ -1,18 +1,12 @@
 """
 Few simple utilities for formatting figures nicely
 """
-import numpy as np
 import seaborn
-import matplotlib.colors
 
 
 # Color palette for heating functions
 def heating_palette(n_colors=3):
     return seaborn.color_palette(palette='colorblind', n_colors=n_colors,)
-
-
-def heating_cmap():
-    return matplotlib.colors.ListedColormap(heating_palette(n_colors=3), N=3)
 
 
 # General qualitative color palette
@@ -62,7 +56,7 @@ def hist_step(ax, vals, bins, **kwargs):
     """
     ymin = ax.get_ylim()[0]
     ax.step(bins[:-1], vals, where='post', **kwargs)
-    ax.step(bins[-2:],[vals[-1],vals[-1]], where='pre', **kwargs)
+    ax.step(bins[-2:], [vals[-1], vals[-1]], where='pre', **kwargs)
     ax.vlines(bins[0], ymin, vals[0], **kwargs)
     ax.vlines(bins[-1], ymin, vals[-1], **kwargs)
     

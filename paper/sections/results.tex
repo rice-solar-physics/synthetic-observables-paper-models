@@ -12,18 +12,16 @@ manager_results = texfigure.Manager(
     fig_dir='figures',
     data_dir='data'
 )
-from formatting import qualitative_palette, heating_palette
-
 correlation_threshold = 0.1
 rsquared_threshold = 0.75
 \end{pycode}
 
-We forward model time-dependent AIA intensities using the method outlined in \autoref{forward} for the heating scenarios discussed in \autoref{heating}. We discuss the predicted intensities in \autoref{intensities} for all six EUV channels of AIA and all five heating models. In \autoref{em_slopes} and \autoref{timelags}, we show the results of the emission measure and time-lag analysis, respectively, applied to our simulated data. In \citetalias{barnes_understanding_2019-1}, we use these simulated observables to train a machine learning classification model to understand with which heating scenario the real data are most consistent.
+We forward model time-dependent AIA intensities using the method outlined in \autoref{forward} for the heating scenarios discussed in \autoref{heating}. We discuss the predicted intensities in \autoref{intensities} for all six EUV channels of AIA and all five heating models. In \autoref{em_slopes} and \autoref{timelags}, we show the results of the emission measure and time-lag analyses, respectively, as applied to our simulated data. In \citetalias{barnes_understanding_2019-1}, we use these simulated observables to train a machine learning classification model to understand with which heating scenario the real data are most consistent.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Intensities %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Intensities}\label{intensities}
 
-We compute the intensities for the 94, 131, 171, 193, 211, and 335 \AA{} channels of SDO/AIA using the procedure described in \autoref{forward}. We compute the intensity in each pixel of the model \AR{} over a total simulation period of $3\times10^4\,\mathrm{s}\,\approx8.3$ hours with the exception of the cooling case which is only run for $10^4$ s. For the high-, intermediate-, and low-frequency and ``random'' models, we discard the first and last $5\times10^3$ s of evolution to avoid any transient effects in the strand evolution associated with the initial conditions and the constraints placed on the energy, respectively. We complete this procedure for each of the five heating scenarios in \autoref{tab:heating}.
+We compute the intensities for the 94, 131, 171, 193, 211, and 335 \AA{} channels of SDO/AIA using the procedure described in \autoref{forward}. We compute the intensity in each pixel of the model \AR{} over a total simulation period of $3\times10^4\,\mathrm{s}\,\approx8.3$ hours with the exception of the cooling case which is only run for $10^4$ s. For the high-, intermediate-, low-frequency and ``random'' models, we discard the first and last $5\times10^3$ s of evolution to avoid any transient effects in the strand evolution associated with the initial conditions and the constraints placed on the energy, respectively. We complete this procedure for each of the five heating scenarios in \autoref{tab:heating}.
 
 \begin{pycode}[manager_results]
 fig = plt.figure(figsize=texfigure.figsize(
@@ -79,7 +77,7 @@ for i,f in enumerate(heating):
             cbar.ax.xaxis.set_ticks_position('top')
             cbar.outline.set_linewidth(0.5)
 fig_intensity_maps = manager_results.save_figure('intensity-map',)
-fig_intensity_maps.caption = r'Snapshots of intensity, in DN pixel$^{-1}$ s$^{-1}$, across the whole \AR{} at $t=15\times10^3$ s. The rows correspond to the three different heating frequencies and the columns are the six EUV channels of AIA. In each column, the colorbar is on a square root scale and is normalized between zero and the maximum intensity in the low-frequency case. The color tables are the standard AIA color tables as implemented in SunPy \citep{sunpy_community_sunpypython_2015}.'
+fig_intensity_maps.caption = r'Snapshots of intensity, in DN pixel$^{-1}$ s$^{-1}$, across the whole \AR{} at $t=15\times10^3$ s. The rows correspond to the three different heating frequencies and the columns are the six EUV channels of AIA. In each column, the colorbar is on a square-root scale and is normalized between zero and the maximum intensity in the low-frequency case. The color tables are the standard AIA color tables as implemented in SunPy \citep{sunpy_community_sunpypython_2015}.'
 fig_intensity_maps.figure_env_name = 'figure*'
 fig_intensity_maps.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_intensity_maps.placement = ''
@@ -87,7 +85,7 @@ fig_intensity_maps.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_intensity_maps|
 
-\autoref{fig:intensity-map} shows a snapshot of the intensity map at $t=15\times10^3$ s for each channel and for the high-, intermediate-, and low-frequency nanoflare heating cases. The rows correspond to the different heating scenarios while the columns show the six channels. In each column, the intensities are normalized to the maximum intensity in the low-frequency case and are on a square root scale. In general, we find that in the high-frequency intensity maps, individual loops are difficult to distinguish while in the low-frequency case individual loops appear bright relative to the surrounding emission. This distinguishability or ``fuzziness'' can be measured quantitatively as $\sigma_{I}/\bar{I}$, where $\sigma_{I}$ is the standard deviation taken over all pixels and $\bar{I}$ is the mean intensity \citep[Equation 11]{guarrasi_coronal_2010}. A larger value of $\sigma_{I}/\bar{I}$ indicates a greater degree of contrast and vice versa. $\sigma_{I}/\bar{I}$ for each channel and heating frequency is shown in \autoref{tab:fuzzy}. With the exception of 131 \AA{}, for every channel, the high-frequency case is the most ``fuzzy''. The low-frequency case shows the most contrast in each channel except 94 \AA{} though the margin between the low and intermediate cases is quite small in some cases.
+\autoref{fig:intensity-map} shows a snapshot of the intensity map at $t=15\times10^3$ s for each channel and for the high-, intermediate-, and low-frequency nanoflare heating cases. The rows correspond to the different heating scenarios while the columns show the six AIA EUV channels. In each column, the intensities are normalized to the maximum intensity in the low-frequency case and are on a square-root scale. In general, we find that in the high-frequency intensity maps, individual loops are difficult to distinguish while in the low-frequency case individual loops appear bright relative to the surrounding emission. This distinguishability or ``fuzziness'' can be measured quantitatively as $\sigma_{I}/\bar{I}$, where $\sigma_{I}$ is the standard deviation taken over all pixels and $\bar{I}$ is the mean intensity \citep[Equation 11]{guarrasi_coronal_2010}. A larger value of $\sigma_{I}/\bar{I}$ indicates a greater degree of contrast and vice versa. $\sigma_{I}/\bar{I}$ for each channel and heating frequency is shown in \autoref{tab:fuzzy}. With the exception of 131 \AA{}, for every channel, the high-frequency case is the most ``fuzzy''. The low-frequency case shows the most contrast in each channel except 94 \AA{} though the margin between the low and intermediate cases is quite small in some cases.
 
 \begin{pycode}[manager_results]
 # Define fuzziness function
@@ -112,9 +110,9 @@ with io.StringIO() as f:
 \end{pycode}
 \py[manager_results]|table|
 
-Looking at the first two columns of \autoref{fig:intensity-map}, we see that the intensity in the 94 and 131 \AA{} channels increases as the heating frequency decreases. Both channels are double peaked and have ``hot'' ($\approx7$ MK for 94 \AA{}, $\approx12$ MK for 131 \AA{}) and ``warm'' ($\approx1$ MK for 94 \AA{}, $\approx0.5$ MK for 131 \AA{}) components. In the case of high frequency heating, less energy is available per event such that few strands are heated to $>4$ MK. There is little emission in the 131 \AA{} channel as strands are not often permitted to cool to $\leq0.5$ MK either. However, in the low- and intermediate-frequency cases, we see several individual bright loops in both the 94 and 131 \AA{} channels as the heating rate is sufficient to produce ``hot'' (i.e. 8-10 MK) loops. We see only a few of these loops as the lifetime of this hot plasma is short due to the efficiency of thermal conduction. In contrast, the faint, diffuse component of the 94 \AA{} emission that is present in all three cases is due to the contribution of the ``warm'' component. 
+Looking at the first two columns of \autoref{fig:intensity-map}, we see that the intensity in the 94 and 131 \AA{} channels increases as the heating frequency decreases. Both channels are double peaked and have ``hot'' ($\approx7$ MK for 94 \AA{}, $\approx12$ MK for 131 \AA{}) and ``warm'' ($\approx1$ MK for 94 \AA{}, $\approx0.5$ MK for 131 \AA{}) components. In the case of high-frequency heating, less energy is available per event such that few strands are heated to $>4$ MK. There is little emission in the 131 \AA{} channel as strands are not often permitted to cool to $\leq0.5$ MK either. However, in the low- and intermediate-frequency cases, we see several individual bright loops in both the 94 and 131 \AA{} channels as the heating rate is sufficient to produce ``hot'' (i.e. 8-10 MK) loops. We see only a few of these loops as the lifetime of this hot plasma is short due to the efficiency of thermal conduction. In contrast, the faint, diffuse component of the 94 \AA{} emission that is present in all three cases is due to the contribution of the ``warm'' component. 
 
-Additionally, we find that the 171 \AA{} channel is dimmer for high frequency heating as the peak sensitivity of this channel is $<1$ MK and in the case of high frequency heating, strands are rarely allowed to cool below $1$ MK. In contrast, we note that the overall intensity in the 193, 211, and 335 \AA{} channels is relatively constant over heating frequency as compared to the three previous channels though individual loops do become more visible with decreasing heating frequency. This relative insensitivity is because the temperature response functions of these three channels all peak in between 1.5 MK and 2.5 MK. In the case of high-frequency heating, strands are being sustained near these temperatures while in the low-frequency case, strands are cooling through this temperature range. This is illustrated for a single strand in \autoref{fig:hydro-profiles}.
+Additionally, we find that the 171 \AA{} channel is dimmer for high-frequency heating as the peak sensitivity of this channel is $<1$ MK and in the case of high-frequency heating, strands are rarely allowed to cool below $1$ MK. In contrast, we note that the overall intensity in the 193, 211, and 335 \AA{} channels is relatively constant over heating frequency as compared to the three previous channels though individual loops do become more visible with decreasing heating frequency. This relative insensitivity is because the temperature response functions of these three channels all peak in between 1.5 MK and 2.5 MK. In the case of high-frequency heating, strands are being sustained near these temperatures while in the low-frequency case, strands are cooling through this temperature range. This is illustrated for a single strand in \autoref{fig:hydro-profiles}.
 
 While there are clear differences in the AIA intensities between all three heating frequencies, quantifying these differences is difficult due in part to the multidimensional nature of the intensity data. To better understand how observational signatures differ as a function of heating frequency, we need to find a reduced representation of our dataset that retains signatures of the underlying energy deposition. To this end, we compute two common observables: the emission measure slope (\autoref{em_slopes}) and the time lag (\autoref{timelags}).
 
@@ -176,9 +174,9 @@ fig_slope_maps.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_slope_maps|
 
-\autoref{fig:em-slope-maps} shows the resulting emission measure slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit \dem{} over bins in the temperature range $8\times10^{5}\,\textup{K}\le T< T_{peak}$, where $T_{peak}=\argmax_T\,\mathrm{EM}(T)$ is the temperature at which the emission measure distribution peaks. To assess the ``goodness-of-fit'' we use $r^2$, the correlation coefficient for the first-order polynomial fit, and mask pixels with $r^2<\py[manager_results]|rsquared_threshold|$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low frequency map (right panel) shows many values close to 2.
+\autoref{fig:em-slope-maps} shows the resulting emission measure slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit \dem{} over bins in the temperature range $8\times10^{5}\,\textup{K}\le T< T_{peak}$, where $T_{peak}=\argmax_T\,\mathrm{EM}(T)$ is the temperature at which the emission measure distribution peaks. To assess the ``goodness-of-fit'' we use $r^2$, the correlation coefficient for the first-order polynomial fit, and mask pixels with $r^2<\py[manager_results]|rsquared_threshold|$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low-frequency map (right panel) shows many values close to 2.
 
-As the heating frequency increases, the slopes become larger, indicating an increasingly isothermal emission measure distribution. The intermediate-frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2\lesssim a \lesssim 3.5$ while the high-frequency map (left panel) shows much steeper slopes, most $a\ge3.5$, and a much broader range of slopes, $3\lesssim a \lesssim 8$. Note that in the high frequency case, the slope varies considerably across the \AR{} while the distribution of $a$ appears more spatially uniform in the intermediate- and low-frequency cases.
+As the heating frequency increases, the slopes become larger, indicating an increasingly isothermal emission measure distribution. The intermediate-frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2\lesssim a \lesssim 3.5$ while the high-frequency map (left panel) shows much steeper slopes, with many $a\ge3.5$, and a much broader range of slopes, $3\lesssim a \lesssim 8$. Note that in the high-frequency case, the slope varies considerably across the \AR{} while the distribution of $a$ appears more spatially uniform in the intermediate- and low-frequency cases.
 
 Below $T(\mathrm{EM}_{max})$, \citet{cargill_implications_1994} noted that the \dem{} could be described by $\mathrm{EM}(T)\sim n^2\tau_{rad}$, where $\tau_{rad}\sim T^{1-\alpha}n^{-1}$ is the radiative cooling time. Additionally, \citet{bradshaw_cooling_2010} found that $T\sim n^{\ell}$, with $\ell\approx1$ for long loops and $\ell\approx2$ for short loops. Combining these expressions and assuming $\alpha=-1/2$ \citep[i.e. using the radiative losses of][]{rosner_dynamics_1978} gives $a\approx2$ for short loops and $a\approx2.5$ for long loops in the case of single nanoflares. We find that emission measure slopes produced by low-frequency nanoflares as shown in the right panel of \autoref{fig:em-slope-maps} are consistent with analytical results for single nanoflares.
 
@@ -219,7 +217,7 @@ fig_slope_histograms.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_slope_histograms|
 
-\autoref{fig:em-slope-histograms} shows histograms of the emission measure slopes for the high-, intermediate-, and low-frequency cases. We find that the low-frequency distribution peaks at $a\approx\py[manager_results]|peaks['low_frequency']|$, inside the range expected from analytical results (see above). The intermediate- and high-frequency distributions peak at successively higher values, $\approx\py[manager_results]|peaks['intermediate_frequency']|$ and $\approx\py[manager_results]|peaks['high_frequency']|$, respectively. While the low- and intermediate-frequency distributions are more narrowly distributed around their peak values, the distribution of slopes in the high-frequency case is relatively broad and has a positive skew towards steeper slopes. 
+\autoref{fig:em-slope-histograms} shows histograms of the emission measure slopes for the high-, intermediate-, and low-frequency cases. We find that the low-frequency distribution peaks at $a\approx\py[manager_results]|peaks['low_frequency']|$, inside the range expected from analytical results as noted above. The intermediate- and high-frequency distributions peak at successively higher values, $\approx\py[manager_results]|peaks['intermediate_frequency']|$ and $\approx\py[manager_results]|peaks['high_frequency']|$, respectively. While the low- and intermediate-frequency distributions are more narrowly distributed around their peak values, the distribution of slopes in the high-frequency case is relatively broad and has a positive skew towards steeper slopes. 
 
 Looking at the distribution of slopes across the entire \AR{} in \autoref{fig:em-slope-histograms}, we find that when the strands are heated infrequently (low frequency) such that each strand is allowed to cool fully prior to the next event, the distribution of slopes ``saturates'' in the range expected for single nanoflares. However, when the strands are reheated often (high frequency), the value of the slope becomes unsaturated and is subject to a range of infrequent cooling times due to the dependence of each waiting time on the power-law heating rate (see \autoref{heating}). These results are consistent with \citet{cargill_active_2014} who computed $\mathrm{EM}(T)=n^2L$ for a single strand for a range of heating frequencies and found $a$ converged to $\approx2$ for low frequency nanoflares and increased slowly with increasing heating frequency.
 
@@ -233,19 +231,17 @@ Next, we apply the time-lag method of \citet{viall_evidence_2012} to our synthet
 \subsubsection{Time-lag Maps}\label{timelag_maps}
 
 \begin{pycode}[manager_results]
-from synthesizAR.visualize import bgry_004_idl_cmap
 fig = plt.figure(figsize=texfigure.figsize(
     pytex,
     scale=1 if is_onecolumn() else 2,
     height_ratio=3/5,
     figure_width_context='columnwidth'
 ))
-heating += ['random', 'cooling']
+heating += [ 'random', 'cooling']
 file_format = os.path.join(manager_results.data_dir, '{}', '{}_{}_{}.fits')
 norm = matplotlib.colors.Normalize(vmin=-(5e3*u.s).to(u.s).value,
                                    vmax=(5e3*u.s).to(u.s).value)
-cmap = bgry_004_idl_cmap
-plot_params = {'title': False, 'annotate': False, 'norm': norm, 'cmap': cmap,}
+plot_params = {'title': False, 'annotate': False, 'norm': norm, 'cmap': 'idl_bgry_004',}
 selected_channel_pairs = [(94,335), (211,131), (193,171)]
 for j,h in enumerate(heating):
     for i,cp in enumerate(selected_channel_pairs):
@@ -288,7 +284,7 @@ for j,h in enumerate(heating):
             cbar.outline.set_linewidth(0.5)
 plt.subplots_adjust(wspace=0.03,hspace=0.03)
 fig_timelag_maps = manager_results.save_figure('timelag-maps',)
-fig_timelag_maps.caption = r'Time-lag maps for three different channel pairs for all five of the heating models described in \autoref{tab:heating}. The value of each pixel indicates the temporal offset, in seconds, which maximizes the cross-correlation (see \autoref{eq:timelag}). The rows indicate the different channel pairs and the columns indicate the varying heating scenarios. The range of the colorbar is $\pm5000$ s. If $\max{\mathcal{C}_{AB}}<0.1$, the pixel is masked and colored white.'
+fig_timelag_maps.caption = r'Time-lag maps for three different channel pairs for all five of the heating scenarios described in \autoref{tab:heating}. The value of each pixel indicates the temporal offset, in seconds, which maximizes the cross-correlation (\autoref{eq:timelag}). The rows indicate the different channel pairs and the columns indicate the varying heating scenarios. The range of the colorbar is $\pm5000$ s. If $\max{\mathcal{C}_{AB}}<0.1$, the pixel is masked and colored white.'
 fig_timelag_maps.figure_env_name = 'figure*'
 fig_timelag_maps.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_timelag_maps.placement = ''
@@ -359,7 +355,7 @@ for j,h in enumerate(heating):
             cbar.outline.set_linewidth(0.5)
 plt.subplots_adjust(wspace=0.03, hspace=0.03)
 fig_correlation_maps = manager_results.save_figure('correlation-maps',)
-fig_correlation_maps.caption = r'Same as \autoref{fig:timelag-maps} except each pixel shows the maximum cross-correlation, $\max\mathcal{C}_{AB}$.'
+fig_correlation_maps.caption = r'Same as \autoref{fig:timelag-maps} except each pixel shows the maximum cross-correlation, $\max\mathcal{C}_{AB}$ (see \autoref{eq:cc_pre}).'
 fig_correlation_maps.figure_env_name = 'figure*'
 fig_correlation_maps.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_correlation_maps.placement = ''
@@ -383,7 +379,6 @@ fig,axes = plt.subplots(
 bins = np.arange((-10e3*u.s).value, (10e3*u.s).value, (60*u.s).value)
 plot_params = {'histtype':'step', 'bins':bins,'log':True,
                 'lw': 1}
-from formatting import heating_palette
 colors = heating_palette(n_colors=len(heating))
 for i,cp in enumerate(channel_pairs):
     for j,h in enumerate(heating):
@@ -425,7 +420,7 @@ for i,cp in enumerate(channel_pairs):
 axes[len(channel_pairs)-1,0].set_xlabel(r'$\tau_{AB}$ [s]')
 plt.subplots_adjust(hspace=0,wspace=0)
 fig_timelag_histograms = manager_results.save_figure('timelag-histograms',)
-fig_timelag_histograms.caption = r'Histograms of time lags across the whole \AR{}. The rows indicate the different channel pairs and the columns indicate the different heating models. Colors are used to denote the various heating models. The black dashed line denotes zero timelag. The bin range is $\pm10^4$ s and the bin width is 60 s. As with the time-lag maps, we do not include time lags corresponding to $\max{\mathcal{C}_{AB}}<0.1$.'
+fig_timelag_histograms.caption = r'Histograms of time lags across the whole \AR{}. The rows indicate the different channel pairs and the columns indicate the different heating scenarios. Colors are used to denote the various heating scenarios. The black dashed line denotes zero time lag. The bin range is $\pm10^4$ s and the bin width is 60 s. As with the time-lag maps, we do not include time lags corresponding to $\max{\mathcal{C}_{AB}}<0.1$.'
 fig_timelag_histograms.figure_env_name = 'figure*'
 fig_timelag_histograms.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_timelag_histograms.placement = ''
@@ -433,6 +428,6 @@ fig_timelag_histograms.fig_str = fig_str
 \end{pycode}
 \py[manager_results]|fig_timelag_histograms|
 
-\autoref{fig:timelag-histograms} shows histograms of time lags for every channel pair and all five heating scenarios. The time lags are binned between $-10^4$ s and $+10^4$ s in 60 s bins. Each histogram is colored according the corresponding heating function, consistent with \autoref{fig:hydro-profiles} and \autoref{fig:em-slope-histograms}. The columns are arranged such that heating frequency decreases from left to right. We show each channel pair for all heating models to demonstrate how the distribution of time lags evolves as the heating frequency varies.
+\autoref{fig:timelag-histograms} shows histograms of time lags for every channel pair and all five heating scenarios. The time lags are binned between $-10^4$ s and $+10^4$ s in 60 s bins. Each histogram is colored according the corresponding heating scenario, consistent with \autoref{fig:hydro-profiles} and \autoref{fig:em-slope-histograms}. The columns are arranged such that heating frequency decreases from left to right. We show each channel pair for all heating models to demonstrate how the distribution of time lags evolves as the heating frequency varies.
 
-Note that as the frequency decreases (from left to right), the number of negative time lags decreases. In the ``cooling'' case, there are very few negative time lags except for channel pairs which include one or both of the double-peaked channels (94 \AA{} and 131 \AA{}). For those channel pairs which include 94 \AA{} and/or 131 \AA{}, we expect to find negative time lags, even in the single-nanoflare cooling case as our convention of ordering the ``hot'' channel first has been violated such that cooling plasma can lead to negative time lags. For the remaining channel pairs, negative time lags are associated with the heating and cooling cycle being interrupted by repeated events on a given strand.
+Note that as the heating frequency decreases (from left to right), the number of negative time lags decreases. In the ``cooling'' case, there are very few negative time lags except for channel pairs which include one or both of the double-peaked channels (94 \AA{} and 131 \AA{}). For those channel pairs which include 94 \AA{} and/or 131 \AA{}, we expect to find negative time lags, even in the single-nanoflare cooling case as our convention of ordering the ``hot'' channel first has been violated such that cooling plasma can lead to negative time lags. For the remaining channel pairs, negative time lags are associated with the heating and cooling cycle being interrupted by repeated events on a given strand.
