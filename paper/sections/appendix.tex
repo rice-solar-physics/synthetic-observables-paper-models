@@ -36,7 +36,7 @@ where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z
         \end{pmatrix}.
 \end{equation}
 
-Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
+Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_national_physical_laboratory_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
 \begin{equation*}
     \mathbf{F}_{j+1} = \mathbf{F}_j + \frac{\Delta t}{2}\left(\frac{\partial}{\partial t}\mathbf{F}_{j+1} + \frac{\partial}{\partial t}\mathbf{F}_j\right) + \mathcal{O}(\Delta t^2),
 \end{equation*}
@@ -88,7 +88,7 @@ with h5py.File(os.path.join(manager_appendix.data_dir, 'effective_aia_response.h
                     color=colors[j], ls='--', label=plasmapy.atomic.atomic_symbol(element),)
         if i==1:
             ax.legend(ncol=len(elements), loc="lower center", bbox_to_anchor=(0.5,1.02),
-                        frameon=False)
+                      frameon=False)
         ax.text(6e7,1e-24,'{} $\mathrm{{\AA}}$'.format(channel['name']),
                 fontsize=plt.rcParams['legend.fontsize'],
                 horizontalalignment='right', verticalalignment='top')
@@ -138,7 +138,7 @@ ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_xlim(1.75e5,1e7)
 ax.set_ylim(1.1e7,6e9)
-ax.legend(ncol=3,loc="lower left", bbox_to_anchor=(0.,1.02), frameon=False,)
+ax.legend(ncol=3,loc="lower center", bbox_to_anchor=(0.5, 1.02), frameon=False,)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.spines['bottom'].set_bounds(2e5,1e7)
@@ -157,9 +157,9 @@ Furthermore, during the evolution of a strand, the pressure is not constant for 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Appendix 3                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Computing Timelags}\label{timelag_details}
+\section{Computing Time Lags}\label{timelag_details}
 
-To find the associated timelag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the delay which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
+To find the associated time lag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the delay which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
 \begin{equation}\label{eq:cc_pre}
     \mathcal{C}_{AB}(\tau) = \mathcal{I}_A(t)\star\mathcal{I}_B(t) = \mathcal{I}_A(-t)\ast\mathcal{I}_B(t)
 \end{equation}
@@ -167,15 +167,15 @@ where $\star$ and $\ast$ represent the correlation and convolution operators, re
 \begin{equation*}
     \mathcal{I}_c(t)=\frac{I_c(t)-\bar{I}_c}{\sigma_{c}},
 \end{equation*}
-is intensity of channel $c$ as a function of time scaled to zero mean and unit standard deviation. Taking the Fourier transform of both sides of \autoref{eq:cc_pre}, using the convolution theorem, and then taking the inverse Fourier transform of both sides give,
+is intensity of channel $c$ as a function of time scaled to zero mean and unit standard deviation. Taking the Fourier transform, $\mathscr{F}$, of both sides of \autoref{eq:cc_pre}, using the convolution theorem, and then taking the inverse Fourier transform, $\mathscr{F}^{-1}$, gives,
 \begin{align}\label{eq:cc}
     \fourier{\mathcal{C}_{AB}(\tau)} &= \fourier{\mathcal{I}_A(-t)\ast\mathcal{I}_B(t)}, \nonumber\\
     &= \fourier{\mathcal{I}_A(-t)}\fourier{\mathcal{I}_B(t)}, \nonumber\\
     \mathcal{C}_{AB}(\tau) &= \inversefourier{\fourier{\mathcal{I}_A(-t)}\fourier{\mathcal{I}_B(t)}}.
 \end{align}
-Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields the same result as that of the correlation defined in section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{timelag} between channels $A$ and $B$ is defined as,
+Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields the same result as that of the correlation defined in section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{time lag} between channels $A$ and $B$ is defined as,
 \begin{equation}\label{eq:timelag}
     \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau).
 \end{equation}
 
-By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{dask_development_team_dask_2016}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we can compute timelags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take approximately fourteen hours for all 15 channel pairs.
+By exploiting the definition of the cross-correlation as given in \autoref{eq:cc}, we can leverage existing Fourier transform algorithms in order to compute $\mathcal{C}_{AB}$ in a scalable and efficient manner. For a 500-by-500 pixel active region observation and 15 possible channel pairs, we need to compute $\tau_{AB}$ nearly $4\times10^6$ times. We use the highly-optimized and thoroughly tested Fourier transform algorithms in the NumPy library for array computations \citep{oliphant_guide_2006} combined with the Dask library for parallel and distributed computing \citep{rocklin_dask_2015-1}. Using Dask, we are able to parallelize this operation over many cores such that, on a 64-core machine, we can compute time lags for all 15 channel pairs in every pixel of the \AR{} in less than ten minutes. For comparison, doing the same calculation by calling the IDL function \texttt{c\_correlate.pro} on each pixel in serial would take approximately fourteen hours for all 15 channel pairs.

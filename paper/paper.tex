@@ -20,7 +20,7 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[preprint2,linenumbers]{aastex62}
+\documentclass[preprint2]{aastex62}
 %% Include packages
 \usepackage{amsmath}
 \usepackage{mathrsfs}
@@ -59,7 +59,7 @@
 %                                   Abstract                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-To adequately constrain the frequency of energy deposition in \AR{} cores in the solar corona, systematic comparisons between detailed models and observational data are needed. In this paper, we describe a pipeline for forward modeling \AR{} emission using magnetic field extrapolations and field-aligned hydrodynamic models. We use this pipeline to predict time-dependent emission from \AR{} NOAA 1158 as observed by SDO/AIA for low-, intermediate-, and high-frequency nanoflares. In each pixel of our predicted multi-wavelength, time-dependent images, we compute two commonly-used diagnostics: the emission measure slope and the timelag. We find that signatures of the heating frequency persist in both of these diagnostics. In particular, our results show that the distribution of emission measure slopes narrows and the mean decreases with decreasing heating frequency and that the range of emission measure slopes is consistent with past observational and modeling work. Furthermore, we find that the timelag becomes increasingly spatially coherent with decreasing heating frequency while the distribution of timelags across the whole \AR{} becomes more broad with increasing heating frequency. In a follow up paper, we train a random forest classifier on these predicted diagnostics and use this model to classify real AIA observations of NOAA 1158 in terms of the underlying heating frequency.
+To adequately constrain the frequency of energy deposition in \AR{} cores in the solar corona, systematic comparisons between detailed models and observational data are needed. In this paper, we describe a pipeline for forward modeling \AR{} emission using magnetic field extrapolations and field-aligned hydrodynamic models. We use this pipeline to predict time-dependent emission from \AR{} NOAA 1158 as observed by SDO/AIA for low-, intermediate-, and high-frequency nanoflares. In each pixel of our predicted multi-wavelength, time-dependent images, we compute two commonly-used diagnostics: the emission measure slope and the time lag. We find that signatures of the heating frequency persist in both of these diagnostics. In particular, our results show that the distribution of emission measure slopes narrows and the mean decreases with decreasing heating frequency and that the range of emission measure slopes is consistent with past observational and modeling work. Furthermore, we find that the time lag becomes increasingly spatially coherent with decreasing heating frequency while the distribution of time lags across the whole \AR{} becomes more broad with increasing heating frequency. In a follow up paper, we train a random forest classifier on these predicted diagnostics and use this model to classify real AIA observations of NOAA 1158 in terms of the underlying heating frequency.
 \end{abstract}
 %% Keywords
 \keywords{Sun:corona, Sun:UV radiation, methods:numerical, hydrodynamics}
@@ -75,7 +75,7 @@ To adequately constrain the frequency of energy deposition in \AR{} cores in the
 %                                   Acknowledgment                            %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \acknowledgments
-CHIANTI is a collaborative project involving George Mason University, the University of Michigan (USA) and the University of Cambridge (UK). This research makes use of SunPy, an open-source and free community-developed solar data analysis package written in Python \citep{sunpy_community_sunpypython_2015}. SJB and WTB were supported by the NSF through CAREER award AGS-1450230. The work of NMV was supported by the NASA Supporting Research program.
+CHIANTI is a collaborative project involving George Mason University, the University of Michigan (USA) and the University of Cambridge (UK). This research makes use of SunPy, an open-source and free community-developed solar data analysis package written in Python \citep{sunpy_community_sunpypython_2015} and PlasmaPy, a community-developed open source core Python package for plasma physics \citep{plasmapy_community_2018_1238132}. SJB and WTB were supported by the NSF through CAREER award AGS-1450230. The work of NMV was supported by the NASA Supporting Research program.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Facilities                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,17 +85,18 @@ CHIANTI is a collaborative project involving George Mason University, the Univer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \software{
     Astropy \citep{the_astropy_collaboration_astropy_2018},
-	Dask\citep{dask_development_team_dask_2016},
+	Dask\citep{rocklin_dask_2015-1},
 	demreg\citep[\href{https://github.com/ianan/demreg}{github.com/ianan/demreg}]{hannah_differential_2012},
 	ebtel++\citep{barnes_inference_2016},
 	Matplotlib\citep{hunter_matplotlib_2007},
 	Numba\citep{lam_numba_2015},
 	NumPy\citep{oliphant_guide_2006},
+	PlasmaPy\citep{plasmapy_community_2018_1238132},
 	PythonTeX\citep{poore_pythontex_2015},
-	seaborn\citep{waskom_seaborn_2018},
+	seaborn\citep{michael_waskom_2018_1313201},
 	scipy\citep{jones_scipy_2001},
 	SolarSoftware\citep{freeland_data_1998},
-    SunPy\citep{mumford_sunpy/sunpy_2018},
+    SunPy\citep{stuart_mumford_2018_2155946},
     yt\citep{turk_yt_2011}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +108,7 @@ CHIANTI is a collaborative project involving George Mason University, the Univer
 %                                   References                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{aasjournal.bst}
-\bibliography{references.bib}
+\bibliography{references.bib,software.bib}
 
 % List all tracked changes
 \listofchanges
