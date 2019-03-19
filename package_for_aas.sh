@@ -33,9 +33,11 @@ bibtex paper
 pdflatex -synctex=1 -interaction=nonstopmode -file-line-error paper.tex
 pdflatex -synctex=1 -interaction=nonstopmode -file-line-error paper.tex
 
-# Remove Pythontex dependence
+# Remove Pythontex dependence and fix figure paths
 depythontex paper.tex --overwrite -o paper.tex
 python fix_figure_paths.py -i paper.tex -o paper.tex
+cp figures/* .
+rm -r figures
 
 # Build PDF again without pythontex
 pdflatex -synctex=1 -interaction=nonstopmode -file-line-error paper.tex

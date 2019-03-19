@@ -16,9 +16,8 @@ def fix_figure_paths(input_file, output_file):
     for i, l in enumerate(lines):
         if 'includegraphics' in l:
             r = parse.parse('\includegraphics[{}]{{{}}}', l.strip())
-            path, fig_filename = os.path.split(r[1])
-            _, path = os.path.split(path)
-            new_line = f'   \includegraphics[{r[0]}]{{{os.path.join(path, fig_filename)}}}\n'
+            _, fig_filename = os.path.split(r[1])
+            new_line = f'   \includegraphics[{r[0]}]{{{fig_filename}}}\n'
             lines[i] = new_line
 
     with open(output_file[0], 'w') as f:
