@@ -2,9 +2,9 @@
 
 ## Authors
 
-Will Barnes, Department of Physics & Astronomy, Rice University
-Stephen Bradshaw, Department of Physics & Astronomy, Rice University
-Nicholeen Viall, NASA Goddard Space Flight Center
+* Will Barnes, *Department of Physics & Astronomy, Rice University*
+* Stephen Bradshaw, *Department of Physics & Astronomy, Rice University*
+* Nicholeen Viall, *NASA Goddard Space Flight Center*
 
 ## Abstract
 
