@@ -25,8 +25,8 @@
 \usepackage{amsmath}
 \usepackage{mathrsfs}
 \usepackage{calc}
-\usepackage{pgf}
 \include{pythontex}
+
 %% Custom commands
 \DeclareMathOperator*{\argmax}{argmax}
 \newcommand{\fourier}[1]{\mathscr{F}\left\{#1\right\}}
@@ -39,6 +39,7 @@
 \renewcommand{\subsubsectionautorefname}{Section}
 %% Paper Aliases
 \defcitealias{barnes_understanding_2019-1}{Paper II}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Body                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,6 +56,7 @@
 \affiliation{NASA Goddard Space Flight Center, Greenbelt, MD 20771}
 \correspondingauthor{W. T. Barnes}
 \email{will.t.barnes@rice.edu}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Abstract                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,6 +65,7 @@ To adequately constrain the frequency of energy deposition in \AR{} cores in the
 \end{abstract}
 %% Keywords
 \keywords{Sun:corona, Sun:UV radiation, methods:numerical, hydrodynamics}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Sections                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,15 +74,18 @@ To adequately constrain the frequency of energy deposition in \AR{} cores in the
 \input{sections/results}
 \input{sections/discussion}
 \input{sections/summary}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Acknowledgment                            %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \acknowledgments
 CHIANTI is a collaborative project involving George Mason University (USA), the University of Michigan (USA), University of Cambridge (UK), and NASA Goddard Space Flight Center (USA). This research makes use of SunPy, an open-source and free community-developed solar data analysis package written in Python \citep{sunpy_community_sunpypython_2015} and PlasmaPy, a community-developed open source core Python package for plasma physics \citep{plasmapy_community_2018_1238132}. SJB and WTB were supported by the NSF through CAREER award AGS-1450230. The work of NMV was supported by the NASA Supporting Research program. The complete source of this paper, including the data, code, and instructions for running the forward modeling code, can be found at \href{https://github.com/rice-solar-physics/synthetic-observables-paper-models}{github.com/rice-solar-physics/synthetic-observables-paper-models}.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Facilities                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \facility{SDO(AIA,HMI)}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Software                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,18 +105,17 @@ CHIANTI is a collaborative project involving George Mason University (USA), the 
     SunPy\citep{stuart_mumford_2018_2155946},
     yt\citep{turk_yt_2011}
 }
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Appendix                                  %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix
 \input{sections/appendix}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   References                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{aasjournal.bst}
 \bibliography{references.bib,software.bib}
-
-% List all tracked changes
-\listofchanges
 
 \end{document}
