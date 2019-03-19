@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Package up paper files for submission to AAS/ApJ
-# The paper has to be run first to generate the needed pythontex files
+# Package up paper files for submission to ApJ, arXiv, etc.
+# Usage:
+#   ./package_for_aas.sh /path/to/top/level/dir
 
 # Create target directory
 DIR_NAME="aas-submission"
