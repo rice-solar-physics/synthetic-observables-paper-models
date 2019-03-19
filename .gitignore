@@ -293,6 +293,7 @@ sympy-plots-for-*.tex/
 
 # pythontex
 *.pytxcode
+*.depytx
 pythontex-files-*/
 
 # thmtools
