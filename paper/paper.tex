@@ -1,3 +1,4 @@
+% spell-checker: disable
 %% Use AASTeX class, version 6.1
 %% Allow for additional class options such as,
 %%  twocolumn   : two text columns, 10 point font, single spaced article.
@@ -20,7 +21,7 @@
 %%                 affiliation information after each name. Creates a much
 %%                 long author list but may be desirable for short author papers
 
-\documentclass[preprint2]{aastex62}
+\documentclass[preprint2,linenumbers,trackchanges]{aastex62}
 %% Include packages
 \usepackage{amsmath}
 \usepackage{mathrsfs}
@@ -51,12 +52,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Understanding Heating in Active Region Cores through Machine Learning I. Numerical Modeling and Predicted Observables}
 \author[0000-0001-9642-6089]{W. T. Barnes}
+\affiliation{Department of Physics \& Astronomy, Rice University, Houston, TX 77005-1827}
+\affiliation{Lockheed Martin Solar \& Astrophysics Laboratory, Palo Alto, CA 94304}
+\affiliation{Bay Area Environmental Research Institute, Petaluma, CA 94952}
 \author[0000-0002-3300-6041]{S. J. Bradshaw}
 \affiliation{Department of Physics \& Astronomy, Rice University, Houston, TX 77005-1827}
 \author[0000-0003-1692-1704]{N. M. Viall}
 \affiliation{NASA Goddard Space Flight Center, Greenbelt, MD 20771}
 \correspondingauthor{W. T. Barnes}
-\email{will.t.barnes@rice.edu}
+\email{barnes@baeri.org}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Abstract                                  %
@@ -119,4 +123,5 @@ CHIANTI is a collaborative project involving George Mason University (USA), the 
 \bibliographystyle{aasjournal.bst}
 \bibliography{references.bib,software.bib}
 
+\listofchanges
 \end{document}
