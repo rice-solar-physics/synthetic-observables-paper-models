@@ -5,6 +5,7 @@
 
 In order to understand how signatures of the heating frequency are manifested in the emission measure slope and time lag, we predict the emission over the entire \AR{} as observed by SDO/AIA for a range of nanoflare heating frequencies. To do this, we have constructed an advanced forward modeling pipeline through a combination of magnetic field extrapolations, field-aligned hydrodynamic simulations, and atomic data\footnote{Our forward modeling pipeline, called synthesizAR, is modular and flexible and written entirely in Python. The complete source code, along with installation instructions and documentation, are available here: \href{https://github.com/wtbarnes/synthesizAR}{github.com/wtbarnes/synthesizAR}}. In the following section, we discuss each step of our pipeline in detail.
 
+%spell-checker: disable
 \begin{pycode}[manager_methods]
 manager_methods = texfigure.Manager(
     pytex, './',
@@ -13,10 +14,12 @@ manager_methods = texfigure.Manager(
     data_dir='data'
 )
 \end{pycode}
+%spell-checker: enable
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Field Extrapolation %%%%%%%%%%%%%%%%%%%%
 \subsection{Magnetic Field Extrapolation}\label{field}
 
+%spell-checker: disable
 \begin{pycode}[manager_methods]
 from sunpy.instr.aia import aiaprep
 from sunpy.physics.differential_rotation import diffrot_map
@@ -111,11 +114,13 @@ fig_aia_hmi_lines.placement = ''
 fig_aia_hmi_lines.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_aia_hmi_lines|
+%spell-checker:enable
 
 We choose \AR{} NOAA 1158, as observed by the Helioseismic Magnetic Imager \citep[HMI,][]{hoeksema_helioseismic_2014} on 12 February 2011 15:32:42 UTC, from the list of active regions studied by \citet{warren_systematic_2012}. The line-of-sight (LOS) magnetogram is shown in the left panel of \autoref{fig:magnetogram}. We model the geometry of \AR{} NOAA 1158 by computing the three-dimensional magnetic field using the oblique potential field extrapolation method of \citet{schmidt_observable_1964} as outlined in \citet[section 3]{sakurai_greens_1982}. The extrapolation technique of \citeauthor{schmidt_observable_1964} is well-suited for our purposes due to its simplicity and efficiency though we note it is only applicable on the scale of an \AR{}. We include the oblique correction to account for the fact that the \AR{} is off of disk-center.
 
 The HMI LOS magnetogram provides the lower boundary condition of the vector magnetic field (i.e. $B_z(x,y,z=0)$) for our field extrapolation. We crop the magnetogram to an area of 300\arcsec-by-300\arcsec centered on $(\py[manager_methods]|f'{ar.magnetogram.center.Tx.value:.2f}'|\arcsec,\py[manager_methods]|f'{ar.magnetogram.center.Ty.value:.2f}'|\arcsec)$ and resample the image to 100-by-100 pixels to reduce the computational cost of the field extrapolation. Additionally, we define our extrapolated field to have a dimension of 100 pixels and spatial extent of $0.3R_{\sun}$ in the $z-$direction such that each component of our extrapolated vector magnetic field $\vec{B}$ has dimensions $(100,100,100)$.
 
+%spell-checker: disable
 \begin{pycode}[manager_methods]
 fig = plt.figure(figsize=texfigure.figsize(
     pytex,
@@ -143,15 +148,16 @@ fig_loop_dist.placement = ''
 fig_loop_dist.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_loop_dist|
+%spell-checker:enable
 
-After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ field lines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed field lines in the range $20<L<300$ Mm, where $L$ is the full length of the fieldline. The right panel of \autoref{fig:magnetogram} shows a subset of the traced field lines overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are shown in red (positive polarity) and blue (negative polarity). A qualitative comparison between the extrapolated field lines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately capture the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of footpoint-to-footpoint lengths for all of the traced field lines.
+After computing the three-dimensional vector field from the observed magnetogram, we trace $5\times10^3$ field lines through the extrapolated volume using the streamline tracing functionality in the yt software package \citep{turk_yt_2011}. We choose only closed field lines in the range $20<L<300$ Mm, where $L$ is the full length of the field line. The right panel of \autoref{fig:magnetogram} shows a subset of the traced field lines overlaid on the observed AIA 171 \AA{} image of NOAA 1158. Contours from the observed HMI LOS magnetogram are shown in red (positive polarity) and blue (negative polarity). A qualitative comparison between the extrapolated field lines and the loops visible in the AIA 171 \AA{} image reveals that our field extrapolation and line tracing adequately capture the three-dimensional geometry of the \AR{}. \autoref{fig:loops} shows the distribution of footpoint-to-footpoint lengths for all of the traced field lines.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Loop Hydrodynamics %%%%%%%%%%%%%%%%%%%%%%
 \subsection{Hydrodynamic Modeling}\label{loops}
 
-Due to the low-$\beta$ nature of the corona, we can treat each fieldline traced from the field extrapolation as a thermally-isolated strand. We use the Enthalpy-based Thermal Evolution of Loops model \citep[EBTEL,][]{klimchuk_highly_2008,cargill_enthalpy-based_2012,cargill_enthalpy-based_2012-1}, specifically the two-fluid version of EBTEL \citep{barnes_inference_2016}, to model the thermodynamic response of each strand. The two-fluid EBTEL code solves the time-dependent, two-fluid hydrodynamic equations spatially-integrated over the corona for the electron pressure and temperature, ion pressure and temperature, and density. The two-fluid EBTEL model accounts for radiative losses in both the transition region and corona, thermal conduction (including flux limiting), and binary Coulomb collisions between electrons and ions. The time-dependent heating input is configurable and can be deposited in the electrons and/or ions. A detailed description of the model and a complete derivation of the two-fluid EBTEL equations can be found in Appendix B of \citet{barnes_inference_2016}.
+Due to the low-$\beta$ nature of the corona, we can treat each field line traced from the field extrapolation as a thermally-isolated strand. We use the Enthalpy-based Thermal Evolution of Loops model \citep[EBTEL,][]{klimchuk_highly_2008,cargill_enthalpy-based_2012,cargill_enthalpy-based_2012-1}, specifically the two-fluid version of EBTEL \citep{barnes_inference_2016}, to model the thermodynamic response of each strand. The two-fluid EBTEL code solves the time-dependent, two-fluid hydrodynamic equations spatially-integrated over the corona for the electron pressure and temperature, ion pressure and temperature, and density. The two-fluid EBTEL model accounts for radiative losses in both the transition region and corona, thermal conduction (including flux limiting), and binary Coulomb collisions between electrons and ions. The time-dependent heating input is configurable and can be deposited in the electrons and/or ions. A detailed description of the model and a complete derivation of the two-fluid EBTEL equations can be found in Appendix B of \citet{barnes_inference_2016}.
 
-For each of the $5\times10^3$ strands, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time to model the time-dependent, spatially-averaged coronal temperature and density. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the energy into the electrons. To map the results back to the extrapolated field lines, we assign a single temperature and density to every point along the strand at each timestep. Though EBTEL only computes spatially-averaged quantities in the corona, its efficiency allows us to calculate time-dependent solutions for many thousands of strands in a few minutes.
+For each of the $5\times10^3$ strands, we run a separate instance of the two-fluid EBTEL code for $3\times10^4$ s of simulation time to model the time-dependent, spatially-averaged coronal temperature and density. For each simulation, the loop length is determined from the field extrapolation. We include flux limiting in the heat flux calculation and use a flux limiter constant of 1 \citep[see Eqs. 21 and 22 of][]{klimchuk_highly_2008}. Additionally, we choose to deposit all of the energy into the electrons. To map the results back to the extrapolated field lines, we assign a single temperature and density to every point along the strand at each time step. Though EBTEL only computes spatially-averaged quantities in the corona, its efficiency allows us to calculate time-dependent solutions for many thousands of strands in a few minutes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Heating %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Heating Model}\label{heating}
@@ -171,6 +177,7 @@ In this work we explore three different heating scenarios: low-, intermediate-, 
 
 We choose to parameterize the heating in terms of the cooling time rather than an absolute waiting time as $\tau_{\textup{cool}}\sim L$ \citep[see appendix of][]{cargill_active_2014}. While a waiting time of 2000 s might correspond to low-frequency heating for a 20 Mm strand, it would correspond to high-frequency heating in the case of a 150 Mm strand. By parameterizing the heating in this way, we ensure that all strands in the \AR{} are heated at the same frequency relative to their cooling time. \autoref{fig:hydro-profiles} shows the heating rate, electron temperature, and density as a function of time, for a single strand, for the three heating scenarios listed above. 
 
+% spell-checker: disable %
 \begin{pycode}[manager_methods]
 fig,axes = plt.subplots(
     3, 1, sharex=True,
@@ -224,6 +231,7 @@ fig_hydro_profiles.placement = ''
 fig_hydro_profiles.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_hydro_profiles|
+% spell-checker: enable %
 
 For a single impulsive event $i$ with a triangular temporal profile of duration $\tau_{\textup{event}}$, the energy density is $E_i=\tau_{\textup{event}}q_i/2$. Summing over all events on all strands that comprise the \AR{} gives the total energy flux injected into the \AR{},
 \begin{equation}
@@ -265,10 +273,11 @@ For an optically-thin, high-temperature, low-density plasma, the radiated power 
 \end{equation}
 where $N_j$ is the fractional energy level population of excited state $j$, $f_{X,k}$ is the fractional population of ion $k$, $\mathrm{Ab}(X)$ is the abundance of element $X$ relative to hydrogen, $n_H/n_e\approx0.83$ is the ratio of hydrogen and electron number densities, $A_{ji}$ is the Einstein coefficient, and $\Delta E_{ji}=hc/\lambda_{ij}$ is the energy of the emitted photon \citep[see][]{mason_spectroscopic_1994,del_zanna_solar_2018}. To compute \autoref{eq:ppuv}, we use version 8.0.6 of the CHIANTI atomic database \citep{dere_chianti_1997,young_chianti_2016}. We use the abundances of \citet{feldman_potential_1992} as provided by CHIANTI. For each atomic transition, $A_{ji}$ and $\lambda_{ji}$ can be looked up in the database. To find $N_j$, we solve the level-balance equations for ion $k$, including the relevant excitation and de-excitation processes as provided by CHIANTI \citep[see section 3.3 of][]{del_zanna_solar_2018}.
 
-The ion population fractions, $f_{X,k}$, provided by CHIANTI assume ionization equilibrium (i.e. the ionization and recombination rates are always in balance). However, in the rarefied solar corona, where the plasma is likely heated impulsively, it is not gauranteed that the ionization timescale is less than the heating timescale such that the ionization state may not be representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. To properly account for this effect, we compute $f_{X,k}$ by solving the time-dependent ion population equations for each element using the ionization and recombination rates provided by CHIANTI. The details of this calculation are provided in \autoref{nei}.
+The ion population fractions, $f_{X,k}$, provided by CHIANTI assume ionization equilibrium (i.e. the ionization and recombination rates are always in balance). However, in the rarefied solar corona, where the plasma is likely heated impulsively, it is not guaranteed that the ionization timescale is less than the heating timescale such that the ionization state may not be representative of the electron temperature \citep{bradshaw_explosive_2006,reale_nonequilibrium_2008,bradshaw_numerical_2009}. To properly account for this effect, we compute $f_{X,k}$ by solving the time-dependent ion population equations for each element using the ionization and recombination rates provided by CHIANTI. The details of this calculation are provided in \autoref{nei}.
 
 \subsubsection{Instrument Effects}\label{instrument}
 
+% spell-checker: disable %
 \begin{pycode}[manager_methods]
 em = EmissionModel.restore(os.path.join(manager_methods.data_dir, 'base_emission_model.json'))
 data = {'Element': [], 'Number of Ions': [], 'Number of Transitions': [],}
@@ -287,6 +296,7 @@ with io.StringIO() as f:
     table = f.getvalue()
 \end{pycode}
 \py[manager_methods]|table|
+% spell-checker: enable %
 
 We combine \autoref{eq:ppuv} with the wavelength response function of the instrument to model the intensity as it would be observed by AIA,
 \begin{equation}\label{eq:intensity}
@@ -296,4 +306,4 @@ where $I_c$ is the intensity for a given pixel in channel $c$, $P(\lambda_{ij})$
 
 We compute the emissivity according to \autoref{eq:ppuv} for all of the transitions in \autoref{tab:elements} using the temperatures and densities from from our hydrodynamic models for all $5\times10^3$ strands. We then compute the LOS integral in \autoref{eq:intensity} by first converting the coordinates of each strand to a helioprojective (HPC) coordinate frame \citep[see][]{thompson_coordinate_2006} using the coordinate transformation functionality in Astropy \citep{the_astropy_collaboration_astropy_2018} combined with the solar coordinate frames provided by SunPy \citep{sunpy_community_sunpypython_2015}. This enables us to easily project our simulated \AR{} along any arbitrary LOS simply by changing the location of the observer that defines the HPC frame. Here, our HPC frame is defined by an observer at the position of the SDO spacecraft on 12 February 2011 15:32:42 UTC (i.e. the time of the HMI observation of NOAA 1158 shown in \autoref{fig:magnetogram}).
 
-Next, we use these transformed coordinates to compute a weighted two-dimensional histogram, using the integrand of \autoref{eq:intensity} at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument. For AIA, a single bin, representing a single pixel, has a width of 0.6\arcsec-per-pixel. Finally, we  apply a gaussian filter to the resulting histogram to emulate the point spread function of the instrument. We do this for each timestep, using a cadence of 10 s, and for each channel. For every heating scenario, this produces approximately $6(3\times10^4)/10\approx2\times10^4$ separate images.
+Next, we use these transformed coordinates to compute a weighted two-dimensional histogram, using the integrand of \autoref{eq:intensity} at each coordinate as the weights. We construct the histogram such that the bin widths are consistent with the spatial resolution of the instrument. For AIA, a single bin, representing a single pixel, has a width of 0.6\arcsec-per-pixel. Finally, we  apply a gaussian filter to the resulting histogram to emulate the point spread function of the instrument. We do this for each time step, using a cadence of 10 s, and for each channel. For every heating scenario, this produces approximately $6(3\times10^4)/10\approx2\times10^4$ separate images.

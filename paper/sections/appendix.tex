@@ -1,3 +1,4 @@
+% spell-checker: disable %
 \begin{pycode}[manager_appendix]
 manager_appendix = texfigure.Manager(
     pytex, './',
@@ -7,6 +8,7 @@ manager_appendix = texfigure.Manager(
     data_dir='data',
 )
 \end{pycode}
+% spell-checker: enable %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Appendix 1                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -35,23 +37,24 @@ where $\mathbf{F}=(f_1,f_2,\ldots,f_k,\ldots,f_{Z+1})$ and $\mathbf{A}$ is a ${Z
         \end{pmatrix}.
 \end{equation}
 
-Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of timestep \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
+Due to drastic changes in the ionization and recombination rates with temperature, the above system of equations is very ``stiff,'' making explicit schemes extremely sensitive to the choice of time step \citep{macneice_numerical_1984,bradshaw_numerical_2009}. To solve \autoref{eq:nei_mat}, we use the ``deferred correction'' method of \citet{npl_modern_1961}, as pointed out by \citet{macneice_numerical_1984},
 \begin{equation*}
     \mathbf{F}_{j+1} = \mathbf{F}_j + \frac{\Delta t}{2}\left(\frac{\partial}{\partial t}\mathbf{F}_{j+1} + \frac{\partial}{\partial t}\mathbf{F}_j\right) + \mathcal{O}(\Delta t^2),
 \end{equation*}
-where $\Delta t$ is the timestep, $j$ indexes time, and $\mathcal{O}(\Delta t^2)$ denotes terms of second order or higher in $\Delta t$. Dropping the higher-order terms and using \autoref{eq:nei_mat} yields an expression for $\mathbf{F}_{j+1}$,
+where $\Delta t$ is the time step, $j$ indexes time, and $\mathcal{O}(\Delta t^2)$ denotes terms of second order or higher in $\Delta t$. Dropping the higher-order terms and using \autoref{eq:nei_mat} yields an expression for $\mathbf{F}_{j+1}$,
 \begin{equation}\label{eq:nei_iterative}
     \mathbf{F}_{j+1} \approx \left(\mathbb{I} - \frac{\Delta t}{2}\mathbf{A}_{j+1}\right)^{-1}\left(\mathbb{I} + \frac{\Delta t}{2}\mathbf{A}_{j}\right)\mathbf{F}_j,
 \end{equation}
 where $\mathbb{I}$ is the identity matrix. To solve \autoref{eq:nei_mat}, we need only compute $\mathbf{A}_j$ for each $T(t_j)$, set $\mathbf{F}_0$ to the equilibrium ion populations, and iteratively compute \autoref{eq:nei_iterative} for all $j$. We solve \autoref{eq:nei_mat} for all elements in \autoref{tab:elements} and for each strand in the \AR{}.
 
-Though this method is unconditionally stable, $\Delta t$ should still be chosen carefully as $\mathbf{F}$ will relax to the equilibrium charge states for very long time steps. In general, smaller timesteps should be chosen when the electron temperature varies rapidly and the electron density is high. In this paper, we exploit the adaptive timestep provided by the two-fluid EBTEL code which accounts for changes in the temperature and electron density. \citet{macneice_numerical_1984} provide two rules for adaptively adjusting the timestep to ensure $f_k$ changes sufficiently slowly. Additionally, \citet{shen_lagrangian_2015} provide an alternate scheme for choosing the timestep \textit{a priori} based on the input electron density and the eigenvalues of \autoref{eq:rate_mat}.
+Though this method is unconditionally stable, $\Delta t$ should still be chosen carefully as $\mathbf{F}$ will relax to the equilibrium charge states for very long time steps. In general, smaller time steps should be chosen when the electron temperature varies rapidly and the electron density is high. In this paper, we exploit the adaptive time step provided by the two-fluid EBTEL code which accounts for changes in the temperature and electron density. \citet{macneice_numerical_1984} provide two rules for adaptively adjusting the time step to ensure $f_k$ changes sufficiently slowly. Additionally, \citet{shen_lagrangian_2015} provide an alternate scheme for choosing the time step \textit{a priori} based on the input electron density and the eigenvalues of \autoref{eq:rate_mat}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                   Appendix 2                                %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Effective AIA Response Functions}\label{effective_response_functions}
 
+% spell-checker: disable %
 \begin{pycode}[manager_appendix]
 from synthesizAR.instruments import InstrumentSDOAIA
 from scipy.interpolate import splev
@@ -107,9 +110,11 @@ fig_aia_response.placement = ''
 fig_aia_response.fig_str = fig_str
 \end{pycode}
 \py[manager_appendix]|fig_aia_response|
+% spell-checker: enable %
 
 As discussed in \autoref{atomic}, the assumption of ionization equilibrium is likely to be violated in the impulsive heating cases considered here. Thus, we must recompute the contributions of each ion to the total channel response, using the result of \autoref{eq:nei_mat} in place of the equilibrium ion population fractions. \autoref{fig:aia-response} shows the effective temperature response functions for the six EUV channels on AIA compared to those calculated from \texttt{aia\_get\_response.pro} in SSW. Even though we include a limited number of transitions from the CHIANTI database (see \autoref{tab:elements}), we recover nearly all of the response from each channel. The high-temperature contributions in the SSW functions are due to continuum emission which we do not include in our model. In all cases, the continuum contribution is several orders of magnitude below peak of the channel response. Additionally, we do not account for the time variation in the wavelength response functions due to the degradation of the detector \citep[see Section 2.1.6 of ][]{boerner_initial_2012}.
 
+% spell-checker: disable %
 \begin{pycode}[manager_appendix]
 fig = plt.figure(figsize=texfigure.figsize(
     pytex,
@@ -150,6 +155,7 @@ fig_hydro_phase_space.figure_width = r'0.5\columnwidth'
 fig_hydro_phase_space.fig_str = fig_str
 \end{pycode}
 \py[manager_appendix]|fig_hydro_phase_space|
+% spell-checker: enable %
 
 Furthermore, during the evolution of a strand, the pressure is not constant for any of our heating scenarios as evidenced by \autoref{fig:hydro-phase-space}. The black line of constant pressure $p=10^{15}$ K cm$^{-3}$ shows the default pressure at which the SSW AIA response functions are evaluated. The other lines show the temperature-density phase space evolution for the high-, intermediate-, and low-frequency cases for a single strand, none of which is well described by the assumption of constant pressure. By recomputing and interpolating the emissivity to the temperatures and densities as defined by our hydrodynamic simulation, we ensure that we are evaluating all quantities in \autoref{eq:ppuv} at the correct temperature and density.
 
@@ -158,7 +164,7 @@ Furthermore, during the evolution of a strand, the pressure is not constant for 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Computing Time Lags}\label{timelag_details}
 
-To find the associated time lag for a channel pair in a given pixel, we compute the cross-correlation between the timeseries associated with each channel and find the delay which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
+To find the associated time lag for a channel pair in a given pixel, we compute the cross-correlation between the time series associated with each channel and find the delay which maximizes this cross-correlation. We can express the cross-correlation $\mathcal{C}$ between two channels $A$ and $B$ as,
 \begin{equation}\label{eq:cc_pre}
     \mathcal{C}_{AB}(\tau) = \mathcal{I}_A(t)\star\mathcal{I}_B(t) = \mathcal{I}_A(-t)\ast\mathcal{I}_B(t)
 \end{equation}
@@ -172,7 +178,7 @@ is the intensity of channel $c$ as a function of time, $I(t)$, centered to zero 
     &= \fourier{\mathcal{I}_A(-t)}\fourier{\mathcal{I}_B(t)}, \nonumber\\
     \mathcal{C}_{AB}(\tau) &= \inversefourier{\fourier{\mathcal{I}_A(-t)}\fourier{\mathcal{I}_B(t)}}.
 \end{align}
-Scaling \autoref{eq:cc} by the length of the intensity timeseries $I(t)$ yields the same result as that of the correlation defined in Section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{time lag} between channels $A$ and $B$ is defined as,
+Scaling \autoref{eq:cc} by the length of the intensity time series $I(t)$ yields the same result as that of the correlation defined in Section 2 of \citet{viall_evidence_2012}. Furthermore, the \textit{time lag} between channels $A$ and $B$ is defined as,
 \begin{equation}\label{eq:timelag}
     \tau_{AB} = \argmax_{\tau}\,\mathcal{C}_{AB}(\tau).
 \end{equation}
