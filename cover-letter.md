@@ -38,7 +38,7 @@ The comments of the referee are noted in *italics*. Our response to each concern
 
 6. *The authors have shown the derived slopes of the EM distribution, but it's not clear that the peak temperatures are consistent with observations. Figure 3 suggests that the temperature might peak relatively low (2 MK or so). It would be worthwhile to show a few example distributions, or maybe a map of the peak temperature.*
 
-      > Distribution of peak temperature in the EM, estimating emission from this AR; are we putting in enough energy? check flux out of our AR by multiplying DEM and loss function and integrating over temperature
+      > We have added an additional figure, Figure 5, and restructured section 3.2 appropriately. Figure 5 shows the emission measure distribution at three different locations in the active region. We have added a paragraph discussing Figure 5 and the relative positions of the peak temperatures for each heating frequency and commented on differences between these values and observations.
 
 7. *The scaling law derived at the bottom of page 12 may be dubious for a few reasons. The exponent $\alpha = -1/2$ is not a value that appears in @rosner_dynamics_1978. In fact, @rosner_dynamics_1978 give $\alpha = 0$ over the range $5.75 < \log T < 6.3$, and $\alpha = -2/3$ from $6.3 < \log T < 7.0$, which will obviously give a different scaling law. The second issue is that the scaling law from @cargill_implications_1994 may not be appropriate: @cargill_implications_1994 notes that the approximation is only to zeroth order, assuming static radiative cooling, whereas the @bradshaw_cooling_2010 scaling explicitly includes coronal draining. This appears incompatible.*
 
