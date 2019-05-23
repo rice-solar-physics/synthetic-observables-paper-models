@@ -143,7 +143,7 @@ ax.spines['left'].set_bounds(ax.get_yticks()[1], ax.get_yticks()[-2])
 ax.spines['bottom'].set_bounds(ax.get_xticks()[1], ax.get_xticks()[-2])
 fig_loop_dist = manager_methods.save_figure('loops',)
 fig_loop_dist.caption = r'Distribution of footpoint-to-footpoint lengths (in Mm) of the 5000 field lines traced from the field extrapolation computed from the magnetogram of NOAA 1158.'
-fig_loop_dist.figure_width = r'\columnwidth'
+fig_loop_dist.figure_width = r'0.5\columnwidth' if is_onecolumn() else r'\columnwidth'
 fig_loop_dist.placement = ''
 fig_loop_dist.fig_str = fig_str
 \end{pycode}
@@ -226,8 +226,7 @@ axes[2].spines['top'].set_visible(False)
 axes[2].spines['right'].set_visible(False)
 fig_hydro_profiles = manager_methods.save_figure('hydro-profiles')
 fig_hydro_profiles.caption = r'Heating rate (top), electron temperature (middle), and density (bottom) as a function of time for the three heating scenarios for a single strand. The colors denote the heating frequency as defined in the legend. The strand has a half length of $L/2\approx40$ Mm and a mean field strength of $\bar{B}\approx30$ G.'
-fig_hydro_profiles.figure_width = r'\columnwidth'
-fig_hydro_profiles.placement = ''
+fig_hydro_profiles.figure_width = r'0.5\columnwidth' if is_onecolumn() else r'\columnwidth'
 fig_hydro_profiles.fig_str = fig_str
 \end{pycode}
 \py[manager_methods]|fig_hydro_profiles|

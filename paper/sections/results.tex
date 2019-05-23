@@ -5,6 +5,9 @@
 
 % spell-checker: disable %
 \begin{pycode}[manager_results]
+from synthesizAR.analysis.dem import EMCube
+from utils import make_slope_map, plot_hist
+
 manager_results = texfigure.Manager(
     pytex,
     './',
@@ -13,8 +16,20 @@ manager_results = texfigure.Manager(
     fig_dir='figures',
     data_dir='data'
 )
+
 correlation_threshold = 0.1
 rsquared_threshold = 0.75
+
+# Calculate EM slopes ahead of time
+em_slope_maps = {}
+for h in heating:
+    s,r2 = make_slope_map(
+        EMCube.restore(os.path.join(manager_results.data_dir, h, 'em_cube.h5')),
+        em_threshold=1e24*(u.cm**(-5)),
+        temperature_lower_bound=8e5*u.K,
+    )
+    em_slope_maps[h] = Map(s.data, s.meta, mask=r2.data < rsquared_threshold)
+
 \end{pycode}
 % spell-checker: enable %
 
@@ -63,14 +78,20 @@ for i,f in enumerate(heating):
             lat.set_ticklabel_visible(False)
         if j == 0:
             xtext,ytext = m.world_to_pixel(
-                SkyCoord(-375*u.arcsec, -175*u.arcsec, frame=m.coordinate_frame))
+                SkyCoord(-385*u.arcsec, -155*u.arcsec, frame=m.coordinate_frame))
             ax.text(xtext.value,ytext.value,f'{f.split("_")[0].capitalize()}',
-                    color='w',fontsize=plt.rcParams['legend.fontsize'])
+                    color='w',
+                    fontsize=plt.rcParams['legend.fontsize'],
+                    horizontalalignment='left',
+                    verticalalignment='top')
         if i == 0:
             xtext,ytext = m.world_to_pixel(
-                SkyCoord(-280*u.arcsec, -315*u.arcsec, frame=m.coordinate_frame))
+                SkyCoord(-220*u.arcsec, -320*u.arcsec, frame=m.coordinate_frame))
             ax.text(xtext.value, ytext.value, f'{c} $\mathrm{{\AA}}$',
-                    color='w',fontsize=plt.rcParams['legend.fontsize'])
+                    color='w',
+                    fontsize=plt.rcParams['legend.fontsize'],
+                    horizontalalignment='right',
+                    verticalalignment='bottom')
             pos = ax.get_position().get_points()
             cax = fig.add_axes([pos[0,0], 0.89, pos[1,0]-pos[0,0], 0.025])
             cbar = fig.colorbar(im, cax=cax,orientation='horizontal')
@@ -107,7 +128,7 @@ tab = Table(
     }
 )
 # Write table to string
-caption = r'$\sigma_I/\bar{I}$ as defined by Equation 11 of \citep{guarrasi_coronal_2010} computed on a single image at $t=15\times10^3$ s for each channel and heating frequency. A larger value denotes a greater degree of contrast.\label{tab:fuzzy}'
+caption = r'$\sigma_I/\bar{I}$ as defined by Equation 11 of \citet{guarrasi_coronal_2010} computed on a single image at $t=15\times10^3$ s for each channel and heating frequency. A larger value denotes a greater degree of contrast.\label{tab:fuzzy}'
 formats = {'Channel [\AA]': '%.0f', **{f.split('_')[0].capitalize(): '%.2f' for f in heating}}
 with io.StringIO() as f:
     ascii.write(tab, format='aastex', caption=caption, output=f, formats=formats)
@@ -122,10 +143,84 @@ Additionally, we find that the 171 \AA{} channel is dimmer for high-frequency he
 
 While there are clear differences in the AIA intensities between all three heating frequencies, quantifying these differences is difficult due in part to the multidimensional nature of the intensity data. To better understand how observational signatures differ as a function of heating frequency, we need to find a reduced representation of our data set that retains signatures of the underlying energy deposition. To this end, we compute two common observables: the emission measure slope (\autoref{em_slopes}) and the time lag (\autoref{timelags}).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Emission Measure Slopes %%%%%%%%%%%%%%%%
-\subsection{Emission Measure Slopes}\label{em_slopes}
 
-As discussed in \autoref{introduction}, the emission measure slope is a useful quantity for understanding how frequently strands are re-energized. We compute emission measure distributions from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.2}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing \dem{} at each time step, we compute the time-averaged intensity in each pixel of each channel and compute \dem{} only once. We compute the uncertainties on the intensities in each channel using the \texttt{aia\_bp\_estimate\_error.pro} procedure in SSW which incorporates uncertainties due to shot noise, read noise, dark subtraction, quantization, photometric calibration, and onboard compression. After computing \dem{} in each pixel using the regularized inversion procedure, we fit a first-order polynomial to the log-transformed emission measure and temperature bin centers, $\log_{10}\mathrm{EM}\sim a\log_{10}T$, to calculate the emission measure slope, $a$. In \citetalias{barnes_understanding_2019-1}, we compare our modeled emission measure slopes to those derived from real AIA observations of NOAA 1158 using this same method.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Emission Measure Distributions %%%%%%%%%%%%%%%%
+\subsection{Emission Measure Distributions}\label{em_distributions}
+
+As discussed in \autoref{introduction}, the emission measure slope is a useful quantity for understanding how frequently strands are re-energized. We compute emission measure distributions from our forward-modeled intensities using the regularized inversion method of \citet{hannah_differential_2012}. This method was designed to work with the narrowband coverage provided by AIA and so is well-suited to our needs. We choose our temperature bins such that the leftmost edge is at $10^{5.5}$ K and the rightmost edge at $10^{7.2}$ K with bin widths of $\Delta\log T=0.1$. Rather than computing \dem{} at each time step, we compute the time-averaged intensity in each pixel of each channel and compute \dem{} only once. We compute the uncertainties on the intensities in each channel using the \texttt{aia\_bp\_estimate\_error.pro} procedure in SSW which incorporates uncertainties due to shot noise, read noise, dark subtraction, quantization, photometric calibration, and onboard compression.
+
+% Figure showing 1D EM distributions for three different regions and all three heating frequencies
+% spell-checker: disable %
+\begin{pycode}[manager_results]
+sample_points = [
+    dict(Tx=-275*u.arcsec,Ty=-195*u.arcsec, label='A'),
+    dict(Tx=-320*u.arcsec,Ty=-260*u.arcsec, label='B'),
+    dict(Tx=-300*u.arcsec,Ty=-300*u.arcsec, label='C')]
+figsize = texfigure.figsize(
+    pytex,
+    scale=1 if is_onecolumn() else 2,
+    height_ratio=1/3,
+    figure_width_context='columnwidth',
+)
+fig, axes = plt.subplots(
+    1, 3,
+    figsize=figsize,
+    sharex=True,
+    sharey=False,
+)
+
+for i,h in enumerate(heating):
+    em = EMCube.restore(os.path.join(manager_results.data_dir, h, 'em_cube.h5'))
+    color = heating_palette()[i]
+    label = h.split('_')[0].capitalize()
+    for j,p in enumerate(sample_points):
+        p0 = SkyCoord(Tx=p['Tx'], Ty=p['Ty'], frame=em[0].coordinate_frame)
+        p1 = SkyCoord(
+            Tx=p0.Tx + 1*u.pixel*em[0].scale.axis1,
+            Ty=p0.Ty + 1*u.pixel*em[0].scale.axis2,
+            frame=p0.frame,
+        )
+        em1d = em.get_1d_distribution(p0, p1)
+        plot_hist(axes[j], em1d.value, em.temperature_bin_edges.value,
+                  color=color, label=label)
+        axes[j].axvline(em.temperature_bin_centers[em1d.argmax()].to(u.K).value,
+                        color=color, ls='--', lw=1)
+        axes[j].set_yscale('log')
+        if i == 0:
+            axes[j].text(0.05, 0.9, p['label'],
+                         transform=axes[j].transAxes,
+                         color='k',
+                         fontsize=plt.rcParams['axes.labelsize'],
+                         horizontalalignment='left',
+                         verticalalignment='center')
+
+# Labels
+axes[0].set_ylabel(r'$\mathrm{EM}(T)$ [cm$^{-5}$]')
+axes[1].set_xlabel(r'$T$ [K]')
+# Limits and scale
+axes[0].set_xscale('log')
+axes[0].set_xlim(4e5, 2e7)
+axes[0].set_ylim(3e23, 3e26)
+axes[1].set_ylim(5e24, 5e27)
+axes[2].set_ylim(2e23, 1e26)
+axes[1].legend(loc='lower center', bbox_to_anchor=(0.5,1), ncol=3, frameon=False)
+plt.subplots_adjust(hspace=0.05)
+
+tfig = manager_results.save_figure('em-dist',)
+tfig.caption = r'\dem{} for a single pixel in the \AR{} for all three heating frequencies. The dashed vertical lines denote the value of $\Tpeak$. Each panel corresponds to a different pixel in the \AR{} as denoted by the label in the top left corner. The locations of these three pixels are marked with their corresponding labels in \autoref{fig:em-slope-maps}.'
+tfig.figure_env_name = 'figure*'
+tfig.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
+tfig.placement = ''
+tfig.fig_str = fig_str
+\end{pycode}
+\py[manager_results]|tfig|
+% spell-checker: enable %
+
+\added{\autoref{fig:em-dist} shows the emission measure distribution, \dem{}, for the case of high-, intermediate-, and low-frequency nanoflares. The three panels correspond to the three locations marked in \autoref{fig:em-slope-maps}. The dashed lines in each panel denote the location of $\Tpeak$, where $\Tpeak=\argmax_T\,\mathrm{EM}(T)$ is the temperature at which the emission measure distribution is maximum. At each sample location, the \dem becomes increasingly narrow with increasing heating frequency. We find that $\Tpeak$ is between $\approx2$ MK and 4 MK in all cases and is lowest at point C near the periphery of the \AR{} where the loops are the longest. We note that in all cases, $\Tpeak$ is significantly below 4 MK, the value measured by \citet{warren_systematic_2012} from spectroscopic observations of this same \AR{}. However, we note that at point B, the location closest to that at which \citeauthor{warren_systematic_2012} computed their \dem distributions, we find the highest $\Tpeak$, between $\approx3$ MK and 4 MK.}
+
+\subsubsection{Emission Measure Slopes}\label{em_slopes}
+
+After computing \dem{} in each pixel using the regularized inversion procedure, we fit a first-order polynomial to the log-transformed emission measure and temperature bin centers, $\log_{10}\mathrm{EM}\sim a\log_{10}T$, to calculate the emission measure slope, $a$. In \citetalias{barnes_understanding_2019-1}, we compare our modeled emission measure slopes to those derived from real AIA observations of NOAA 1158 using this same method.
 
 % spell-checker: disable %
 \begin{pycode}[manager_results]
@@ -138,11 +233,9 @@ fig = plt.figure(figsize=texfigure.figsize(
 params = {'cmap': 'viridis', 'vmin': 1.5, 'vmax': 7.5, 'title': False, 'annotate': False}
 axes = []
 for i,h in enumerate(heating):
-    m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
-    m_r2 = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope_rsquared.fits'))
-    m = Map(m.data, m.meta, mask=m_r2.data < rsquared_threshold)
-    m = m.submap(SkyCoord(Tx=-405*u.arcsec,Ty=-335*u.arcsec,frame=m.coordinate_frame),
-                 SkyCoord(Tx=-210*u.arcsec,Ty=-140*u.arcsec,frame=m.coordinate_frame))
+    m = em_slope_maps[h].submap(
+        SkyCoord(Tx=-405*u.arcsec,Ty=-335*u.arcsec,frame=m.coordinate_frame),
+        SkyCoord(Tx=-210*u.arcsec,Ty=-140*u.arcsec,frame=m.coordinate_frame))
     ax = fig.add_subplot(1, len(heating), i+1, projection=m)
     axes.append(ax)
     im = m.plot(axes=ax, **params)
@@ -160,6 +253,15 @@ for i,h in enumerate(heating):
     xtext,ytext = m.world_to_pixel(SkyCoord(-400*u.arcsec, -155*u.arcsec, frame=m.coordinate_frame))
     ax.text(xtext.value, ytext.value, h.split('_')[0].capitalize(),
             color='k',fontsize=plt.rcParams['legend.fontsize'])
+    # Mark locations where we calculated 1D EM(T) in previous figure
+    for p in sample_points:
+        ax.text(p['Tx'].to(u.deg).value, p['Ty'].to(u.deg).value, p['label'],
+                transform=ax.get_transform('world'),
+                color='r',
+                fontsize=plt.rcParams['axes.labelsize'],
+                verticalalignment='center',
+                horizontalalignment='center')
+
 plt.subplots_adjust(hspace=0.03,wspace=0.03)
 cax = fig.add_axes([
     axes[0].get_position().get_points()[0,0],
@@ -173,7 +275,7 @@ cbar.set_ticks([2,3,4,5,6,7])
 cbar.ax.tick_params(width=0.5)
 cbar.outline.set_linewidth(0.5)
 fig_slope_maps = manager_results.save_figure('em-slope-maps',)
-fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high- (left), intermediate- (center), and low-frequency (right) cases. The \dem{} is computed using time-averaged intensities from the six AIA EUV channels using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $8\times10^{5}\,\textup{K}\le T< \Tpeak$. Any pixels with $r^2<0.75$ are masked and colored white.'
+fig_slope_maps.caption = r'Maps of the emission measure slope, $a$, in each pixel of the \AR{} for the high- (left), intermediate- (center), and low-frequency (right) cases. The \dem{} is computed using time-averaged intensities from the six AIA EUV channels using the method of \citet{hannah_differential_2012}. The \dem{} in each pixel is then fit to $T^a$ over the temperature range $8\times10^{5}\,\textup{K}\le T< \Tpeak$. Any pixels with $r^2<0.75$ are masked and colored white. The red labels in each panel denote the three locations at which the \dem{} distributions in \autoref{fig:em-dist} were calculated.'
 fig_slope_maps.figure_env_name = 'figure*'
 fig_slope_maps.figure_width = r'\columnwidth' if is_onecolumn() else r'2\columnwidth'
 fig_slope_maps.placement = ''
@@ -182,11 +284,13 @@ fig_slope_maps.fig_str = fig_str
 \py[manager_results]|fig_slope_maps|
 % spell-checker: enable %
 
-\autoref{fig:em-slope-maps} shows the resulting emission measure slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit \dem{} over bins in the temperature range $8\times10^{5}\,\textup{K}\le T< \Tpeak$, where $\Tpeak=\argmax_T\,\mathrm{EM}(T)$ is the temperature at which the emission measure distribution peaks. To assess the ``goodness-of-fit'' we use $r^2$, the correlation coefficient for the first-order polynomial fit, and mask pixels with $r^2<\py[manager_results]|rsquared_threshold|$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low-frequency map (right panel) shows many values close to 2.
+\autoref{fig:em-slope-maps} shows the resulting emission measure slope, $a$, in each pixel of our forward-modeled \AR{} for the high-, intermediate-, and low-frequency cases. We fit \dem{} over bins in the temperature range $8\times10^{5}\,\textup{K}\le T< \Tpeak$. To assess the ``goodness-of-fit'' we use $r^2$, the correlation coefficient for the first-order polynomial fit, and mask pixels with $r^2<\py[manager_results]|rsquared_threshold|$. Looking at the three panels in \autoref{fig:em-slope-maps}, we find that overall, $a$ tends to decrease with decreasing frequency, consistent with previous modeling work (see \autoref{introduction}). The low-frequency map (right panel) shows many values close to 2.
 
 As the heating frequency increases, the slopes become larger, indicating an increasingly isothermal emission measure distribution. The intermediate-frequency map (center panel) shows predominantly higher slopes, with most pixels in the range $2\lesssim a \lesssim 3.5$ while the high-frequency map (left panel) shows much steeper slopes, with many $a\ge3.5$, and a much broader range of slopes, $3\lesssim a \lesssim 8$. Note that in the high-frequency case, the slope varies considerably across the \AR{} while the distribution of $a$ appears more spatially uniform in the intermediate- and low-frequency cases.
 
 Below $\Tpeak$, \citet{cargill_implications_1994} noted that the \dem{} could be described by $\mathrm{EM}(T)\sim n^2\tau_{rad}$, where $\tau_{rad}\sim T^{1-\alpha}n^{-1}$ is the radiative cooling time. \deleted{Additionally, \citet{bradshaw_cooling_2010} found that $T\sim n^{\ell}$, with $\ell\approx1$ for long loops and $\ell\approx2$ for short loops.} \added{Assuming $T\propto n^2$ \citep{serio_dynamics_1991,jakimiec_dynamics_1992} and approximating the temperature dependence of the radiative losses as $\alpha=-1/2$ \citep{cargill_implications_1994,cargill_cooling_1995} gives $a\approx2$.} We find that emission measure slopes produced by low-frequency nanoflares as shown in the right panel of \autoref{fig:em-slope-maps} are \added{approximately} consistent with analytical results for single nanoflares \added{though many of the low-frequency slopes are $>2$}. \added{This is likely due to the omission of enthalpy-driven cooling in the above scaling relation. \citet{bradshaw_cooling_2010} found $T\sim n^{\ell}$, with $\ell\approx1$ for long loops, where enthalpy-driven cooling is likely to dominate over radiative losses, and $\ell\approx2$ for shorter loops, where radiation remains the dominant cooling mechanism. Thus, the distribution of $a$ will depend on the distribution of loop lengths and smaller values of $\ell$ will lead to larger emission measure slopes (e.g. $a=2.5$ for $\ell=1$).}
+
+\subsubsection{Histograms}\label{em_histograms}
 
 % spell-checker: disable %
 \begin{pycode}[manager_results]
@@ -201,9 +305,7 @@ params = {'bins': 'fd', 'histtype': 'step','density': True,
           'lw': plt.rcParams['lines.linewidth']}
 peaks = {}
 for i,h in enumerate(heating):
-    m = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope.fits'))
-    m_rsquared = Map(os.path.join(manager_results.data_dir, f'{h}', 'em_slope_rsquared.fits'))
-    m = Map(m.data, m.meta, mask=m_rsquared.data < rsquared_threshold)
+    m = em_slope_maps[h]
     hist, bins, _ = ax.hist(m.data[~m.mask], **params, color=heating_palette()[i],
                          label=h.split('_')[0].capitalize())
     bin_centers = (bins[:-1] + bins[1:])/2
@@ -220,7 +322,7 @@ ax.set_xlabel(r'$a$')
 ax.set_ylabel(r'Number of Pixels (Normalized)')
 fig_slope_histograms = manager_results.save_figure('em-slope-histograms')
 fig_slope_histograms.caption = r'Distribution of \dem{} slopes, $a$, for every pixel in the simulated \AR{} for the high-, intermediate-, and low-frequency heating scenarios as shown in \autoref{fig:em-slope-maps}. The histogram bins are determined using the Freedman Diaconis estimator \citep{freedman_histogram_1981} as implemented in the Numpy package for array computation in Python \citep{oliphant_guide_2006} and each histogram is normalized such that the area under the histogram is equal to 1.'
-fig_slope_histograms.figure_width = r'\columnwidth'
+fig_slope_histograms.figure_width = r'0.5\columnwidth' if is_onecolumn() else r'\columnwidth'
 fig_slope_histograms.placement = ''
 fig_slope_histograms.fig_str = fig_str
 \end{pycode}
@@ -304,7 +406,7 @@ fig_timelag_maps.fig_str = fig_str
 \py[manager_results]|fig_timelag_maps|
 % spell-checker: enable %
 
-\autoref{fig:timelag-maps} shows $\tau_{AB}$ (\autoref{eq:timelag}) in each pixel of our simulated \AR{} for all heating scenarios listed in \autoref{tab:heating} and three selected channel pairs: 94-335 \AA{}, 211-131 \AA{}, and 193-171 \AA{}. Blacks, blues, and greens correspond to negative time lags; reds, oranges, and yellows correspond to positive time lags; and olive green indicates zero time lag. The range of the colorbar is $\pm5000$ s. Note that the heating frequency decreases from left to right across each row. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), the pixel is masked and colored white.
+\autoref{fig:timelag-maps} shows $\tau_{AB}$ (\autoref{eq:timelag}) in each pixel of our simulated \AR{} for all heating scenarios listed in \autoref{tab:heating} and three selected channel pairs: 94-335 \AA{}, 211-131 \AA{}, and 193-171 \AA{}. Blacks, blues, and greens correspond to negative time lags; reds, oranges, and yellows correspond to positive time lags; and olive green indicates zero time lag. The range of the colorbar is $\pm6000$ s. Note that the heating frequency decreases from left to right across each row. If the correlation in a given pixel is too low ($\max{\mathcal{C}_{AB}}<0.1$), the pixel is masked and colored white.
 
 Looking at the first two rows of \autoref{fig:timelag-maps}, we find that the positive time lags in the 211-131 \AA{} channel pair are significantly longer than those in the 94-335 \AA{} pair. In the temperature range $2.5<T<7.3$ MK (94-335 \AA{}), the dominant cooling mechanism is field-aligned thermal conduction while radiative cooling dominates in the range $0.6<T<2.5$ MK (211-131 \AA{}). Because thermal conduction is far more efficient at high temperatures, the plasma spends less time in the $[T_{335},T_{94}]$ temperature range than in $[T_{131},T_{211}]$. The 193-171 \AA{} time lags for the cooling case fall in the middle as radiative cooling also tends to dominate in this temperature interval ($0.9<T<1.5$ MK), but the separation in temperature space is smaller than the 211-131 \AA{} pair. In all cases, these differences in the magnitude of the positive time lags become more apparent at lower heating frequencies.
 
