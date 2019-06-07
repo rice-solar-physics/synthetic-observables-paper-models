@@ -8,11 +8,7 @@
 # Usage:
 #   ./package_for_aas.sh /path/to/top/level/dir
 #   ./package_for_aas.sh /path/to/top/level/dir --cover-letter
-
-# Create target directory
-DIR_NAME="aas-submission"
-DEST_DIR="$1/$DIR_NAME"
-mkdir -p $DEST_DIR
+#   ./package_for_aas.sh /path/to/top/level/dir --arxiv
 
 # Check for cover letter option
 if [[ $* == *--cover-letter* ]]
@@ -21,6 +17,24 @@ then
 else
     COVER_LETTER=false
 fi
+
+# Check for arXiv option
+if [[ $* == *--arxiv* ]]
+then
+    ARXIV=true
+else
+    ARXIV=false
+fi
+
+# Create target directory
+if $ARXIV
+then
+    DIR_NAME="arxiv-submission"
+else
+    DIR_NAME="aas-submission"
+fi
+DEST_DIR="$1/$DIR_NAME"
+mkdir -p $DEST_DIR
 
 # Copy over all paper files
 cp -r paper/sections $DEST_DIR
@@ -32,7 +46,7 @@ cp paper/pythontex.tex $DEST_DIR
 cp paper/paper.tex $DEST_DIR
 cp paper/references.bib $DEST_DIR
 cp paper/software.bib $DEST_DIR
-cp fix_figure_paths.py $DEST_DIR
+cp fix_latex.py $DEST_DIR
 if $COVER_LETTER ; then cp cover-letter.md $DEST_DIR ; fi
 
 # Flatten to a single file
@@ -50,7 +64,8 @@ pdflatex -synctex=1 -interaction=nonstopmode -file-line-error paper.tex
 
 # Remove Pythontex dependence and fix figure paths
 depythontex paper.tex --overwrite -o paper.tex
-python fix_figure_paths.py -i paper.tex -o paper.tex
+python fix_latex.py remove-pythontex-block -i paper.tex -o paper.tex
+python fix_latex.py fix-figure-paths -i paper.tex -o paper.tex
 cp figures/* .
 rm -r figures
 
@@ -72,7 +87,7 @@ rm -r data
 rm -r pythontex-files-paper
 rm -r python
 rm *.aux
-rm *.bbl
+if ! $ARXIV ; then rm *.bbl ; fi
 rm *.blg
 rm *.depytx
 rm *.log
@@ -82,6 +97,8 @@ rm *.synctex.gz
 rm *.py
 rm pythontex.tex
 if $COVER_LETTER ; then rm cover-letter.md ; fi
+if $ARXIV ; then rm paper.pdf ; fi
+if $ARXIV ; then rm *.bib ; fi
 
 # Compress directory and cleanup
 cd $1
