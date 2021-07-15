@@ -2,6 +2,7 @@
 
 - [arXiv](https://arxiv.org/abs/1906.03350)
 - [ApJ](https://iopscience.iop.org/article/10.3847/1538-4357/ab290c)
+- [ADS](https://ui.adsabs.harvard.edu/abs/2019ApJ...880...56B)
 
 ## Authors
 
